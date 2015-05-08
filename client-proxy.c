@@ -9,7 +9,8 @@
 
 void unpack(char const* buf, size_t len);
 
-// called from the client and realised from server_inerface.h
+// {{{ called from the client and realised from server_inerface.h
+
 void getServerDate(char* buffer, int length)
 {
     // pack the object to send to the broker.
