@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stulibc.h>
 
 int main( int argc, char* argv[])
 {
+    INIT();
     char* strServerDate = (char*) calloc( 256,sizeof(char) ); // 256 byte buffer
     memset( strServerDate, '\0', 256);
     

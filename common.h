@@ -1,21 +1,14 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-    struct param {
-        char name[80];
-        char type[10];
-        char value[256];
-    } __attribute__((packed));
+#include <stdint.h>
+#include <stdio.h>
 
-    struct return_result {
-        char type[10];
-        char result[256];
-    } __attribute__((packed));
+struct packet {
+    uint32_t len;
+    char* buffer;
+};
 
-    struct broker_message {
-        char functionname[50];
-        struct param params[5];
-        struct return_result result;
-    } __attribute__((packed));
-    
+
+void unpack(char const* buf, size_t len);
 #endif

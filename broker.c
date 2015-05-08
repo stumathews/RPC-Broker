@@ -1,19 +1,35 @@
 #include <stulibc.h>
+#include "common.h"
 
 char *program_name;
-static char* port = {0};
+static char port[20] = {0};
 
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
     // read and process data on the socket.
+    struct packet pkt;
+    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
+    pkt.len = ntohl(pkt.len);
+
+    PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+    if( n_rc < 1 )
+        netError(1, errno,"failed to receiver packet size\n");
+    
+    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
+    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
+
+    if( d_rc < 1 )
+        netError(1, errno,"failed to receive message\n");
+    printf("read %d bytes of data\n",d_rc);
+    PRINT("Successfully received buffer:\n");
+    unpack( (const char*)dbuf,pkt.len);
+
+
 }
 static void setPortNumber(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
-    int arglen = strlen(arg);
-    
-    port = Alloc( sizeof( char) * arglen );
-    strncpy( port, arg, arglen);
+    strncpy( port, arg, strlen(arg));
 }
 
 int main( int argc, char **argv )
