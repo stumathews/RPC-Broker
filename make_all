@@ -1,0 +1,3 @@
+rm *.exe
+make_client
+make_broker
