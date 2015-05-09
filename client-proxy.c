@@ -11,6 +11,9 @@
 #include <stulibc.h>
 
 
+extern char broker_address[30];
+extern char broker_port[20];
+
 // Send request to listening broker socket
 void send_request(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
 {
@@ -106,7 +109,7 @@ void getServerDate(char* buffer,int length)
     struct sockaddr_in peer;
 	SOCKET s;
     
-	s = netTcpClient("localhost","9090");
+	s = netTcpClient(broker_address,broker_port);
     
     // call blocking network function, send.
 	client( s, &peer, sbuf.data,sbuf.size );
@@ -133,6 +136,5 @@ void getServerDate(char* buffer,int length)
 void _return()
 {
 
-    EXIT(0);
 }
 

@@ -169,7 +169,6 @@ int main( int argc, char **argv )
         enum ParseResult result = CMD_Parse(argc,argv,true);
         if( result != PARSE_SUCCESS )
         {
-            PRINT("There was a problem parsing: %d \n", result);
             return 1;
         }
     }
