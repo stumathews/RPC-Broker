@@ -150,7 +150,8 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     find_client(); // the socket is already connected to the client if this is synchrnous
     forward_request();
     forward_response();
-    
+   
+    // in theory this is a client side operation not broker. broker just forward to registered servers 
     unpack_data( (const char*)dbuf,pkt.len);
 
 

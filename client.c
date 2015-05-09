@@ -31,9 +31,8 @@ static void setBrokerAddress(char* arg)
 
 }
 
-int main( int argc, char* argv[])
+void setupCmd(int argc, char* argv[])
 {
-    LIB_Init();
 
     struct Argument* portNumber = CMD_CreateNewArgument("port",
                                                         "port <number>",
@@ -55,7 +54,7 @@ int main( int argc, char* argv[])
         enum ParseResult result = CMD_Parse(argc,argv,true);
         if( result != PARSE_SUCCESS )
         {
-            return 1;
+            exit(1);
         }
     }
     else
@@ -63,15 +62,22 @@ int main( int argc, char* argv[])
         CMD_ShowUsages("client <options>");
         exit(0);
     }
+}
 
-    INIT();
-    char* strServerDate = (char*) calloc( 256,sizeof(char) ); // 256 byte buffer
-    memset( strServerDate, '\0', 256);
+int main( int argc, char* argv[])
+{
+    LIB_Init();
+    
+    setupCmd(argc, argv);
+
+    char* strServerDate = (char*) calloc( 80,sizeof(char) );
+    memset( strServerDate, '\0', 80);
     
     // use the server API...implemented by the client-proxy's getServerDate();
-    getServerDate(strServerDate,256);
+    getServerDate(strServerDate,80);
     printf("Returned result from server was: %s\n",strServerDate);
+    echo("Stuart Mathews");
+    getBrokerName();
 
     LIB_Uninit();
-    EXIT(0);
 }
