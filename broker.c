@@ -152,7 +152,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     forward_response();
    
     // in theory this is a client side operation not broker. broker just forward to registered servers 
-    unpack_data( (const char*)dbuf,pkt.len);
+    unpack_request_data( (const char*)dbuf,pkt.len);
 
 
 }
