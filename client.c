@@ -4,6 +4,18 @@
 #include <string.h>
 #include <stulibc.h>
 
+void call_server()
+{
+}
+
+void start_task()
+{
+}
+
+void use_Broker_API()
+{
+}
+
 int main( int argc, char* argv[])
 {
     INIT();

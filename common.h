@@ -10,5 +10,6 @@ struct packet {
 };
 
 
-void unpack(char const* buf, size_t len);
+void unpack_data(char const* buf, size_t len);
+void _return();
 #endif

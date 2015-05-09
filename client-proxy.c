@@ -1,3 +1,7 @@
+/**
+ * Client Proxy for clients
+ */
+
 #include "server_interface.h"
 #include "common.h"
 #include <stdio.h>
@@ -6,64 +10,81 @@
 #include <msgpack.h>
 #include <stulibc.h>
 
+
+// Send request to listening broker socket
+void send_request(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
+{
+    struct packet pkt;
+    pkt.len = htonl(length);
+    pkt.buffer = buffer;
+
+    // Send size of packet
+    int rc = 0; 
+    if( (rc = send(s, (char*) &pkt.len , sizeof(u_int32_t),0)) < 0 )
+        netError(1, errno, "failed to send size\n");
+    pkt.len = ntohl(pkt.len);
+    printf("sent %d bytes\n",rc);
+    printf("send length as %u\n",pkt.len);
+
+    // send packet
+    if( (rc = send(s, buffer, pkt.len,0)) < 0 )
+        netError(1,errno,"failed to send packed data\n");
+    printf("Sent %d bytes:\n",rc);
+    printf("buffer length %d\n",length);
+
+    //debugging:
+    //write(1,buffer,length);
+    //unpack_data((const char*)buffer,length);
+}
+
+
+// call send_request
+static void client( SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
+{
+    // Send request to broker.
+    send_request(s,peerp,buffer,length);
+}
+
+
+// Called from the client and realised from server_inerface.h
+void getServerDate(char* buffer,int length)
+{
+
+    // ---------
+    // PACK DATA
+    // ----------
+    
     // pack the object to send to the broker.
 
-    /* Broker Object format:
-        {"op"=>"getServerDate"}
+    /* 
+     * Broker Object format:
+        
+       {"op"=>"getServerDate"}
         {"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
     
     */
-
-void unpack(char const* buf, size_t len);
-
-static void client( SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
-{
-        // Send the size of buffer, then buffer to the broker.
-        struct packet pkt;
-        pkt.len = htonl(length);
-        pkt.buffer = buffer;
-    
-        int rc = 0; 
-        if( (rc = send(s, (char*) &pkt.len , sizeof(u_int32_t),0)) < 0 )
-            netError(1, errno, "failed to send size\n");
-        pkt.len = ntohl(pkt.len);
-        printf("sent %d bytes\n",rc);
-        printf("send length as %u\n",pkt.len);
-        
-        if( (rc = send(s, buffer, pkt.len,0)) < 0 )
-            netError(1,errno,"failed to send packed data\n");
-        printf("Sent %d bytes:\n",rc);
-        printf("buffer length %d\n",length);
-        write(1,buffer,length);
-        unpack((const char*)buffer,length);
-}
-
-// Called from the client and realised from server_inerface.h
-
-void getServerDate(char* buffer, int length)
-{
-
     msgpack_sbuffer sbuf;
     msgpack_sbuffer_init(&sbuf);
     
     msgpack_packer pk;
     msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-    //{"op"=>"getServerDate"}
+    // {"op"=>"getServerDate"}
     msgpack_pack_map(&pk,1);
     msgpack_pack_str(&pk, 2);
     msgpack_pack_str_body(&pk, "op", 2);
     msgpack_pack_str(&pk, 13);
     msgpack_pack_str_body(&pk, "getServerDate", 13);
     
-    //{"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
+    // {"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
     msgpack_pack_map(&pk,1);
     msgpack_pack_str(&pk, 6);
     msgpack_pack_str_body(&pk, "params", 6);
    
 
-    //[ {"buffer"=>buffer}, {"length"=>length} ]}}
-    // pack an array of 2 (params)
+    // pack an array of 2 (the params)
+    
+    // [ {"buffer"=>buffer}, {"length"=>length} ]}}
     msgpack_pack_array(&pk, 2);
     msgpack_pack_map(&pk,1);
 
@@ -78,28 +99,40 @@ void getServerDate(char* buffer, int length)
     msgpack_pack_str_body(&pk, "length", 6);
     msgpack_pack_int(&pk, length);
 
-    // send object(sbuf.data) size: sbuf.size to broker and wait for reply
+    // --------------------------
+    // SEND PACKED DATA TO BROKER
+    // -------------------------
 
     struct sockaddr_in peer;
 	SOCKET s;
-
     
-    // Establish a connection(calls connect) and return the socket that represents that connection.
 	s = netTcpClient("localhost","9090");
     
-    // call blocking network functions
+    // call blocking network function, send.
 	client( s, &peer, sbuf.data,sbuf.size );
 
 
+    // --
+    // Read response from the Broker
+    // ---
+
+    // --??
+    // SIMULATE RESULT
+    // --
     char* dummyResult = "11:11:05am";
     memcpy(buffer,dummyResult,strlen(dummyResult));
 
-    PRINT("Packed message.\n");
-    unpack((const char*)sbuf.data,sbuf.size);
-
+    // cleanup
     msgpack_sbuffer_destroy(&sbuf);
-	EXIT( 0 );
+
+    // return result (incomplete)
+    _return();
 }
 
 
+void _return()
+{
+
+    EXIT(0);
+}
 

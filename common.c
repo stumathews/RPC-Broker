@@ -2,7 +2,7 @@
 #include <stulibc.h>
 #include <msgpack.h>
 
-void unpack(char const* buf, size_t len)
+void unpack_data(char const* buf, size_t len)
 {
     
     /* buf is allocated by client. */
