@@ -8,6 +8,23 @@ static void server( SOCKET s, struct sockaddr_in *peerp );
 char *program_name;
 static char port[20] = {0};
 static bool verbose = false;
+static bool waitIndef = false;
+
+static void setPortNumber(char* arg)
+{
+    CHECK_STRING(arg, IS_NOT_EMPTY);
+    strncpy( port, arg, strlen(arg));
+}
+
+static void setVerbose(char* arg)
+{
+    verbose = true;
+}
+
+static void setWaitIndefinitely(char* arg)
+{
+    waitIndef = true;
+}
 
 void main_event_loop()
 {
@@ -35,7 +52,12 @@ void main_event_loop()
     {
         if(verbose) PRINT("Listening.\n");
         // wait/block on this listening socket...
-        int res = select( s+1, &readfds, NULL, NULL, &timeout);
+        int res = 0;
+       if( waitIndef )
+          res =  select( s+1, &readfds, NULL, NULL, NULL);//&timeout);
+       else
+          res =  select( s+1, &readfds, NULL, NULL, &timeout);
+
 
         if( res == 0 )
         {
@@ -133,16 +155,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 
 
 }
-static void setPortNumber(char* arg)
-{
-    CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( port, arg, strlen(arg));
-}
-
-static void setVerbose(char* arg)
-{
-    verbose = true;
-}
 
 int main( int argc, char **argv )
 {
@@ -160,6 +172,13 @@ int main( int argc, char **argv )
                                                         false,
                                                         false,
                                                         setVerbose);
+    struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
+                                                        "",
+                                                        "Wait indefinitely for new connections,else 60 secs and then dies",
+                                                        false,
+                                                        false,
+                                                        setWaitIndefinitely);
+    CMD_AddArgument(waitIndefArg);
     CMD_AddArgument(portNumber);
     CMD_AddArgument(verboseArg);
 
