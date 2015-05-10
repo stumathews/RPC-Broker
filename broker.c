@@ -116,12 +116,17 @@ void find_client()
 
 void forward_request()
 {
+
 }
 
 void forward_response()
 {
 }
 
+void determine_request_type(struct packet* pkt)
+{
+
+}
 
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
@@ -134,8 +139,8 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( n_rc < 1 )
         netError(1, errno,"failed to receiver packet size\n");
     
-    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
+    pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
+    int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
 
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
@@ -146,13 +151,18 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         PRINT("Successfully received buffer:");
     }
 
+    // What is this data we got?
+    // 1. A request for a service
+    // 2. A registration request
+    determine_request_type(&pkt);
+
     find_server();
     find_client(); // the socket is already connected to the client if this is synchrnous
     forward_request();
     forward_response();
    
     // in theory this is a client side operation not broker. broker just forward to registered servers 
-    unpack_request_data( (const char*)dbuf,pkt.len);
+    unpack_request_data( (const char*)pkt.buffer,pkt.len);
 
 
 }
