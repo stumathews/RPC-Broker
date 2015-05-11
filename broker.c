@@ -123,9 +123,35 @@ void forward_response()
 {
 }
 
-void determine_request_type(struct packet* pkt)
+enum RequestType determine_request_type(struct packet* pkt)
 {
+        
+    /* buf is allocated by client. */
+    msgpack_unpacked result;
+    msgpack_unpack_return ret;
+    size_t off = 0;
+    msgpack_unpacked_init(&result);
 
+    // Go ahead unpack an object
+    ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off);
+    if (ret == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = result.data;
+
+        msgpack_object_print(stdout, obj);
+
+        if( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER || obj.type == MSGPACK_OBJECT_NEGATIVE_INTEGER )
+        {            
+            return obj.via.u64;
+        }
+        else
+        {
+            PRINT("Expected reqyest type in protocol.\n");
+            exit(1);
+        }
+    }
+
+    msgpack_unpacked_destroy(&result);
 }
 
 static void server( SOCKET s, struct sockaddr_in *peerp )
@@ -154,11 +180,26 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     // What is this data we got?
     // 1. A request for a service
     // 2. A registration request
-    determine_request_type(&pkt);
+    int request_type = determine_request_type(&pkt);
+    if( request_type == REQUEST_SERVICE )
+    {
+        PRINT("Incomming Service Request.\n");
+        find_server();
+        forward_request();
+    }
+    else if ( request_type == REQUEST_REGISTRATION )
+    {
+        PRINT("Incomming Registration Request.\n");
 
-    find_server();
+    }
+    else 
+    {
+        PRINT("Unrecongnised request type:%d \n", request_type);    
+        exit(1);
+    }
+
+
     find_client(); // the socket is already connected to the client if this is synchrnous
-    forward_request();
     forward_response();
    
     // in theory this is a client side operation not broker. broker just forward to registered servers 

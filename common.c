@@ -68,6 +68,9 @@ char* pack_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     msgpack_packer pk;
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
+    // 0 = Service request
+    msgpack_pack_int(&pk,0);
+    
     // {"op"=>"getServerDate"}
     msgpack_pack_map(&pk,1);
     msgpack_pack_str(&pk, 2);
