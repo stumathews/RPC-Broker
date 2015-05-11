@@ -1,14 +1,82 @@
 #include <stulibc.h>
 #include "common.h"
 
-
-// forward declerations
-static void server( SOCKET s, struct sockaddr_in *peerp );
-
+struct ServiceRegistrationsList service_repository;
 char *program_name;
 static char port[20] = {0};
 static bool verbose = false;
 static bool waitIndef = false;
+void update_repository();
+void register_service(struct ServiceRegistration* service_registration);
+void UnpackServiceRegistrationBuffer(char* buffer, struct ServiceRegistration* unpacked);
+void acknowledgement();
+void find_server();
+void find_client();
+void forward_request();
+void forward_response();
+
+static void server( SOCKET s, struct sockaddr_in *peerp )
+{
+    // 1. Read the size of packet.
+    // 2. Read the packet data
+    // 3. Do stuff based on the packet data
+
+    struct packet pkt;
+
+    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
+    pkt.len = ntohl(pkt.len);
+
+    if( n_rc < 1 )
+        netError(1, errno,"Failed to receiver packet size\n");
+    
+    if(verbose) 
+        PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+    
+    pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
+    int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
+
+    if( d_rc < 1 )
+        netError(1, errno,"failed to receive message\n");
+    
+    if(verbose)
+    {
+        PRINT("Read %d bytes of data.\n",d_rc);
+    }
+    goto test;
+    // What is this data we got?
+    int request_type = 0;
+    if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
+    {
+        PRINT("Incomming Service Request.\n");
+        find_server();
+        forward_request();
+    }
+    else if ( request_type == REQUEST_REGISTRATION )
+    {
+        test:
+        if( verbose )
+            PRINT("Incomming Registration Request.\n");
+        struct ServiceRegistration *sr_buf = malloc( sizeof( struct ServiceRegistration ));
+        UnpackServiceRegistrationBuffer(pkt.buffer, sr_buf); 
+        register_service(sr_buf);
+        free(sr_buf);
+
+    }
+    else 
+    {
+        PRINT("Unrecongnised request type:%d \n", request_type);    
+        exit(1);
+    }
+
+
+    find_client(); // the socket is already connected to the client if this is synchrnous
+    forward_response();
+   
+    // in theory this is a client side operation not broker. broker just forward to registered servers 
+    unpack_request_data( (const char*)pkt.buffer,pkt.len);
+
+
+}
 
 static void setPortNumber(char* arg)
 {
@@ -26,6 +94,7 @@ static void setWaitIndefinitely(char* arg)
     waitIndef = true;
 }
 
+// listens for broker connections and dispatches them to the server() method
 void main_event_loop()
 {
     struct sockaddr_in local;
@@ -96,10 +165,43 @@ void main_event_loop()
 
 void update_repository()
 {
+    
+}
+void print_service_repository()
+{
+    if(verbose)
+        printf("Service registrations:\n");
+
+    struct list_head *pos, *q;
+    struct ServiceRegistrationsList* tmp = malloc( sizeof( struct ServiceRegistrationsList ));
+    int count = 0;
+    list_for_each( pos, &service_repository.list)
+    {
+        tmp = list_entry( pos, struct ServiceRegistrationsList, list );
+        printf("%d: Address : %s\n Port %s\n", count++,tmp->service_registration->address, tmp->service_registration->port);
+    }
+    //free(tmp);
 }
 
-void register_service()
+void UnpackServiceRegistrationBuffer(char* buffer, struct ServiceRegistration* unpacked)
 {
+    if( verbose)
+        PRINT("unpack service registration request\n");
+    unpacked->address = "dummy";
+    unpacked->port = "7070";
+}
+
+void register_service(struct ServiceRegistration* service_registration )
+{
+    if(verbose)
+        PRINT("register service registration request\n");
+
+    struct ServiceRegistrationsList *tmp = malloc( sizeof( struct ServiceRegistrationsList));
+    tmp->service_registration = service_registration;
+    list_add( &(tmp->list),&(service_repository.list));
+    
+    print_service_repository(); // prints all services registered so far
+
 }
 
 void acknowledgement()
@@ -123,94 +225,12 @@ void forward_response()
 {
 }
 
-enum RequestType determine_request_type(struct packet* pkt)
-{
-        
-    /* buf is allocated by client. */
-    msgpack_unpacked result;
-    msgpack_unpack_return ret;
-    size_t off = 0;
-    msgpack_unpacked_init(&result);
 
-    // Go ahead unpack an object
-    ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off);
-    if (ret == MSGPACK_UNPACK_SUCCESS) 
-    {
-        msgpack_object obj = result.data;
-
-        msgpack_object_print(stdout, obj);
-
-        if( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER || obj.type == MSGPACK_OBJECT_NEGATIVE_INTEGER )
-        {            
-            return obj.via.u64;
-        }
-        else
-        {
-            PRINT("Expected reqyest type in protocol.\n");
-            exit(1);
-        }
-    }
-
-    msgpack_unpacked_destroy(&result);
-}
-
-static void server( SOCKET s, struct sockaddr_in *peerp )
-{
-    // read and process data on the socket.
-    struct packet pkt;
-    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
-    pkt.len = ntohl(pkt.len);
-
-    if( verbose) PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
-    if( n_rc < 1 )
-        netError(1, errno,"failed to receiver packet size\n");
-    
-    pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
-
-    if( d_rc < 1 )
-        netError(1, errno,"failed to receive message\n");
-    
-    if(verbose)
-    {
-        printf("read %d bytes of data\n",d_rc);
-        PRINT("Successfully received buffer:");
-    }
-
-    // What is this data we got?
-    // 1. A request for a service
-    // 2. A registration request
-    int request_type = determine_request_type(&pkt);
-    if( request_type == REQUEST_SERVICE )
-    {
-        PRINT("Incomming Service Request.\n");
-        find_server();
-        forward_request();
-    }
-    else if ( request_type == REQUEST_REGISTRATION )
-    {
-        PRINT("Incomming Registration Request.\n");
-
-    }
-    else 
-    {
-        PRINT("Unrecongnised request type:%d \n", request_type);    
-        exit(1);
-    }
-
-
-    find_client(); // the socket is already connected to the client if this is synchrnous
-    forward_response();
-   
-    // in theory this is a client side operation not broker. broker just forward to registered servers 
-    unpack_request_data( (const char*)pkt.buffer,pkt.len);
-
-
-}
 
 int main( int argc, char **argv )
 {
     LIB_Init();
+    INIT_LIST_HEAD(&service_repository.list);;
 
     struct Argument* portNumber = CMD_CreateNewArgument("port",
                                                         "port <number>",

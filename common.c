@@ -163,3 +163,34 @@ void unpack_request_data(char const* buf, size_t len)
         printf("The data in the buf is invalid format.\n");
     }
 }
+
+enum RequestType determine_request_type(struct packet* pkt)
+{
+        
+    /* buf is allocated by client. */
+    msgpack_unpacked result;
+    msgpack_unpack_return ret;
+    size_t off = 0;
+    msgpack_unpacked_init(&result);
+
+    // Go ahead unpack an object
+    ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off);
+    if (ret == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = result.data;
+
+        msgpack_object_print(stdout, obj);
+
+        if( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER || obj.type == MSGPACK_OBJECT_NEGATIVE_INTEGER )
+        {            
+            return obj.via.u64;
+        }
+        else
+        {
+            PRINT("Expected reqyest type in protocol.\n");
+            exit(1);
+        }
+    }
+
+    msgpack_unpacked_destroy(&result);
+}

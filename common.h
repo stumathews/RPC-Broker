@@ -13,7 +13,22 @@ struct packet {
     char* buffer;
 };
 
+struct ServiceRegistration
+{
+    char* address;
+    char* port;  
+    char** services; // ["getServername, "GetServerThis", "getServerThat"]
+};
 
+struct ServiceRegistrationsList
+{
+    struct ServiceRegistration *service_registration;
+    struct list_head list;
+
+};
+
+
+enum RequestType determine_request_type(struct packet* pkt);
 void send_request(char* buffer, int bufsize,char* address, char* port);
 void client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length);
 void unpack_request_data(char const* buf, size_t len);
