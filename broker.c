@@ -6,9 +6,10 @@ char *program_name;
 static char port[20] = {0};
 static bool verbose = false;
 static bool waitIndef = false;
+
 void update_repository();
 void register_service(struct ServiceRegistration* service_registration);
-void UnpackServiceRegistrationBuffer(char* buffer, struct ServiceRegistration* unpacked);
+void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegistration* unpacked);
 void acknowledgement();
 void find_server();
 void find_client();
@@ -42,7 +43,11 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Read %d bytes of data.\n",d_rc);
     }
+    
     goto test;
+    
+    // BrokerProtocol* 
+
     // What is this data we got?
     int request_type = 0;
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
@@ -56,8 +61,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         test:
         if( verbose )
             PRINT("Incomming Registration Request.\n");
+
         struct ServiceRegistration *sr_buf = malloc( sizeof( struct ServiceRegistration ));
-        UnpackServiceRegistrationBuffer(pkt.buffer, sr_buf); 
+        UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
         register_service(sr_buf);
         free(sr_buf);
 
@@ -72,8 +78,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     find_client(); // the socket is already connected to the client if this is synchrnous
     forward_response();
    
-    // in theory this is a client side operation not broker. broker just forward to registered servers 
-    unpack_request_data( (const char*)pkt.buffer,pkt.len);
 
 
 }
@@ -183,12 +187,15 @@ void print_service_repository()
     //free(tmp);
 }
 
-void UnpackServiceRegistrationBuffer(char* buffer, struct ServiceRegistration* unpacked)
+void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
 {
+    // unpack service registration request
     if( verbose)
         PRINT("unpack service registration request\n");
     unpacked->address = "dummy";
     unpacked->port = "7070";
+    // in theory this is a client side operation not broker. broker just forward to registered servers 
+    unpack_request_data( (const char*)buffer,buflen);
 }
 
 void register_service(struct ServiceRegistration* service_registration )

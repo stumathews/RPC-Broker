@@ -19,7 +19,7 @@ void echo(char* echo)
 
     msgpack_sbuffer sbuf;
 
-    pack_request_data( &sbuf, (char*)__func__, "%s",echo);
+    pack_client_request_data( &sbuf, (char*)__func__, "%s",echo);
 
     send_request(sbuf.data,sbuf.size, broker_address, broker_port);
 
@@ -31,7 +31,7 @@ char* getBrokerName()
 
     msgpack_sbuffer sbuf;
 
-    pack_request_data( &sbuf, (char*)__func__, "");
+    pack_client_request_data( &sbuf, (char*)__func__, "");
     
     send_request(sbuf.data,sbuf.size, broker_address, broker_port);
 
@@ -43,7 +43,7 @@ void getServerDate(char* buffer,int length)
 
     msgpack_sbuffer sbuf;
 
-    pack_request_data( &sbuf, (char*)__func__, "%s%d",buffer,length);
+    pack_client_request_data( &sbuf, (char*)__func__, "%s%d",buffer,length);
     
     send_request(sbuf.data,sbuf.size, broker_address, broker_port);
 
