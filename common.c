@@ -2,8 +2,11 @@
 #include <stulibc.h>
 #include <msgpack.h>
 
+#define REQUEST_TYPE_IDENT "request_type"
+
 void pack_map_str( char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival,msgpack_packer* pk );
+msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
 
 bool service_register_with_broker( char *broker_address, char* broker_port )
 {
@@ -196,18 +199,30 @@ void unpack_request_data(char const* buf, size_t len)
     // Go and get the rest of all was good
     while (ret == MSGPACK_UNPACK_SUCCESS) 
     {
-        /* Use obj. */
-        
-        // We have the object
         msgpack_object obj = result.data;
-        // print it:
-
-        /* Use obj. */
-        msgpack_object_print(stdout, obj);
-        printf("\n");
-
-        // Read all the headers
-        // read the specific structures for this request type.
+        
+        char header_name[20];
+        memset(header_name, '\0', 20);
+        
+        msgpack_object val = extract_header( &obj, header_name);
+        printf("header: %s ",header_name);
+        if( val.type == MSGPACK_OBJECT_STR )
+        {
+            int str_len = val.via.str.size;
+            char str[str_len];
+            memset( str, '\0', str_len);
+            str[str_len] = '\0';
+            strncpy(str, val.via.str.ptr,str_len); 
+            printf("[string value]: %s\n",str);
+        }
+        else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
+        {
+            printf("[integer value]: %d\n", val.via.i64);
+        }
+        else{ printf("\n"); }
+        
+        //msgpack_object_print(stdout, obj);
+        //printf("\n");
 
         /* If you want to allocate something on the zone, you can use zone. */
         /* msgpack_zone* zone = result.zone; */
@@ -222,33 +237,73 @@ void unpack_request_data(char const* buf, size_t len)
     }
 }
 
+msgpack_object extract_header( msgpack_object* obj, char* header_buffer )
+{
+    // msgpack_object.type (msgpack_object_type)
+    // msgpack_object.via (msgpack_object_union)
+    if( obj->type == MSGPACK_OBJECT_MAP )
+    {            
+        int count = obj->via.map.size; // How many items in this map? 
+        if( count != 1 )
+        {
+            PRINT("Expected count of items in map to be 1. Not the case: %d\n", count);
+            exit(1);
+        }
+
+        struct msgpack_object_kv* pairs = obj->via.map.ptr; // all the key/value pairs in this map
+
+        msgpack_object key = pairs[0].key;
+        msgpack_object val = pairs[0].val;
+
+        char key_name[key.via.str.size];
+        strncpy(key_name, key.via.str.ptr, key.via.str.size);
+        key_name[key.via.str.size] = '\0';
+        strncpy(header_buffer, key_name, key.via.str.size);
+
+        return val;
+    }
+    else
+    {
+        PRINT("Expected request type to be a map.\n");
+        exit(1);
+    }
+}
+
+void unpack_headers( struct packet* pkt )
+{
+
+}
+
 enum RequestType determine_request_type(struct packet* pkt)
 {
-        
-    /* buf is allocated by client. */
     msgpack_unpacked result;
     msgpack_unpack_return ret;
     size_t off = 0;
     msgpack_unpacked_init(&result);
 
-    // Go ahead unpack an object
+    // unpack just one object
     ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off);
     if (ret == MSGPACK_UNPACK_SUCCESS) 
     {
         msgpack_object obj = result.data;
 
-        msgpack_object_print(stdout, obj);
+        char header_name[20]; // assume that the protocol states that the header_name can not be longer than 20 characters
+        memset( header_name, '\0', 20);
 
-        if( obj.type == MSGPACK_OBJECT_POSITIVE_INTEGER || obj.type == MSGPACK_OBJECT_NEGATIVE_INTEGER )
-        {            
-            return obj.via.u64;
+        msgpack_object val = extract_header( &obj, header_name );
+
+        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_IDENT,header_name) == 0 )
+        {
+            return val.via.i64;
         }
         else
         {
-            PRINT("Expected reqyest type in protocol.\n");
+            PRINT("Expecting request_type. got header name as '%s' and value as '%d'\n.",header_name, val.via.i64);
             exit(1);
         }
+        
     }
+    else { PRINT("pack failed\n"); }
 
     msgpack_unpacked_destroy(&result);
 }
