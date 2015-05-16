@@ -13,7 +13,7 @@ void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegi
 void acknowledgement();
 void find_server();
 void find_client();
-void forward_request();
+void forward_request(char* buffer, int len);
 void forward_response();
 
 static void server( SOCKET s, struct sockaddr_in *peerp )
@@ -43,24 +43,20 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Read %d bytes of data.\n",d_rc);
     }
-    
-    goto test;
-    
-    // BrokerProtocol* 
 
+    int request_type = -1;
+   
     // What is this data we got?
-    int request_type = 0;
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
     {
         PRINT("Incomming Service Request.\n");
+
         find_server();
-        forward_request();
+        forward_request(pkt.buffer, pkt.len);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
-        test:
-        if( verbose )
-            PRINT("Incomming Registration Request.\n");
+        PRINT("Incomming Registration Request.\n");
 
         struct ServiceRegistration *sr_buf = malloc( sizeof( struct ServiceRegistration ));
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
@@ -223,9 +219,10 @@ void find_client()
 {
 }
 
-void forward_request()
+void forward_request(char* buffer, int len)
 {
-
+    if(verbose) PRINT("Forwarding request...\n");
+    unpack_request_data( (const char*)buffer,len);
 }
 
 void forward_response()
