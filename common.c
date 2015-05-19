@@ -119,7 +119,7 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk)
     msgpack_pack_str_body(pk, value, strlen(value));
 }
 
-// pack the object to send to the broker.
+// pack the object to send to the broker. (client's service request)
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
 {
 
@@ -206,6 +206,7 @@ void unpack_request_data(char const* buf, size_t len)
         
         msgpack_object val = extract_header( &obj, header_name);
         printf("header: %s ",header_name);
+        //Protocolheaders headers; // will store all the protocol's headers
         if( val.type == MSGPACK_OBJECT_STR )
         {
             int str_len = val.via.str.size;
@@ -219,7 +220,12 @@ void unpack_request_data(char const* buf, size_t len)
         {
             printf("[integer value]: %d\n", val.via.i64);
         }
-        else{ printf("\n"); }
+        else
+        {
+            // this is not a header as its value either an array or something else
+            printf("\n"); 
+        }
+
         
         //msgpack_object_print(stdout, obj);
         //printf("\n");
