@@ -18,6 +18,9 @@ typedef struct ServiceRegistration
 {
     char* address;
     char* port;  
+    char** services;
+    int num_services;
+    char* service_name;
 } ServiceReg;
 
 typedef struct ProtocolHeader
@@ -47,4 +50,7 @@ void unpack_request_data(char const* buf, size_t len);
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
 void _return();
 bool service_register_with_broker( char* broker_address, char *broker_port );
+msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
+void pack_map_str( char* key, char* value, msgpack_packer* pk);
+void pack_map_int(char* key, int ival,msgpack_packer* pk );
 #endif

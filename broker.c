@@ -178,7 +178,8 @@ void print_service_repository()
     list_for_each( pos, &service_repository.list)
     {
         tmp = list_entry( pos, struct ServiceRegistrationsList, list );
-        printf("%d: Address : %s\n Port %s\n", count++,tmp->service_registration->address, tmp->service_registration->port);
+        ServiceReg *unpacked = tmp->service_registration;
+        PRINT("Service Registration:\nService name:%s\nAddress: %s\nPort: %s\nNumber ofservices %d",unpacked->service_name,unpacked->address, unpacked->port,unpacked->num_services);
     }
     //free(tmp);
 }
@@ -188,10 +189,102 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
     // unpack service registration request
     if( verbose)
         PRINT("unpack service registration request\n");
-    unpacked->address = "dummy";
-    unpacked->port = "7070";
     // in theory this is a client side operation not broker. broker just forward to registered servers 
-    unpack_request_data( (const char*)buffer,buflen);
+
+    /* buf is allocated by client. */
+    msgpack_unpacked result;
+    msgpack_unpack_return ret;
+    size_t off = 0;
+    int i = 0;
+    msgpack_unpacked_init(&result);
+
+    // Go ahead unpack an object
+    ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+
+    // Go and get the rest of all was good
+    while (ret == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = result.data;
+        
+        char header_name[20];
+        memset(header_name, '\0', 20);
+        
+        msgpack_object val = extract_header( &obj, header_name);
+        //Protocolheaders headers; // will store all the protocol's headers
+        if( val.type == MSGPACK_OBJECT_STR )
+        {
+            // EXTRACT STRING START
+            int str_len = val.via.str.size;
+            char* str = Alloc( str_len);
+            memset( str, '\0', str_len);
+            str[str_len] = '\0';
+            strncpy(str, val.via.str.ptr,str_len); 
+            // EXTRACT STRING END 
+            //
+            if( STR_Equals( "sender-address", header_name ) == true)
+            {
+                unpacked->address = str;
+            }
+            else if( STR_Equals("reply-port",header_name) == true)
+            {
+                unpacked->port = str;
+            }
+            else if( STR_Equals("service-name",header_name) == true)
+            {
+                unpacked->service_name = str;
+            }
+
+        }
+        else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
+        {
+
+            if( STR_Equals("services-count",header_name) == true)
+            {
+                unpacked->num_services = val.via.i64;
+                unpacked->services = malloc(sizeof(char)*val.via.i64);
+            }
+        }
+        else if( val.type == MSGPACK_OBJECT_ARRAY )
+        {
+            if( verbose) 
+                PRINT("Processign services...\n");
+            msgpack_object_array array = val.via.array;
+            for( int i = 0; i < array.size;i++)
+            {
+                // EXTRACT STRING START
+                int str_len = array.ptr[i].via.str.size;
+                char* str = Alloc( str_len);
+                memset( str, '\0', str_len);
+                str[str_len] = '\0';
+                strncpy(str, array.ptr[i].via.str.ptr,str_len); 
+                if(verbose)
+                    PRINT("SERVICE! %s\n",str);
+                unpacked->services[i] = str;
+
+            }
+
+        }
+        else
+        {
+            // this is not a header as its value either an array or something else
+            printf("\n"); 
+        }
+
+        
+        //msgpack_object_print(stdout, obj);
+        //printf("\n");
+
+        /* If you want to allocate something on the zone, you can use zone. */
+        /* msgpack_zone* zone = result.zone; */
+        /* The lifetime of the obj and the zone,  */
+
+        ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+    }
+    msgpack_unpacked_destroy(&result);
+
+    if (ret == MSGPACK_UNPACK_PARSE_ERROR) {
+        printf("The data in the buf is invalid format.\n");
+    }
 }
 
 void register_service(struct ServiceRegistration* service_registration )
@@ -200,6 +293,14 @@ void register_service(struct ServiceRegistration* service_registration )
         PRINT("register service registration request\n");
 
     struct ServiceRegistrationsList *tmp = malloc( sizeof( struct ServiceRegistrationsList));
+    if( verbose)
+    {
+        for( int i = 0 ; i < service_registration->num_services;i++)
+        {
+            PRINT("Service %s\n", service_registration->services[i]);
+        }
+    }
+    
     tmp->service_registration = service_registration;
     list_add( &(tmp->list),&(service_repository.list));
     

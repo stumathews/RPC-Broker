@@ -4,9 +4,6 @@
 
 #define REQUEST_TYPE_IDENT "request_type"
 
-void pack_map_str( char* key, char* value, msgpack_packer* pk);
-void pack_map_int(char* key, int ival,msgpack_packer* pk );
-msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
 
 bool service_register_with_broker( char *broker_address, char* broker_port )
 {
@@ -23,6 +20,8 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
     pack_map_str("sender-address","localhost",&pk);
     pack_map_str("reply-port","8080",&pk);
     pack_map_str("service-name","theServiceName",&pk);
+    pack_map_int("services-count",4,&pk);
+
 
     char* services[] = {"service1","service2","server3","service4",NULL };
     char* service = services[0];
