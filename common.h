@@ -43,9 +43,9 @@ typedef struct ProtocolHeader
 
 
 enum RequestType determine_request_type(struct packet* pkt);
-int send_request(char* buffer, int bufsize,char* address, char* port);
-int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length);
-void unpack_request_data(char const* buf, size_t len);
+int send_request(char* buffer, int bufsize,char* address, char* port, bool verbose);
+int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool verbose);
+void unpack_request_data(char const* buf, size_t len, bool verbose);
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
 void _return();
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer );

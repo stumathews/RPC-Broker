@@ -7,7 +7,7 @@
 
 
 // Send request to broker.
-int send_request(char* buffer, int bufsize,char* address, char* port)
+int send_request(char* buffer, int bufsize,char* address, char* port, bool verbose)
 {
     // --------------------------
     // SEND PACKED DATA TO BROKER
@@ -17,10 +17,10 @@ int send_request(char* buffer, int bufsize,char* address, char* port)
 	SOCKET s;
     
 	s = netTcpClient(address,port);
-	return client( s, &peer, buffer,bufsize );
+	return client( s, &peer, buffer,bufsize,false );
 }
 // Send request to listening broker socket
-int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
+int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool verbose)
 {
     struct packet pkt;
     pkt.len = htonl(length);
@@ -31,23 +31,21 @@ int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length)
     if( (rc = send(s, (char*) &pkt.len , sizeof(u_int32_t),0)) < 0 )
         netError(1, errno, "failed to send size\n");
     pkt.len = ntohl(pkt.len);
-    printf("sent %d bytes\n",rc);
-    printf("send length as %u\n",pkt.len);
+    if( verbose )
+    {
+        printf("sent %d bytes\n",rc);
+        printf("send length as %u\n",pkt.len);
+    }
 
     // send packet
     if( (rc = send(s, buffer, pkt.len,0)) < 0 )
         netError(1,errno,"failed to send packed data\n");
-    printf("Sent %d bytes:\n",rc);
-    printf("buffer length %d\n",length);
-
-    //debugging:
-    //write(1,buffer,length);
-    //unpack_data((const char*)buffer,length);
-    
-    // wait for a response from the broker?
-    //unpack_data((const char*)buffer,length);
+    if( verbose )
+    {
+        printf("Sent %d bytes:\n",rc);
+        printf("buffer length %d\n",length);
+    }
     return rc;
-
 }
 
 
@@ -86,8 +84,8 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
     pack_map_int("request_type",0,&pk);
-    pack_map_str("sender-address","localhost",&pk);
-    pack_map_str("reply-port","8080",&pk);
+    //pack_map_str("sender-address","localhost",&pk);
+    //pack_map_str("reply-port","8080",&pk);
     pack_map_str("op",op,&pk);
 
     // {"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
@@ -137,7 +135,7 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
         }
     }
 }
-void unpack_request_data(char const* buf, size_t len)
+void unpack_request_data(char const* buf, size_t len, bool verbose)
 {
     
     /* buf is allocated by client. */
@@ -155,11 +153,14 @@ void unpack_request_data(char const* buf, size_t len)
     {
         msgpack_object obj = result.data;
         
+        if( obj.type == MSGPACK_OBJECT_MAP )
+        {
         char header_name[20];
         memset(header_name, '\0', 20);
         
         msgpack_object val = extract_header( &obj, header_name);
-        printf("header: %s ",header_name);
+        if( verbose)
+            PRINT("header: %s ",header_name);
         //Protocolheaders headers; // will store all the protocol's headers
         if( val.type == MSGPACK_OBJECT_STR )
         {
@@ -168,16 +169,36 @@ void unpack_request_data(char const* buf, size_t len)
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, val.via.str.ptr,str_len); 
-            printf("[string value]: %s\n",str);
+            if(verbose)
+                PRINT("[string value]: %s\n",str);
         }
         else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
         {
-            printf("[integer value]: %d\n", val.via.i64);
+            if(verbose)
+                PRINT("[integer value]: %d\n", val.via.i64);
         }
+        else if( val.type == MSGPACK_OBJECT_ARRAY )
+        {
+            msgpack_object_array array = val.via.array;
+            for( int i = 0; i < array.size;i++)
+            {
+                // EXTRACT STRING START
+                int str_len = array.ptr[i].via.str.size;
+                char* str = Alloc( str_len);
+                memset( str, '\0', str_len);
+                str[str_len] = '\0';
+                strncpy(str, array.ptr[i].via.str.ptr,str_len); 
+                
+                if(verbose)
+                    PRINT("Param: %s\n",str);
+            }
+
+        }//array processing end
         else
         {
             // this is not a header as its value either an array or something else
             printf("\n"); 
+        }
         }
 
         

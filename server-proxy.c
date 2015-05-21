@@ -20,7 +20,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
 
-    if( verbose) PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+    if( verbose)
+        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+
     if( n_rc < 1 )
         netError(1, errno,"failed to receiver packet size\n");
     
@@ -33,10 +35,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if(verbose)
     {
         printf("read %d bytes of data\n",d_rc);
-        PRINT("Successfully received buffer:");
     }
-    unpack_request_data( (const char*)dbuf,pkt.len);
-
+    
+    unpack_request_data( (const char*)dbuf,pkt.len,verbose);
 }
 
 static void setBrokerPort( char* arg)
@@ -177,7 +178,7 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
 {
     ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
     sr->address = "localhost";
-    sr->port = "9090";
+    sr->port = port;
     
     msgpack_sbuffer sbuf;
     msgpack_sbuffer_init(&sbuf);
@@ -194,7 +195,8 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
     int i = 0;
     while( services[i] != NULL )
     {
-        PRINT("Service %s.\n", services[i]);
+        if(verbose)
+            PRINT("Service %s.\n", services[i]);
         i++;
     }
     pack_map_int("services-count",i,&pk);
@@ -203,19 +205,21 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
     msgpack_pack_str_body(&pk, "services", 8);
     msgpack_pack_array(&pk, i);
 
-    PRINT("num services %d\n",i);
+    if( verbose )
+        PRINT("num services %d\n",i);
     while( i >= 0 )
     {
         if( !STR_IsNullOrEmpty(services[i] ))
         {
-            PRINT("service packed is %s\n", services[i]);
+            if(verbose)
+                PRINT("service packed is %s\n", services[i]);
             msgpack_pack_str(&pk, strlen(services[i]));
             msgpack_pack_str_body(&pk, services[i], strlen(services[i]));
         }
         i--;    
     }
-    unpack_request_data(sbuf.data, sbuf.size);
-    send_request( sbuf.data, sbuf.size, broker_address, broker_port);
+    unpack_request_data(sbuf.data, sbuf.size, verbose);
+    send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose);
     msgpack_sbuffer_destroy(&sbuf);
 
 }

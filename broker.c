@@ -49,14 +49,10 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     // What is this data we got?
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
     {
-        PRINT("Incomming Service Request.\n");
-
         forward_request(pkt.buffer, pkt.len);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
-        PRINT("Incomming Registration Request.\n");
-
         struct ServiceRegistration *sr_buf = Alloc( sizeof( struct ServiceRegistration ));
         
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
@@ -348,11 +344,17 @@ void find_server(char* buffer, int buflen, Destination *dest)
             struct ServiceRegistration* tmp = malloc( sizeof( struct ServiceRegistration ));
             int count = 0;
         
+            if( list_empty( &service_repository.list ))
+            {
+                PRINT("No services registered in broker.\n");
+                return;
+            }
             list_for_each( pos, &service_repository.list)
             {
                 tmp = list_entry( pos, struct ServiceRegistration, list );
                 ServiceReg *sreg = tmp;;
                 bool found = false;
+
                 if(verbose)
                     PRINT("Current SR is %s\n", sreg->service_name);
                 for( int i = 0 ; i < sreg->num_services;i++)
@@ -364,7 +366,8 @@ void find_server(char* buffer, int buflen, Destination *dest)
                         dest->address = sreg->address;
                         dest->port = sreg->port;
                         found = true; 
-                        PRINT("FOUND service for required service %s at %s:%s\n",str, dest->address,dest->port);
+                        if(verbose)
+                            PRINT("FOUND service for required service %s at %s:%s\n",str, dest->address,dest->port);
                         goto done;
                     }
                 }
@@ -392,14 +395,14 @@ void find_client(char *buffer, int len, Destination *dest)
 
 void forward_request(char* buffer, int len)
 {
-    if(verbose)
-        PRINT("Forwarding request...\n");
     Destination *dest = Alloc( sizeof( Destination ));
     find_server(buffer, len, dest );
+
+    if( dest->address == NULL ||  dest->port == NULL ) return;
     
     if(verbose) 
         PRINT("About to send request to service at %s:%s\n", dest->address, dest->port);
-    send_request( buffer, len, dest->address, dest->port);
+    send_request( buffer, len, dest->address, dest->port,verbose);
 }
 
 void forward_response()

@@ -13,6 +13,7 @@
 
 extern char broker_address[30];
 extern char broker_port[20];
+extern bool verbose;
 
 void echo(char* echo)
 {
@@ -21,7 +22,7 @@ void echo(char* echo)
 
     pack_client_request_data( &sbuf, (char*)__func__, "%s",echo);
 
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port);
+    send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
 
     msgpack_sbuffer_destroy(&sbuf);
 }
@@ -33,7 +34,7 @@ char* getBrokerName()
 
     pack_client_request_data( &sbuf, (char*)__func__, "");
     
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port);
+    send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
 
     msgpack_sbuffer_destroy(&sbuf);
 }
@@ -45,7 +46,7 @@ void getServerDate(char* buffer,int length)
 
     pack_client_request_data( &sbuf, (char*)__func__, "%s%d",buffer,length);
     
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port);
+    send_request(sbuf.data,sbuf.size, broker_address, broker_port,verbose);
 
     msgpack_sbuffer_destroy(&sbuf);
 

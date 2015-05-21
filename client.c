@@ -17,6 +17,7 @@ void use_Broker_API()
 }
 char broker_address[30] = {0};
 char broker_port[20] = {0};
+bool verbose = false;
 
 static void setBrokerPortNumber(char* arg)
 {
@@ -31,6 +32,10 @@ static void setBrokerAddress(char* arg)
 
 }
 
+static void setVerbose(char* arg)
+{
+    verbose = true;
+}
 void setupCmd(int argc, char* argv[])
 {
 
@@ -46,8 +51,15 @@ void setupCmd(int argc, char* argv[])
                                                         true,
                                                         true,
                                                         setBrokerAddress);
+    struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
+                                                        "",
+                                                        "Prints all messages verbosly",
+                                                        false,
+                                                        false,
+                                                        setVerbose);
     CMD_AddArgument(portNumber);
     CMD_AddArgument(brokerAddress);
+    CMD_AddArgument(verboseArg);
 
     if( argc > 1 )
     {
@@ -75,7 +87,7 @@ int main( int argc, char* argv[])
     
     // use the server API...implemented by the client-proxy's getServerDate();
     getServerDate(strServerDate,80);
-    printf("Returned result from server was: %s\n",strServerDate);
+    //printf("Returned result from server was: %s\n",strServerDate);
     echo("Stuart Mathews");
     getBrokerName();
 
