@@ -187,21 +187,20 @@ void print_service_repository()
 void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
 {
     // unpack service registration request
+    
     if( verbose)
         PRINT("unpack service registration request\n");
-    // in theory this is a client side operation not broker. broker just forward to registered servers 
 
-    /* buf is allocated by client. */
+    unpacked->num_services = 0;
+
     msgpack_unpacked result;
     msgpack_unpack_return ret;
     size_t off = 0;
     int i = 0;
     msgpack_unpacked_init(&result);
 
-    // Go ahead unpack an object
     ret = msgpack_unpack_next(&result, buffer, buflen, &off);
 
-    // Go and get the rest of all was good
     while (ret == MSGPACK_UNPACK_SUCCESS) 
     {
         msgpack_object obj = result.data;
@@ -211,6 +210,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
         
         msgpack_object val = extract_header( &obj, header_name);
         //Protocolheaders headers; // will store all the protocol's headers
+
         if( val.type == MSGPACK_OBJECT_STR )
         {
             // EXTRACT STRING START
@@ -220,7 +220,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
             str[str_len] = '\0';
             strncpy(str, val.via.str.ptr,str_len); 
             // EXTRACT STRING END 
-            //
+    
             if( STR_Equals( "sender-address", header_name ) == true)
             {
                 unpacked->address = str;
@@ -233,11 +233,9 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
             {
                 unpacked->service_name = str;
             }
-
         }
         else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
         {
-
             if( STR_Equals("services-count",header_name) == true)
             {
                 unpacked->num_services = val.via.i64;
@@ -248,6 +246,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
         {
             if( verbose) 
                 PRINT("Processign services...\n");
+
             msgpack_object_array array = val.via.array;
             for( int i = 0; i < array.size;i++)
             {
@@ -257,35 +256,29 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';
                 strncpy(str, array.ptr[i].via.str.ptr,str_len); 
-                if(verbose)
-                    PRINT("SERVICE! %s\n",str);
+                
                 unpacked->services[i] = str;
 
+                if(verbose)
+                    PRINT("SERVICE! %s\n",str);
             }
 
         }
         else
         {
-            // this is not a header as its value either an array or something else
+            // this is not a header or array but something else
             printf("\n"); 
         }
-
-        
-        //msgpack_object_print(stdout, obj);
-        //printf("\n");
-
-        /* If you want to allocate something on the zone, you can use zone. */
-        /* msgpack_zone* zone = result.zone; */
-        /* The lifetime of the obj and the zone,  */
-
         ret = msgpack_unpack_next(&result, buffer, buflen, &off);
-    }
+    } // finished unpacking.
+
     msgpack_unpacked_destroy(&result);
 
-    if (ret == MSGPACK_UNPACK_PARSE_ERROR) {
+    if (ret == MSGPACK_UNPACK_PARSE_ERROR) 
+    {
         printf("The data in the buf is invalid format.\n");
     }
-}
+} // UnpackRegistrationBuffer
 
 void register_service(struct ServiceRegistration* service_registration )
 {
@@ -302,6 +295,7 @@ void register_service(struct ServiceRegistration* service_registration )
     }
     
     tmp->service_registration = service_registration;
+
     list_add( &(tmp->list),&(service_repository.list));
     
     print_service_repository(); // prints all services registered so far
