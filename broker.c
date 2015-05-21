@@ -51,7 +51,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Incomming Service Request.\n");
 
-        find_server();
         forward_request(pkt.buffer, pkt.len);
     }
     else if ( request_type == REQUEST_REGISTRATION )
@@ -59,8 +58,10 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         PRINT("Incomming Registration Request.\n");
 
         struct ServiceRegistration *sr_buf = malloc( sizeof( struct ServiceRegistration ));
+        
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
         register_service(sr_buf);
+        
         free(sr_buf);
 
     }
@@ -304,6 +305,7 @@ void register_service(struct ServiceRegistration* service_registration )
 
 void acknowledgement()
 {
+    // Send a message back to sender(client or server) with general ACK
 }
 
 void find_server()
@@ -316,6 +318,8 @@ void find_client()
 
 void forward_request(char* buffer, int len)
 {
+    find_server();
+
     if(verbose) PRINT("Forwarding request...\n");
     unpack_request_data( (const char*)buffer,len);
 }
