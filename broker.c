@@ -16,6 +16,24 @@ void find_client(char* buffer, int len, Destination *dest);
 void forward_request(char* buffer, int len);
 void forward_response();
 
+
+static void setPortNumber(char* arg)
+{
+    CHECK_STRING(arg, IS_NOT_EMPTY);
+    strncpy( port, arg, strlen(arg));
+}
+
+static void setVerbose(char* arg)
+{
+    verbose = true;
+}
+
+static void setWaitIndefinitely(char* arg)
+{
+    waitIndef = true;
+}
+
+// What we do with connections received from clients and servers who contact this broker.
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
     // 1. Read the size of packet.
@@ -46,7 +64,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 
     int request_type = -1;
    
-    // What is this data we got?
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
     {
         forward_request(pkt.buffer, pkt.len);
@@ -57,37 +74,23 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
         register_service(sr_buf);
-        
-
+    }
+    else if( request_type == REQUEST_SERVICE_RESPONSE )
+    {
+        Destination *dest = Alloc( sizeof( Destination ));
+        find_client(pkt.buffer, pkt.len, dest); // the socket is already connected to the client if this is synchrnous
+        forward_response();
     }
     else 
     {
-        PRINT("Unrecongnised request type:%d \n", request_type);    
-        exit(1);
+        PRINT("Unrecongnised request type:%di. Ignoring \n", request_type);    
+        return;
     }
 
-    Destination *dest = Alloc( sizeof( Destination ));
-    find_client(pkt.buffer, pkt.len, dest); // the socket is already connected to the client if this is synchrnous
-    forward_response();
 }
 
-static void setPortNumber(char* arg)
-{
-    CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( port, arg, strlen(arg));
-}
 
-static void setVerbose(char* arg)
-{
-    verbose = true;
-}
-
-static void setWaitIndefinitely(char* arg)
-{
-    waitIndef = true;
-}
-
-// listens for broker connections and dispatches them to the server() method
+// listens for events(connections) for broker connections and dispatches them to the server() method
 void main_event_loop()
 {
     struct sockaddr_in local;
@@ -104,6 +107,7 @@ void main_event_loop()
     FD_ZERO( &readfds);
     const int on = 1;
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
+
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
     s = netTcpServer("localhost",port);
@@ -112,14 +116,14 @@ void main_event_loop()
 
     do
     {
-        if(verbose) PRINT("Listening.\n");
-        // wait/block on this listening socket...
-        int res = 0;
+       if(verbose) PRINT("Listening.\n");
+       // wait/block on this listening socket...
+       int res = 0;
+
        if( waitIndef )
           res =  select( s+1, &readfds, NULL, NULL, NULL);//&timeout);
        else
           res =  select( s+1, &readfds, NULL, NULL, &timeout);
-
 
         if( res == 0 )
         {
@@ -141,8 +145,8 @@ void main_event_loop()
 
                 if ( !isvalidsock( s1 ) )
                     netError( 1, errno, "accept failed" );
-
-                // do network functionality on this socket that now represents a connection with the peer (client) 
+                
+                //Process connection:
                 server( s1, &peer );
                 CLOSE( s1 );
             }
@@ -153,13 +157,13 @@ void main_event_loop()
             }
         }
     } while ( 1 );
-
 }
 
 void update_repository()
 {
     
 }
+
 void print_service_repository()
 {
     if(verbose)
@@ -172,27 +176,31 @@ void print_service_repository()
     list_for_each( pos, &service_repository.list)
     {
         tmp = list_entry( pos, struct ServiceRegistration, list );
-        if( tmp == NULL )
+        if( tmp  == NULL )
         {
             PRINT("Null service!\n");
             return;
         }
+
         if( verbose )
             PRINT("In list_for_each\n");
-        ServiceReg *unpacked = tmp;
-        PRINT("Service Registration:\nService name:%s\nAddress: %s\nPort: %s\nNumber ofservices %d",unpacked->service_name,unpacked->address, unpacked->port,unpacked->num_services);
+
+        PRINT("Service Registration:\n"
+                "Service name:%s\n"
+                "Address: %s\n"
+                "Port: %s\n"
+                "Number ofservices %d",tmp->service_name,tmp->address, tmp->port,tmp->num_services);
     }
-   // free(tmp);
 }
 
+// Unpack the service registration request.
+// Populate the provided ServiceRegistration buffer parameter
 void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
 {
-    // unpack service registration request
-    
     if( verbose)
-        PRINT("unpack service registration request\n");
+        PRINT("Unpacking service registration request...\n");
 
-    unpacked->num_services = 0;
+    unpacked->num_services = 0; // set this to 0 so we know if its set to something else later or not
 
     msgpack_unpacked result;
     msgpack_unpack_return ret;
@@ -210,7 +218,6 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
         memset(header_name, '\0', 20);
         
         msgpack_object val = extract_header( &obj, header_name);
-        //Protocolheaders headers; // will store all the protocol's headers
 
         if( val.type == MSGPACK_OBJECT_STR )
         {
@@ -240,13 +247,13 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
             if( STR_Equals("services-count",header_name) == true)
             {
                 unpacked->num_services = val.via.i64;
-                unpacked->services = malloc(sizeof(char)*val.via.i64);
+                unpacked->services = Alloc(sizeof(char)*val.via.i64);
             }
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
             if( verbose) 
-                PRINT("Processign services...\n");
+                PRINT("Processing services...\n");
 
             msgpack_object_array array = val.via.array;
             for( int i = 0; i < array.size;i++)
@@ -261,10 +268,10 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
                 unpacked->services[i] = str;
 
                 if(verbose)
-                    PRINT("SERVICE! %s\n",str);
+                    PRINT("Found service: '%s'\n",str);
             }
 
-        }//array processing end
+        } //array processing end
         else
         {
             // this is not a header or array but something else
@@ -281,10 +288,11 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
     }
 } // UnpackRegistrationBuffer
 
+// Add the service registration request to the service repository
 void register_service(struct ServiceRegistration* service_registration )
 {
     if(verbose)
-        PRINT("register service registration request\n");
+        PRINT("Registering service '%s':\n",service_registration->service_name);
 
     if( verbose)
     {

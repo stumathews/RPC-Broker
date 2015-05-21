@@ -6,7 +6,7 @@
 #include <msgpack.h>
 #include <stulibc.h>
 
-enum RequestType {REQUEST_SERVICE, REQUEST_REGISTRATION};
+enum RequestType {REQUEST_SERVICE, REQUEST_SERVICE_RESPONSE, REQUEST_REGISTRATION};
 
 struct packet {
     uint32_t len;
