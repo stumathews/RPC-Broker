@@ -1,7 +1,7 @@
 #include <stulibc.h>
 #include "common.h"
 
-struct ServiceRegistrationsList service_repository;
+struct ServiceRegistration service_repository;
 char *program_name;
 static char port[20] = {0};
 static bool verbose = false;
@@ -11,8 +11,8 @@ void update_repository();
 void register_service(struct ServiceRegistration* service_registration);
 void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegistration* unpacked);
 void acknowledgement();
-void find_server();
-void find_client();
+void find_server(char* buffer, int len, Destination *dest);
+void find_client(char* buffer, int len, Destination *dest);
 void forward_request(char* buffer, int len);
 void forward_response();
 
@@ -57,12 +57,11 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Incomming Registration Request.\n");
 
-        struct ServiceRegistration *sr_buf = malloc( sizeof( struct ServiceRegistration ));
+        struct ServiceRegistration *sr_buf = Alloc( sizeof( struct ServiceRegistration ));
         
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
         register_service(sr_buf);
         
-        free(sr_buf);
 
     }
     else 
@@ -71,12 +70,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         exit(1);
     }
 
-
-    find_client(); // the socket is already connected to the client if this is synchrnous
+    Destination *dest = Alloc( sizeof( Destination ));
+    find_client(pkt.buffer, pkt.len, dest); // the socket is already connected to the client if this is synchrnous
     forward_response();
-   
-
-
 }
 
 static void setPortNumber(char* arg)
@@ -174,15 +170,23 @@ void print_service_repository()
         printf("Service registrations:\n");
 
     struct list_head *pos, *q;
-    struct ServiceRegistrationsList* tmp = malloc( sizeof( struct ServiceRegistrationsList ));
+    struct ServiceRegistration* tmp = Alloc( sizeof( struct ServiceRegistration ));
     int count = 0;
+
     list_for_each( pos, &service_repository.list)
     {
-        tmp = list_entry( pos, struct ServiceRegistrationsList, list );
-        ServiceReg *unpacked = tmp->service_registration;
+        tmp = list_entry( pos, struct ServiceRegistration, list );
+        if( tmp == NULL )
+        {
+            PRINT("Null service!\n");
+            return;
+        }
+        if( verbose )
+            PRINT("In list_for_each\n");
+        ServiceReg *unpacked = tmp;
         PRINT("Service Registration:\nService name:%s\nAddress: %s\nPort: %s\nNumber ofservices %d",unpacked->service_name,unpacked->address, unpacked->port,unpacked->num_services);
     }
-    //free(tmp);
+   // free(tmp);
 }
 
 void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
@@ -264,7 +268,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
                     PRINT("SERVICE! %s\n",str);
             }
 
-        }
+        }//array processing end
         else
         {
             // this is not a header or array but something else
@@ -286,7 +290,6 @@ void register_service(struct ServiceRegistration* service_registration )
     if(verbose)
         PRINT("register service registration request\n");
 
-    struct ServiceRegistrationsList *tmp = malloc( sizeof( struct ServiceRegistrationsList));
     if( verbose)
     {
         for( int i = 0 ; i < service_registration->num_services;i++)
@@ -295,9 +298,7 @@ void register_service(struct ServiceRegistration* service_registration )
         }
     }
     
-    tmp->service_registration = service_registration;
-
-    list_add( &(tmp->list),&(service_repository.list));
+    list_add( &(service_registration->list),&(service_repository.list));
     
     print_service_repository(); // prints all services registered so far
 
@@ -308,20 +309,97 @@ void acknowledgement()
     // Send a message back to sender(client or server) with general ACK
 }
 
-void find_server()
+void find_server(char* buffer, int buflen, Destination *dest)
 {
+    dest->address = NULL;
+    dest->port = NULL;
+
+    msgpack_unpacked result;
+    msgpack_unpack_return ret;
+    size_t off = 0;
+    int i = 0;
+    msgpack_unpacked_init(&result);
+
+    ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+
+    while (ret == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = result.data;
+        
+        char header_name[20];
+        memset(header_name, '\0', 20);
+        
+        msgpack_object val = extract_header( &obj, header_name);
+        
+        if( STR_Equals( "op", header_name) && val.type == MSGPACK_OBJECT_STR )
+        {
+            msgpack_object_str string = val.via.str;
+            // EXTRACT STRING START
+            int str_len = string.size;
+            char* str = Alloc( str_len);
+            memset( str, '\0', str_len);
+            str[str_len] = '\0';
+            strncpy(str, string.ptr,str_len); 
+
+            if( verbose )
+                PRINT("Looking for %s\n", str);
+
+            struct list_head *pos, *q;
+            struct ServiceRegistration* tmp = malloc( sizeof( struct ServiceRegistration ));
+            int count = 0;
+        
+            list_for_each( pos, &service_repository.list)
+            {
+                tmp = list_entry( pos, struct ServiceRegistration, list );
+                ServiceReg *sreg = tmp;;
+                bool found = false;
+                if(verbose)
+                    PRINT("Current SR is %s\n", sreg->service_name);
+                for( int i = 0 ; i < sreg->num_services;i++)
+                {
+                    if( verbose )
+                        PRINT("is %s == %s\n",str,sreg->services[i]);
+                    if( STR_Equals( str, sreg->services[i]))
+                    {
+                        dest->address = sreg->address;
+                        dest->port = sreg->port;
+                        found = true; 
+                        PRINT("FOUND service for required service %s at %s:%s\n",str, dest->address,dest->port);
+                        goto done;
+                    }
+                }
+            }
+        }
+
+        ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+
+    } // finished unpacking.
+done:
+    if(verbose)
+        PRINT("finished.\n");
+
+    msgpack_unpacked_destroy(&result);
+
+    if (ret == MSGPACK_UNPACK_PARSE_ERROR) 
+    {
+        printf("The data in the buf is invalid format.\n");
+    }
 }
 
-void find_client()
+void find_client(char *buffer, int len, Destination *dest)
 {
 }
 
 void forward_request(char* buffer, int len)
 {
-    find_server();
-
-    if(verbose) PRINT("Forwarding request...\n");
-    unpack_request_data( (const char*)buffer,len);
+    if(verbose)
+        PRINT("Forwarding request...\n");
+    Destination *dest = Alloc( sizeof( Destination ));
+    find_server(buffer, len, dest );
+    
+    if(verbose) 
+        PRINT("About to send request to service at %s:%s\n", dest->address, dest->port);
+    send_request( buffer, len, dest->address, dest->port);
 }
 
 void forward_response()

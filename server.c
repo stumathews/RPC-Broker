@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stulibc.h>
 
+char* services[] = {"getServerDate","getBrokerName","echo",NULL};
+
 void getServerDate( char* buffer, int length )
 {
     char* date = "20 jan 2012";
@@ -19,3 +21,5 @@ void echo(char* data)
 {
     STR_Reverse(data);
 }
+
+

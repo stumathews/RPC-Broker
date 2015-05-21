@@ -9,6 +9,7 @@ static char broker_address[30] = {0};
 static bool waitIndef = false;
 static bool verbose = false;
 static bool registered_with_broker = false;
+bool service_register_with_broker( char *broker_address, char* broker_port );
 
 // read and process data on the socket.
 static void server( SOCKET s, struct sockaddr_in *peerp )
@@ -170,4 +171,51 @@ int main( int argc, char **argv )
 
     LIB_Uninit();
     EXIT( 0 );
+}
+
+bool service_register_with_broker( char *broker_address, char* broker_port )
+{
+    ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
+    sr->address = "localhost";
+    sr->port = "9090";
+    
+    msgpack_sbuffer sbuf;
+    msgpack_sbuffer_init(&sbuf);
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+
+    pack_map_int("request_type",REQUEST_REGISTRATION,&pk);
+    pack_map_str("sender-address",sr->address,&pk);
+    pack_map_str("reply-port",sr->port,&pk);
+    pack_map_str("service-name","theServiceName",&pk);
+
+    extern char* services[];
+    char* service = services[0];
+    int i = 0;
+    while( services[i] != NULL )
+    {
+        PRINT("Service %s.\n", services[i]);
+        i++;
+    }
+    pack_map_int("services-count",i,&pk);
+    msgpack_pack_map(&pk,1);
+    msgpack_pack_str(&pk, 8);
+    msgpack_pack_str_body(&pk, "services", 8);
+    msgpack_pack_array(&pk, i);
+
+    PRINT("num services %d\n",i);
+    while( i >= 0 )
+    {
+        if( !STR_IsNullOrEmpty(services[i] ))
+        {
+            PRINT("service packed is %s\n", services[i]);
+            msgpack_pack_str(&pk, strlen(services[i]));
+            msgpack_pack_str_body(&pk, services[i], strlen(services[i]));
+        }
+        i--;    
+    }
+    unpack_request_data(sbuf.data, sbuf.size);
+    send_request( sbuf.data, sbuf.size, broker_address, broker_port);
+    msgpack_sbuffer_destroy(&sbuf);
+
 }
