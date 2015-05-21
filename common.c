@@ -133,6 +133,8 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
     pack_map_int("request_type",0,&pk);
+    pack_map_str("sender-address","localhost",&pk);
+    pack_map_str("reply-port","8080",&pk);
     pack_map_str("op",op,&pk);
 
     // {"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
