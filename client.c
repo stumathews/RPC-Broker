@@ -15,6 +15,7 @@ void start_task()
 void use_Broker_API()
 {
 }
+
 char broker_address[30] = {0};
 char broker_port[20] = {0};
 bool verbose = false;
@@ -29,7 +30,6 @@ static void setBrokerAddress(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
     strncpy( broker_address, arg, strlen(arg));
-
 }
 
 static void setVerbose(char* arg)

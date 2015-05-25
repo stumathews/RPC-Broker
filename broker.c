@@ -2,20 +2,80 @@
 #include "common.h"
 
 struct ServiceRegistration service_repository;
-char *program_name;
 static char port[20] = {0};
 static bool verbose = false;
 static bool waitIndef = false;
+static void update_repository();
+static void register_service(struct ServiceRegistration* service_registration);
+static void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegistration* unpacked);
+static void acknowledgement();
+static void find_server(char* buffer, int len, Destination *dest);
+static void find_client(char* buffer, int len, Destination *dest);
+static void forward_request(char* buffer, int len);
+static void forward_response();
+static void setPortNumber(char* arg);
+static void setVerbose(char* arg);
+static void setWaitIndefinitely(char* arg);
+static void main_event_loop();
 
-void update_repository();
-void register_service(struct ServiceRegistration* service_registration);
-void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegistration* unpacked);
-void acknowledgement();
-void find_server(char* buffer, int len, Destination *dest);
-void find_client(char* buffer, int len, Destination *dest);
-void forward_request(char* buffer, int len);
-void forward_response();
 
+
+// start broker and register command-line args
+int main( int argc, char **argv )
+{
+    LIB_Init();
+    INIT_LIST_HEAD(&service_repository.list);;
+
+    struct Argument* portNumber = CMD_CreateNewArgument("port",
+                                                        "port <number>",
+                                                        "Set the port that the broker will listen on",
+                                                        true,
+                                                        true,
+                                                        setPortNumber);
+    struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
+                                                        "",
+                                                        "Prints all messages verbosly",
+                                                        false,
+                                                        false,
+                                                        setVerbose);
+    struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
+                                                        "",
+                                                        "Wait indefinitely for new connections,else 60 secs and then dies",
+                                                        false,
+                                                        false,
+                                                        setWaitIndefinitely);
+    CMD_AddArgument(waitIndefArg);
+    CMD_AddArgument(portNumber);
+    CMD_AddArgument(verboseArg);
+
+
+    if( argc > 1 )
+    {
+        enum ParseResult result = CMD_Parse(argc,argv,true);
+        if( result != PARSE_SUCCESS )
+        {
+            return 1;
+        }
+    }
+    else
+    {
+        CMD_ShowUsages("broker <options>");
+        exit(0);
+    }
+
+    if(verbose) PRINT("Broker starting.\n");
+
+    INIT();
+    
+    main_event_loop();
+
+    LIB_Uninit();
+    EXIT( 0 );
+}
+
+// ===============================
+// Comand line processing routines
+// ===============================
 
 static void setPortNumber(char* arg)
 {
@@ -33,6 +93,9 @@ static void setWaitIndefinitely(char* arg)
     waitIndef = true;
 }
 
+// ====================================
+// Broker connection processing routine
+// ====================================
 // What we do with connections received from clients and servers who contact this broker.
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
@@ -62,6 +125,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         PRINT("Read %d bytes of data.\n",d_rc);
     }
 
+    // do stuff based on the packet data
     int request_type = -1;
    
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
@@ -71,7 +135,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     else if ( request_type == REQUEST_REGISTRATION )
     {
         struct ServiceRegistration *sr_buf = Alloc( sizeof( struct ServiceRegistration ));
-        
+        // registration request will be put into sr_buf        
         UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); 
         register_service(sr_buf);
     }
@@ -79,7 +143,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         Destination *dest = Alloc( sizeof( Destination ));
         find_client(pkt.buffer, pkt.len, dest); // the socket is already connected to the client if this is synchrnous
-        forward_response();
+        forward_response(); //to the client
     }
     else 
     {
@@ -90,8 +154,10 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 }
 
 
-// listens for events(connections) for broker connections and dispatches them to the server() method
-void main_event_loop()
+// waits for service registrations from services and service requests from clients.
+// Forwards client requests to servers, processes service requetss from servers
+// sends service replies to clients
+static void main_event_loop()
 {
     struct sockaddr_in local;
     struct sockaddr_in peer;
@@ -159,12 +225,12 @@ void main_event_loop()
     } while ( 1 );
 }
 
-void update_repository()
+static void update_repository()
 {
     
 }
 
-void print_service_repository()
+static void print_service_repository()
 {
     if(verbose)
         printf("Service registrations:\n");
@@ -195,7 +261,7 @@ void print_service_repository()
 
 // Unpack the service registration request.
 // Populate the provided ServiceRegistration buffer parameter
-void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
+static void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
 {
     if( verbose)
         PRINT("Unpacking service registration request...\n");
@@ -264,7 +330,8 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';
                 strncpy(str, array.ptr[i].via.str.ptr,str_len); 
-                
+                // EXTRACT STRING END 
+
                 unpacked->services[i] = str;
 
                 if(verbose)
@@ -289,7 +356,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
 } // UnpackRegistrationBuffer
 
 // Add the service registration request to the service repository
-void register_service(struct ServiceRegistration* service_registration )
+static void register_service(struct ServiceRegistration* service_registration )
 {
     if(verbose)
         PRINT("Registering service '%s':\n",service_registration->service_name);
@@ -304,16 +371,18 @@ void register_service(struct ServiceRegistration* service_registration )
     
     list_add( &(service_registration->list),&(service_repository.list));
     
-    print_service_repository(); // prints all services registered so far
+    if( verbose )
+        print_service_repository(); // prints all services registered so far
 
 }
 
-void acknowledgement()
+static void acknowledgement()
 {
     // Send a message back to sender(client or server) with general ACK
 }
 
-void find_server(char* buffer, int buflen, Destination *dest)
+// find the registered server that has the service that the client has requested.
+static void find_server(char* buffer, int buflen, Destination *dest)
 {
     dest->address = NULL;
     dest->port = NULL;
@@ -397,76 +466,30 @@ done:
     }
 }
 
-void find_client(char *buffer, int len, Destination *dest)
+static void find_client(char *buffer, int len, Destination *dest)
 {
 }
 
-void forward_request(char* buffer, int len)
+// send the client's service requets to the server that is known to be able to process it
+static void forward_request(char* buffer, int len)
 {
     Destination *dest = Alloc( sizeof( Destination ));
     find_server(buffer, len, dest );
 
-    if( dest->address == NULL ||  dest->port == NULL ) return;
+    if( dest->address == NULL ||  dest->port == NULL ) 
+    {
+        if(verbose)
+            PRINT("No server can process that request\n");
+        return;
+    }
     
     if(verbose) 
         PRINT("About to send request to service at %s:%s\n", dest->address, dest->port);
+
     send_request( buffer, len, dest->address, dest->port,verbose);
 }
 
-void forward_response()
+// When the broker gets a response form the server, it will need to send it back to the originting client that requeted it.
+static void forward_response()
 {
-}
-
-
-
-int main( int argc, char **argv )
-{
-    LIB_Init();
-    INIT_LIST_HEAD(&service_repository.list);;
-
-    struct Argument* portNumber = CMD_CreateNewArgument("port",
-                                                        "port <number>",
-                                                        "Set the port that the broker will listen on",
-                                                        true,
-                                                        true,
-                                                        setPortNumber);
-    struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
-                                                        "",
-                                                        "Prints all messages verbosly",
-                                                        false,
-                                                        false,
-                                                        setVerbose);
-    struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
-                                                        "",
-                                                        "Wait indefinitely for new connections,else 60 secs and then dies",
-                                                        false,
-                                                        false,
-                                                        setWaitIndefinitely);
-    CMD_AddArgument(waitIndefArg);
-    CMD_AddArgument(portNumber);
-    CMD_AddArgument(verboseArg);
-
-
-    if( argc > 1 )
-    {
-        enum ParseResult result = CMD_Parse(argc,argv,true);
-        if( result != PARSE_SUCCESS )
-        {
-            return 1;
-        }
-    }
-    else
-    {
-        CMD_ShowUsages("broker <options>");
-        exit(0);
-    }
-
-    if(verbose) PRINT("Broker starting.\n");
-
-    INIT();
-    
-    main_event_loop();
-
-    LIB_Uninit();
-    EXIT( 0 );
 }

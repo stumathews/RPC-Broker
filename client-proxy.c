@@ -25,6 +25,8 @@ void echo(char* echo)
     send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
 
     msgpack_sbuffer_destroy(&sbuf);
+    
+    _return();
 }
 
 char* getBrokerName()
@@ -37,6 +39,8 @@ char* getBrokerName()
     send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
 
     msgpack_sbuffer_destroy(&sbuf);
+
+    _return();
 }
 
 void getServerDate(char* buffer,int length)
