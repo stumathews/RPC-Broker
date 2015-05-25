@@ -1,6 +1,3 @@
-rm server
-rm client
-rm broker
 ./make_client_lin
 ./make_broker_lin
 ./make_server_lin
