@@ -178,19 +178,14 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         // Do Service Registration:
         // 1. Unpack service request from protocol request
         // 2. register the service request details in repository
-        
-        struct ServiceRegistration *sr_buf = Alloc( sizeof( struct ServiceRegistration ));
-        UnpackServiceRegistrationBuffer(pkt.buffer, pkt.len,sr_buf); // registration request will be put into sr_buf        
-        register_service(sr_buf);
+        register_service(pkt.buffer, pkt.len);
     }
     else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
         // Do Service response - INCOMPLETE:
         // 1. Find client, that this response needs to be sent to
         // 2. Forward the response to that client
-        Destination *dest = Alloc( sizeof( Destination ));
-        find_client(pkt.buffer, pkt.len, dest); // the socket is already connected to the client if this is synchrnous
-        forward_response(); //to the client
+        forward_response(pkt.buffer, pkt.len); //to the client
     }
     else 
     {

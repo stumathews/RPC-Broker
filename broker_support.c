@@ -157,8 +157,10 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
 } 
 
 // Add the service registration request to the service repository
-void register_service(struct ServiceRegistration* service_registration )
+void register_service( char* buffer,int buflen)
 {
+    struct ServiceRegistration *service_registration = Alloc( sizeof( struct ServiceRegistration ));
+    UnpackServiceRegistrationBuffer(buffer, buflen,service_registration ); // registration request will be put into sr_buf        
     if(verbose)
         PRINT("Registering service '%s':\n",service_registration->service_name);
 
@@ -169,9 +171,9 @@ void register_service(struct ServiceRegistration* service_registration )
             PRINT("Service %s\n", service_registration->services[i]);
         }
     }
-    
+
     list_add( &(service_registration->list),&(service_repository.list)); // add service registration to the repository
-    
+
     if( verbose )
         print_service_repository();
 
@@ -287,8 +289,10 @@ void forward_request(char* buffer, int len)
 }
 
 // When the broker gets a response form the server, it will need to send it back to the originting client that requeted it.
-void forward_response()
+void forward_response(char* buffer, int len)
 {
+    Destination *dest = Alloc( sizeof( Destination ));
+    find_client(buffer, len, dest); // the socket is already connected to the client if this is synchrnous
 
 }
 
