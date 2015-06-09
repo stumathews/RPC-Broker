@@ -155,6 +155,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
     int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
 
+    // pkt.len now contains the length of the data
+    // pkt.buffer now contains data
+
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
     

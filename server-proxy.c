@@ -232,23 +232,19 @@ void unpack_and_marshal( char* buffer, int buflen  )
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
 
-            if(verbose) 
-                PRINT("Marsheling operation: %s\n",str);
+            PRINT("%s(",str);
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
-            if( verbose) 
-                PRINT("Marsheling parameters...\n");
-            
             msgpack_object_array array = val.via.array;
             params = Alloc( sizeof(void*) * array.size);
-            
             for( int i = 0; i < array.size;i++)
             {
                 msgpack_object_type type = array.ptr[i].type;
                 msgpack_object param = array.ptr[i];
                 if( type == MSGPACK_OBJECT_STR )
                 {
+
                     // EXTRACT STRING START
                     int str_len = param.via.str.size;
                     char* str = Alloc( str_len);
@@ -258,23 +254,18 @@ void unpack_and_marshal( char* buffer, int buflen  )
 
                     // str has the parameter as a string 
                     params[i] = str;
-                    if(verbose) 
-                    {
-                        PRINT("parameter #%d data: '%s'\n",i,str);
-                    }
+                    PRINT("char* param%d,",i);
                 }
                 else if(type == MSGPACK_OBJECT_POSITIVE_INTEGER)
                 {
                     int ival = param.via.i64;
                     int *pival = Alloc( sizeof(int) );
                     params[i] = pival;
-                    if(verbose) 
-                    {
-                        PRINT("parameter #%d data: '%d'\n",i,ival);
-                    }
+                    PRINT("int param%d,",i);
                 }
 
             }
+            PRINT(");");
         }
 
         ret = msgpack_unpack_next(&result, buffer, buflen, &off);
@@ -290,6 +281,7 @@ void unpack_and_marshal( char* buffer, int buflen  )
         printf("The data in the buf is invalid format.\n");
     }
 }
+
 // =====================
 // SERVICE Registration
 // =====================
@@ -344,5 +336,4 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
     // send registration message to broker
     send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose);
     msgpack_sbuffer_destroy(&sbuf);
-
 }

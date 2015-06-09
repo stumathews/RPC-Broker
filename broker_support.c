@@ -25,6 +25,7 @@ void setWaitIndefinitely(char* arg)
 {
     waitIndef = true;
 }
+
 void print_service_repository()
 {
     if(verbose)
@@ -272,7 +273,7 @@ void find_client(char *buffer, int len, Destination *dest)
 // send the client's service requets to the server that is known to be able to process it
 void forward_request(char* buffer, int len)
 {
-    Destination *dest = Alloc( sizeof( Destination ));
+    Destination *dest = Alloc(sizeof(Destination));
     find_server(buffer, len, dest );
 
     if( dest->address == NULL ||  dest->port == NULL ) 
