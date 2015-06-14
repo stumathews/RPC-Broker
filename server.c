@@ -13,6 +13,7 @@ void getServerDate( char* buffer, int length )
 
 char* getBrokerName()
 {
+    PRINT("Calling getBrokerName()\n");
     char* name = Alloc( sizeof(char) );
     strcpy( name, "peter");
     return name;
@@ -20,8 +21,9 @@ char* getBrokerName()
 
 void echo(char* data)
 {
+    PRINT("Calling echo(char* data)\n");
     STR_Reverse(data);
-    PRINT("ECHO %s",data);
+    PRINT("%s",data);
 }
 
 
