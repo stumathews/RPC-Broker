@@ -11,4 +11,5 @@ void forward_response(char* buffer, int len);
 void setPortNumber(char* arg);
 void setVerbose(char* arg);
 void setWaitIndefinitely(char* arg);
+void print_service_repository();
 #endif

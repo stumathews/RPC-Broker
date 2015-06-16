@@ -2,5 +2,10 @@ rm broker_exe;
 gcc broker/broker.c \
     broker/broker_support.c \
     common/common.c \
+    broker/UnpackServiceRegistrationBuffer.c \
+    broker/find_server.c \
+    broker/register_service.c \
+    broker/forward_request.c \
+    broker/forward_response.c \
     -o broker_exe \
      -I common/ -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib -l stu -l msgpack -std=c99 
