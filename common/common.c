@@ -129,8 +129,9 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
                 break;
             case 's':
                 sval =  va_arg(ap, char *);
-                msgpack_pack_str(&pk,strlen(sval));
-                msgpack_pack_str_body(&pk, sval, strlen(sval));
+                int sval_len = strlen(sval);
+                msgpack_pack_str(&pk,sval_len);
+                msgpack_pack_str_body(&pk, sval, sval_len);
                 break;
         }
     }

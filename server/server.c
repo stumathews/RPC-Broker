@@ -3,12 +3,11 @@
 #include <stulibc.h>
 
 
-char* services[] = {"getServerDate","getBrokerName","echo",NULL};
+char* services[] = {"getServerDate","getBrokerName","echo","add",NULL};
 
-void getServerDate( char* buffer, int length )
+char* getServerDate() 
 {
-    char* date = "20 jan 2012";
-    strncpy( buffer, date, strlen(date) <= length ? strlen(date): length);
+    return  "20 jan 2012";
 }
 
 char* getBrokerName()
@@ -24,6 +23,11 @@ void echo(char* data)
     PRINT("Calling echo(char* data)\n");
     STR_Reverse(data);
     PRINT("%s",data);
+}
+
+int add( int one, int two )
+{
+    return (one + two);
 }
 
 

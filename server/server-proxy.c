@@ -267,10 +267,11 @@ void unpack_marshal_call( char* buffer, int buflen  )
                 {
                     int ival = param.via.i64;
                     int *pival = Alloc( sizeof(int) );
-                    
-                    PRINT("int param%d(%d),",i,*pival);
-                    
+                    pival = &ival; 
+
                     params[i] = pival;
+                    PRINT("int param%d(%d),",i,*(int*)(params[i]));
+                    PRINT("storing it as %d in param[%d]", *(int*)(params[i]),i);
                 }
 
             }
@@ -291,7 +292,14 @@ void unpack_marshal_call( char* buffer, int buflen  )
             }
             else if( STR_Equals( op_name,"getServerDate"))
             {
-                PRINT("Dont yet know how to marshal and call getServerDate() yet.\n");
+                PRINT("getServerDate() result is %s", getServerDate());
+            }
+            else if( STR_Equals( op_name,"add"))
+            {
+                int param0 = *(int*)params[0];
+                int param1 = *(int*)params[1];
+                PRINT("two in values are %d and %d\n", param0, param1);
+                PRINT("The result of add() is %d\n", add(param0, param1 ));
             }
         }
 

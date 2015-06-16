@@ -1,1 +1,6 @@
-rm broker;gcc broker.c broker_support.c common.c -o broker -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib -l stu -l msgpack -std=c99 
+rm broker_exe;
+gcc broker/broker.c \
+    broker/broker_support.c \
+    common/common.c \
+    -o broker_exe \
+     -I common/ -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib -l stu -l msgpack -std=c99 

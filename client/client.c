@@ -86,10 +86,11 @@ int main( int argc, char* argv[])
     memset( strServerDate, '\0', 80);
     
     // use the server API...implemented by the client-proxy's getServerDate();
-    getServerDate(strServerDate,80);
+    strServerDate = getServerDate();
     //printf("Returned result from server was: %s\n",strServerDate);
     echo("Stuart Mathews");
     getBrokerName();
+    int sum  = add(20,80);
 
     LIB_Uninit();
 }

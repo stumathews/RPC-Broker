@@ -174,6 +174,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         // Do client service request forwarding:
         // 1. Unpack the service request made by client(parse the protocol)
         // 2. Forward to the service that is registered to handle that request
+        unpack_request_data( pkt.buffer, pkt.len,true);
         forward_request(pkt.buffer, pkt.len);
     }
     else if ( request_type == REQUEST_REGISTRATION )
