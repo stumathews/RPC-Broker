@@ -14,46 +14,15 @@ static char broker_address[30] = {0};
 static bool waitIndef = false;
 bool verbose = false;
 static bool registered_with_broker = false;
-static bool service_register_with_broker( char *broker_address, char* broker_port );
+bool service_register_with_broker( char *broker_address, char* broker_port );
 void unpack_marshal_call( char* buffer, int buflen );
 static void setBrokerPort( char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
+static void server( SOCKET s, struct sockaddr_in *peerp );
 
-// == Main Server processing routine ==
-// called when the server gets a connection from the broker
-//
-static void server( SOCKET s, struct sockaddr_in *peerp )
-{
-
-    // Wait for connections from the broker.
-    struct packet pkt;
-    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
-    pkt.len = ntohl(pkt.len);
-
-    if( verbose)
-        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
-
-    if( n_rc < 1 )
-        netError(1, errno,"failed to receiver packet size\n");
-    
-    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
-
-    if( d_rc < 1 )
-        netError(1, errno,"failed to receive message\n");
-    
-    if(verbose)
-    {
-        printf("read %d bytes of data\n",d_rc);
-    }
-    
-    unpack_marshal_call( dbuf, pkt.len );
-
-    // TODO: pack and send response back to broker.
-}
 
 // =====================
 // Server start up code
@@ -164,6 +133,38 @@ int main( int argc, char **argv )
     EXIT( 0 );
 }
 
+// == Main Server processing routine ==
+// called when the server gets a connection from the broker
+//
+static void server( SOCKET s, struct sockaddr_in *peerp )
+{
+
+    // Wait for connections from the broker.
+    struct packet pkt;
+    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
+    pkt.len = ntohl(pkt.len);
+
+    if( verbose)
+        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+
+    if( n_rc < 1 )
+        netError(1, errno,"failed to receiver packet size\n");
+    
+    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
+    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
+
+    if( d_rc < 1 )
+        netError(1, errno,"failed to receive message\n");
+    
+    if(verbose)
+    {
+        printf("read %d bytes of data\n",d_rc);
+    }
+    
+    unpack_marshal_call( dbuf, pkt.len );
+
+    // TODO: pack and send response back to broker.
+}
 // ===============================
 // Command line handling routines
 // ===============================
@@ -195,59 +196,3 @@ static void setBeVerbose(char* arg)
     verbose = true;
 }
 
-
-// =====================
-// SERVICE Registration
-// =====================
-// Craft a service registration message and send it of fto the broker.
-bool service_register_with_broker( char *broker_address, char* broker_port )
-{
-    ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
-    sr->address = "localhost"; // TODO: Get our actual IP address
-    sr->port = port;
-    
-    msgpack_sbuffer sbuf;
-    msgpack_sbuffer_init(&sbuf);
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
-
-    pack_map_int("request_type",REQUEST_REGISTRATION,&pk);
-    pack_map_str("sender-address",sr->address,&pk);
-    pack_map_str("reply-port",sr->port,&pk);
-    pack_map_str("service-name","theServiceName",&pk);
-
-    // pull in the services defined in the server code: server.c
-    extern char* services[];
-    char* service = services[0];
-    int i = 0;
-    while( services[i] != NULL )
-    {
-        if(verbose)
-            PRINT("Service %s.\n", services[i]);
-        i++;
-    }
-    pack_map_int("services-count",i,&pk);
-    msgpack_pack_map(&pk,1);
-    msgpack_pack_str(&pk, 8);
-    msgpack_pack_str_body(&pk, "services", 8);
-    msgpack_pack_array(&pk, i);
-
-    if( verbose )
-        PRINT("num services %d\n",i);
-
-    // pack the services into the protocol message
-    while( i >= 0 )
-    {
-        if( !STR_IsNullOrEmpty(services[i] ))
-        {
-            if(verbose)
-                PRINT("service packed is %s\n", services[i]);
-            msgpack_pack_str(&pk, strlen(services[i]));
-            msgpack_pack_str_body(&pk, services[i], strlen(services[i]));
-        }
-        i--;    
-    }
-    // send registration message to broker
-    send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose);
-    msgpack_sbuffer_destroy(&sbuf);
-}

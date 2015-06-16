@@ -172,28 +172,25 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
     {
         // Do client service request forwarding:
-        // 1. Unpack the service request made by client(parse the protocol)
-        // 2. Forward to the service that is registered to handle that request
-        unpack_request_data( pkt.buffer, pkt.len,true);
+        // 1. Forward to the service that is registered to handle that request
         forward_request(pkt.buffer, pkt.len);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
         // Do Service Registration:
-        // 1. Unpack service request from protocol request
-        // 2. register the service request details in repository
+        // 1. register the service request details in repository
         register_service(pkt.buffer, pkt.len);
     }
     else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
         // Do Service response - INCOMPLETE:
         // 1. Find client, that this response needs to be sent to
-        // 2. Forward the response to that client
+        // and forward the response to that client
         forward_response(pkt.buffer, pkt.len); //to the client
     }
     else 
     {
-        PRINT("Unrecongnised request type:%di. Ignoring \n", request_type);    
+        PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);    
         return;
     }
 }

@@ -10,11 +10,16 @@ extern struct ServiceRegistration service_repository;
 void register_service( char* buffer,int buflen)
 {
     struct ServiceRegistration *service_registration = Alloc( sizeof( struct ServiceRegistration ));
-    UnpackServiceRegistrationBuffer(buffer, buflen,service_registration ); // registration request will be put into sr_buf        
+    UnpackServiceRegistrationBuffer(buffer, buflen,service_registration ); // registration request will be put into service_registration 
+    
+    list_add( &(service_registration->list),&(service_repository.list)); // add service registration to the repository
+
+// Diagnostics only:
+
     if(verbose)
         PRINT("Registering service '%s':\n",service_registration->service_name);
 
-    if( verbose)
+    if(verbose)
     {
         for( int i = 0 ; i < service_registration->num_services;i++)
         {
@@ -22,7 +27,6 @@ void register_service( char* buffer,int buflen)
         }
     }
 
-    list_add( &(service_registration->list),&(service_repository.list)); // add service registration to the repository
 
     if( verbose )
         print_service_repository();

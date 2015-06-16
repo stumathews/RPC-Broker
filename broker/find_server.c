@@ -32,15 +32,12 @@ void find_server(char* buffer, int buflen, Destination *dest)
         if( STR_Equals( "op", header_name) && val.type == MSGPACK_OBJECT_STR )
         {
             msgpack_object_str string = val.via.str;
-            // EXTRACT STRING START
             int str_len = string.size;
             char* str = Alloc( str_len);
+            
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
-
-            if( verbose )
-                PRINT("Looking for %s\n", str);
 
             struct list_head *pos, *q;
             struct ServiceRegistration* tmp = malloc( sizeof( struct ServiceRegistration ));
@@ -51,18 +48,15 @@ void find_server(char* buffer, int buflen, Destination *dest)
                 PRINT("No services registered in broker.\n");
                 return;
             }
+
             list_for_each( pos, &service_repository.list)
             {
                 tmp = list_entry( pos, struct ServiceRegistration, list );
                 ServiceReg *sreg = tmp;;
                 bool found = false;
 
-                if(verbose)
-                    PRINT("Current SR is %s\n", sreg->service_name);
                 for( int i = 0 ; i < sreg->num_services;i++)
                 {
-                    if( verbose )
-                        PRINT("is %s == %s\n",str,sreg->services[i]);
                     if( STR_Equals( str, sreg->services[i]))
                     {
                         dest->address = sreg->address;
@@ -80,8 +74,6 @@ void find_server(char* buffer, int buflen, Destination *dest)
 
     } // finished unpacking.
 done:
-    if(verbose)
-        PRINT("finished.\n");
 
     msgpack_unpacked_destroy(&result);
 
