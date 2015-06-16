@@ -4,18 +4,6 @@
 #include <string.h>
 #include <stulibc.h>
 
-void call_server()
-{
-}
-
-void start_task()
-{
-}
-
-void use_Broker_API()
-{
-}
-
 char broker_address[30] = {0};
 char broker_port[20] = {0};
 bool verbose = false;
@@ -93,4 +81,16 @@ int main( int argc, char* argv[])
     int sum  = add(20,80);
 
     LIB_Uninit();
+}
+
+void call_server()
+{
+}
+
+void start_task()
+{
+}
+
+void use_Broker_API()
+{
 }
