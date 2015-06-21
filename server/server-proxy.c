@@ -9,13 +9,13 @@
 #include "server_interface.h"
 
 char port[20] = {0};
-static char broker_port[20] = {0};
-static char broker_address[30] = {0};
+char broker_port[20] = {0};
+char broker_address[30] = {0};
 static bool waitIndef = false;
 bool verbose = false;
 static bool registered_with_broker = false;
 bool service_register_with_broker( char *broker_address, char* broker_port );
-void unpack_marshal_call( char* buffer, int buflen );
+void unpack_marshal_call_send( char* buffer, int buflen);
 static void setBrokerPort( char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -161,9 +161,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         printf("read %d bytes of data\n",d_rc);
     }
     
-    unpack_marshal_call( dbuf, pkt.len );
+    // note: will also send the response of the call to the broker
+    unpack_marshal_call_send( dbuf, pkt.len);
 
-    // TODO: pack and send response back to broker.
 }
 // ===============================
 // Command line handling routines

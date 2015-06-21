@@ -62,8 +62,7 @@ void find_server(char* buffer, int buflen, Destination *dest)
                         dest->address = sreg->address;
                         dest->port = sreg->port;
                         found = true; 
-                        if(verbose)
-                            PRINT("FOUND service for required service %s at %s:%s\n",str, dest->address,dest->port);
+                        PRINT("FOUND server for required service '%s' at location '%s:%s'\n",str, dest->address,dest->port);
                         goto done;
                     }
                 }

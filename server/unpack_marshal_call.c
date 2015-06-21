@@ -3,8 +3,11 @@
 #include "common.h"
 #include "server_interface.h"
 
+extern bool verbose;
+extern char broker_address[30];
+extern char broker_port[20];
 // unpack the service request's operation and parameters and call server function.
-void unpack_marshal_call( char* buffer, int buflen  )
+void unpack_marshal_call_send( char* buffer, int buflen )
 {
 
     msgpack_unpacked result;
@@ -84,15 +87,32 @@ void unpack_marshal_call( char* buffer, int buflen  )
             {
                 char* param0 = (char*)params[0];
                 echo(param0);
+                msgpack_sbuffer sbuf;
+                pack_client_response_data( &sbuf, op_name, "%s", param0);
+                unpack_data( sbuf.data, sbuf.size, verbose);
+                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
+                msgpack_sbuffer_destroy(&sbuf);
             }
             else if( STR_Equals( op_name,"getBrokerName"))
             {
                 char* brokerName = getBrokerName();
                 PRINT("getBrokername() results in '%s'\n", brokerName);
+                msgpack_sbuffer sbuf;
+
+                pack_client_response_data( &sbuf, op_name, "%s", brokerName);
+                unpack_data( sbuf.data, sbuf.size, verbose);
+                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
+                msgpack_sbuffer_destroy(&sbuf);
+                
             }
             else if( STR_Equals( op_name,"getServerDate"))
             {
                 PRINT("getServerDate() result is %s", getServerDate());
+                msgpack_sbuffer sbuf;
+                pack_client_response_data( &sbuf, op_name, "%s", getServerDate());
+                unpack_data( sbuf.data, sbuf.size, verbose);
+                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
+                msgpack_sbuffer_destroy(&sbuf);
             }
             else if( STR_Equals( op_name,"add"))
             {
@@ -100,6 +120,11 @@ void unpack_marshal_call( char* buffer, int buflen  )
                 int param1 = *(int*)params[1];
                 PRINT("two in values are %d and %d\n", param0, param1);
                 PRINT("The result of add() is %d\n", add(param0, param1 ));
+                msgpack_sbuffer sbuf;
+                pack_client_response_data( &sbuf, op_name, "%d", add(param0,param1));
+                unpack_data( sbuf.data, sbuf.size, verbose);
+                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
+                msgpack_sbuffer_destroy(&sbuf);
             }
         }
 

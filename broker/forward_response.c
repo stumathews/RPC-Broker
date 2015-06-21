@@ -11,6 +11,8 @@ extern struct ServiceRegistration service_repository;
 void forward_response(char* buffer, int len)
 {
     Destination *dest = Alloc( sizeof( Destination ));
+    dest->address = "SAMPLE";
+    dest->port = "2222";
     find_client(buffer, len, dest); // the socket is already connected to the client if this is synchrnous
 
 }

@@ -12,12 +12,17 @@ int send_request(char* buffer, int bufsize,char* address, char* port, bool verbo
     // --------------------------
     // SEND PACKED DATA TO BROKER
     // -------------------------
-    
+   
+    if(verbose)
+    {
+        PRINT("Size to send: %d\n",bufsize);
+    }
+
     struct sockaddr_in peer;
 	SOCKET s;
     
 	s = netTcpClient(address,port);
-	return client( s, &peer, buffer,bufsize,false );
+	return client( s, &peer, buffer,bufsize,verbose );
 }
 // Send request to listening broker socket
 int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool verbose)
@@ -33,8 +38,8 @@ int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool v
     pkt.len = ntohl(pkt.len);
     if( verbose )
     {
-        printf("sent %d bytes\n",rc);
-        printf("send length as %u\n",pkt.len);
+        printf("Sent %d bytes(size of packet)\n",rc);
+        printf("send pkt length as %u\n",pkt.len);
     }
 
     // send packet
@@ -42,8 +47,8 @@ int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool v
         netError(1,errno,"failed to send packed data\n");
     if( verbose )
     {
-        printf("Sent %d bytes:\n",rc);
-        printf("buffer length %d\n",length);
+        printf("Sent packet %d bytes(packet buffer)\n",rc);
+        printf("buffer packet  length %d\n",length);
     }
     return rc;
 }
@@ -69,11 +74,8 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk)
     msgpack_pack_str_body(pk, value, strlen(value));
 }
 
-// pack the object to send to the broker. (client's service request)
-char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
+char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
 {
-
-    
     // ---------
     // PACK DATA
     // ----------
@@ -83,9 +85,69 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     msgpack_packer pk;
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
-    pack_map_int("request_type",0,&pk);
-    //pack_map_str("sender-address","localhost",&pk);
-    //pack_map_str("reply-port","8080",&pk);
+    pack_map_int("request_type",REQUEST_SERVICE_RESPONSE,&pk);
+
+    pack_map_str("op",op,&pk);
+
+    msgpack_pack_map(&pk,1);
+    msgpack_pack_str(&pk, 5);
+    msgpack_pack_str_body(&pk, "reply", 5);
+    
+    va_list ap;
+    va_start(ap,(const char*)fmt);
+    char *p, *sval;
+    int ival;
+    int numargs = 0;
+
+    for( p = fmt;*p;p++)
+    {
+        if(*p != '%') {
+            putchar(*p);
+            continue;
+        }
+        numargs++;
+    }
+    
+    msgpack_pack_array(&pk, numargs);
+
+    for( p = fmt;*p;p++)
+    {
+        if(*p != '%') {
+            putchar(*p);
+            continue;
+        }
+        switch(*++p)
+        {
+            case 'd':
+                ival = va_arg(ap,int);
+                msgpack_pack_int(&pk, ival);
+                PRINT("%d\n",ival);
+                break;
+            case 's':
+                sval =  va_arg(ap, char *);
+                int sval_len = strlen(sval);
+                msgpack_pack_str(&pk,sval_len);
+                msgpack_pack_str_body(&pk, sval, sval_len);
+                break;
+        }
+    }
+}
+// pack the object to send to the broker. (client's service request)
+char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
+{
+
+
+    // ---------
+    // PACK DATA
+    // ----------
+
+    msgpack_sbuffer_init(sbuf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
+
+    pack_map_int("request_type",REQUEST_SERVICE,&pk);
+
     pack_map_str("op",op,&pk);
 
     // {"params" => [ {"buffer"=>buffer}, {"length"=>length} ]}}
@@ -136,7 +198,7 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
         }
     }
 }
-void unpack_request_data(char const* buf, size_t len, bool verbose)
+void unpack_data(char const* buf, size_t len, bool verbose)
 {
     
     /* buf is allocated by client. */
@@ -153,63 +215,8 @@ void unpack_request_data(char const* buf, size_t len, bool verbose)
     while (ret == MSGPACK_UNPACK_SUCCESS) 
     {
         msgpack_object obj = result.data;
-        
-        if( obj.type == MSGPACK_OBJECT_MAP )
-        {
-        char header_name[20];
-        memset(header_name, '\0', 20);
-        
-        msgpack_object val = extract_header( &obj, header_name);
-        if( verbose)
-            PRINT("header: %s ",header_name);
-        //Protocolheaders headers; // will store all the protocol's headers
-        if( val.type == MSGPACK_OBJECT_STR )
-        {
-            int str_len = val.via.str.size;
-            char str[str_len];
-            memset( str, '\0', str_len);
-            str[str_len] = '\0';
-            strncpy(str, val.via.str.ptr,str_len); 
-            if(verbose)
-                PRINT("[string value]: %s\n",str);
-        }
-        else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
-        {
-            if(verbose)
-                PRINT("[integer value]: %d\n", val.via.i64);
-        }
-        else if( val.type == MSGPACK_OBJECT_ARRAY )
-        {
-            msgpack_object_array array = val.via.array;
-            for( int i = 0; i < array.size;i++)
-            {
-                // EXTRACT STRING START
-                int str_len = array.ptr[i].via.str.size;
-                char* str = Alloc( str_len);
-                memset( str, '\0', str_len);
-                str[str_len] = '\0';
-                strncpy(str, array.ptr[i].via.str.ptr,str_len); 
-                
-                if(verbose)
-                    PRINT("Param: %s\n",str);
-            }
-
-        }//array processing end
-        else
-        {
-            // this is not a header as its value either an array or something else
-            printf("\n"); 
-        }
-        }
-
-        
-        //msgpack_object_print(stdout, obj);
-        //printf("\n");
-
-        /* If you want to allocate something on the zone, you can use zone. */
-        /* msgpack_zone* zone = result.zone; */
-        /* The lifetime of the obj and the zone,  */
-
+        msgpack_object_print(stdout, obj);
+        printf("\n");
         ret = msgpack_unpack_next(&result, buf, len, &off);
     }
     msgpack_unpacked_destroy(&result);

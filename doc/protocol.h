@@ -28,6 +28,8 @@ ServiceRegistrationReply:
 
 ServiceRequestReply:
 
-    { result:[data1, data2] }
+    
+    { op=>"getServerDate"}
+    { response => [data1, data2] }
 
 */
