@@ -8,8 +8,7 @@ extern struct ServiceRegistration service_repository;
 // Add the service registration request to the service repository
 void register_service( char* buffer,int buflen)
 {
-    struct ServiceRegistration *service_registration = Alloc( sizeof( struct ServiceRegistration ));
-    UnpackServiceRegistrationBuffer(buffer, buflen,service_registration ); // registration request will be put into service_registration 
+    struct ServiceRegistration *service_registration =  UnpackServiceRegistrationBuffer(buffer, buflen );
     
     list_add( &(service_registration->list),&(service_repository.list)); // add service registration to the repository
 

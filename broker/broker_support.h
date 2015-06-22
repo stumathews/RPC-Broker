@@ -2,7 +2,7 @@
 #define BROKER_SUPPORT_H
 #include "common.h"
 void register_service(char* buffer,int buflen);
-void UnpackServiceRegistrationBuffer(char* buffer,int buflen, struct ServiceRegistration* unpacked);
+struct ServiceRegistration* UnpackServiceRegistrationBuffer(char* buffer,int buflen);
 void acknowledgement();
 Destination *find_server(char* buffer, int len);
 void find_client(char* buffer, int len, Destination *dest);

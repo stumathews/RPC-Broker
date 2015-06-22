@@ -6,7 +6,7 @@ extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
 // Unpack the service registration request, return it in ServiceRegistration to caller
-void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceRegistration* unpacked)
+struct ServiceRegistration* UnpackServiceRegistrationBuffer(char* buffer, int buflen)
 {
     // NB: struct ServiceRegistration* unpacked will be populated
     // --
@@ -14,6 +14,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
     if( verbose_flag)
         PRINT("Unpacking service registration request...\n");
 
+    struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration) );
     unpacked->num_services = 0; // set this to 0 so we know if its set to something else later or not
 
     size_t off = 0;
@@ -105,4 +106,5 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
     {
         printf("The data in the buf is invalid format.\n");
     }
+    return unpacked;
 } 
