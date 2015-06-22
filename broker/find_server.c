@@ -9,13 +9,16 @@ extern struct ServiceRegistration service_repository;
 // find the registered server that has the service that the client has requested.
 void find_server(char* buffer, int buflen, Destination *dest)
 {
+    // this function is doing too much and looks too complex:
+    // 1. Looking for service name in buffer
+    // 2. Looking for service name in service_repository
+    // 3. Comparing for a match
     dest->address = NULL;
     dest->port = NULL;
 
     msgpack_unpacked result;
     msgpack_unpack_return ret;
     size_t off = 0;
-    int i = 0;
     msgpack_unpacked_init(&result);
 
     ret = msgpack_unpack_next(&result, buffer, buflen, &off);
@@ -40,8 +43,6 @@ void find_server(char* buffer, int buflen, Destination *dest)
             strncpy(str, string.ptr,str_len); 
 
             struct list_head *pos, *q;
-            struct ServiceRegistration* tmp = malloc( sizeof( struct ServiceRegistration ));
-            int count = 0;
         
             if( list_empty( &service_repository.list ))
             {
@@ -51,9 +52,7 @@ void find_server(char* buffer, int buflen, Destination *dest)
 
             list_for_each( pos, &service_repository.list)
             {
-                tmp = list_entry( pos, struct ServiceRegistration, list );
-                ServiceReg *sreg = tmp;;
-                bool found = false;
+                ServiceReg *sreg  = list_entry( pos, struct ServiceRegistration, list );
 
                 for( int i = 0 ; i < sreg->num_services;i++)
                 {
@@ -61,7 +60,6 @@ void find_server(char* buffer, int buflen, Destination *dest)
                     {
                         dest->address = sreg->address;
                         dest->port = sreg->port;
-                        found = true; 
                         PRINT("FOUND server for required service '%s' at location '%s:%s'\n",str, dest->address,dest->port);
                         goto done;
                     }
