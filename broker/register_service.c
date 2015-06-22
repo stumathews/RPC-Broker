@@ -2,8 +2,7 @@
 #include "common.h"
 
 extern char port[20];
-extern bool verbose;
-extern bool waitIndef;
+extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
 // Add the service registration request to the service repository
@@ -16,10 +15,10 @@ void register_service( char* buffer,int buflen)
 
 // Diagnostics only:
 
-    if(verbose)
+    if(verbose_flag)
         PRINT("Registering service '%s':\n",service_registration->service_name);
 
-    if(verbose)
+    if(verbose_flag)
     {
         for( int i = 0 ; i < service_registration->num_services;i++)
         {
@@ -28,6 +27,6 @@ void register_service( char* buffer,int buflen)
     }
 
 
-    if( verbose )
+    if( verbose_flag )
         print_service_repository();
 }

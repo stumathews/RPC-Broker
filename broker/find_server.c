@@ -9,10 +9,11 @@ extern struct ServiceRegistration service_repository;
 
 static char* get_op_name( char* protocol_buffer, int protocol_buffer_len);
 
-void find_server(char* buffer, int buflen, Destination *dest)
+Destination* find_server(char* buffer, int buflen)
 {
     char* op_name = get_op_name( buffer, buflen );
 
+    Destination *dest = Alloc( sizeof(Destination) );
     dest->address = NULL;
     dest->port = NULL;
 
@@ -22,7 +23,6 @@ void find_server(char* buffer, int buflen, Destination *dest)
     if( list_empty( &service_repository.list ))
     {
         PRINT("No services registered in broker.\n");
-        return;
     }
 
     list_for_each( pos, &service_repository.list)
@@ -36,10 +36,11 @@ void find_server(char* buffer, int buflen, Destination *dest)
                 dest->address = sreg_entry->address;
                 dest->port = sreg_entry->port;
                 PRINT("FOUND server for required service '%s' at location '%s:%s'\n",op_name, dest->address,dest->port);
-                return;
+                return dest;
             }
         }
     }
+    return dest;
 }
 
 static char* get_op_name( char* protocol_buffer, int protocol_buffer_len)

@@ -2,8 +2,7 @@
 #include "common.h"
 
 extern char port[20];
-extern bool verbose;
-extern bool waitIndef;
+extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
 // Unpack the service registration request, return it in ServiceRegistration to caller
@@ -12,7 +11,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
     // NB: struct ServiceRegistration* unpacked will be populated
     // --
 
-    if( verbose)
+    if( verbose_flag)
         PRINT("Unpacking service registration request...\n");
 
     unpacked->num_services = 0; // set this to 0 so we know if its set to something else later or not
@@ -69,7 +68,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
             // PICK OUT ARRAY HEADERS
-            if( verbose) 
+            if( verbose_flag) 
                 PRINT("Processing services...\n");
 
             msgpack_object_array array = val.via.array;
@@ -87,7 +86,7 @@ void UnpackServiceRegistrationBuffer(char* buffer, int buflen, struct ServiceReg
 
                 unpacked->services[i] = str;
 
-                if(verbose)
+                if(verbose_flag)
                     PRINT("Found service: '%s'\n",str);
             }
 

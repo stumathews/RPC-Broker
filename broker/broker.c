@@ -3,8 +3,8 @@
 
 struct ServiceRegistration service_repository;
 char port[20] = {0};
-bool verbose = false;
-bool waitIndef = false;
+bool verbose_flag = false;
+bool waitIndef_flag = false;
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -16,7 +16,7 @@ int main( int argc, char **argv )
     LIB_Init();
     INIT_LIST_HEAD(&service_repository.list);
 
-    struct Argument* portNumber = CMD_CreateNewArgument("port",
+    struct Argument* portNumberArg = CMD_CreateNewArgument("port",
                                                         "port <number>",
                                                         "Set the port that the broker will listen on",
                                                         true,
@@ -27,15 +27,15 @@ int main( int argc, char **argv )
                                                         "Prints all messages verbosly",
                                                         false,
                                                         false,
-                                                        setVerbose);
+                                                        setVerboseFlag);
     struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
                                                         "",
                                                         "Wait indefinitely for new connections,else 60 secs and then dies",
                                                         false,
                                                         false,
-                                                        setWaitIndefinitely);
+                                                        setWaitIndefinitelyFlag);
     CMD_AddArgument(waitIndefArg);
-    CMD_AddArgument(portNumber);
+    CMD_AddArgument(portNumberArg);
     CMD_AddArgument(verboseArg);
 
 
@@ -53,7 +53,7 @@ int main( int argc, char **argv )
         exit(0);
     }
 
-    if(verbose) PRINT("Broker starting.\n");
+    if(verbose_flag) PRINT("Broker starting.\n");
 
     INIT();
     
@@ -89,11 +89,11 @@ static void main_event_loop()
 
     do
     {
-       if(verbose) PRINT("Listening.\n");
+       if(verbose_flag) PRINT("Listening.\n");
        // wait/block on this listening socket...
        int res = 0;
 
-       if( waitIndef )
+       if( waitIndef_flag )
           res =  select( s+1, &readfds, NULL, NULL, NULL);//&timeout);
        else
           res =  select( s+1, &readfds, NULL, NULL, &timeout);
@@ -149,7 +149,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( n_rc < 1 )
         netError(1, errno,"Failed to receiver packet size\n");
     
-    if(verbose) 
+    if(verbose_flag) 
         PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
     
     pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
@@ -161,7 +161,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
     
-    if(verbose)
+    if(verbose_flag)
     {
         PRINT("Read %d bytes of data.\n",d_rc);
     }

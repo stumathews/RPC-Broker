@@ -1,46 +1,23 @@
 #include "broker_support.h"
 #include "common.h"
-
-extern char port[20];
-extern bool verbose;
-extern bool waitIndef;
+#define MAX_PORT_CHARS 20
+extern char port[MAX_PORT_CHARS ];
+extern bool verbose_flag;
+extern bool waitIndef_flag;
 extern struct ServiceRegistration service_repository;
-
-// ===============================
-// Comand line processing routines
-// ===============================
-
-void setPortNumber(char* arg)
-{
-    CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( port, arg, strlen(arg));
-}
-
-void setVerbose(char* arg)
-{
-    verbose = true;
-}
-
-void setWaitIndefinitely(char* arg)
-{
-    waitIndef = true;
-}
 
 
 void print_service_repository()
 {
-    printf("Service registrations:\n");
+    PRINT("Service registrations:\n");
 
-    struct list_head *pos, *q;
-    struct ServiceRegistration* tmp = Alloc( sizeof( struct ServiceRegistration ));
-    int count = 0;
-
+    struct list_head *pos;
     list_for_each( pos, &service_repository.list)
     {
-        tmp = list_entry( pos, struct ServiceRegistration, list );
-        if( tmp  == NULL )
+        struct ServiceRegistration* sreg_entry = list_entry( pos, struct ServiceRegistration, list );
+        if( sreg_entry  == NULL )
         {
-            PRINT("Null service!\n");
+            PRINT("Found a NULL service registration entry in servic erepository list. Exiting.!\n");
             return;
         }
 
@@ -48,11 +25,31 @@ void print_service_repository()
                 "Service name:%s\n"
                 "Address: %s\n"
                 "Port: %s\n"
-                "Number ofservices %d",tmp->service_name,tmp->address, tmp->port,tmp->num_services);
+                "Number ofservices %d",sreg_entry->service_name,
+                                       sreg_entry->address,
+                                       sreg_entry->port,
+                                       sreg_entry->num_services);
     }
 }
 
 
+void setPortNumber(char* arg)
+{
+    CHECK_STRING(arg, IS_NOT_EMPTY);
+    CHK_ExitIf( strlen(arg) > MAX_PORT_CHARS + 1, "The length of the port you specified is larger than MAX_PORT_CHARS ","setPortNumber" );
+
+    strncpy( port, arg, strlen(arg));
+}
+
+void setVerboseFlag(char* arg)
+{
+    verbose_flag = true;
+}
+
+void setWaitIndefinitelyFlag(char* arg)
+{
+    waitIndef_flag = true;
+}
 
 void update_repository()
 {
