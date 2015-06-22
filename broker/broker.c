@@ -2,7 +2,7 @@
 #include "broker_support.h"
 
 struct ServiceRegistration service_repository;
-char port[20] = {0};
+char port[MAX_PORT_CHARS] = {0};
 bool verbose_flag = false;
 bool waitIndef_flag = false;
 

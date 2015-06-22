@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern char port[20];
+extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 

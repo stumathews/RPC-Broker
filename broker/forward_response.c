@@ -2,9 +2,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern char port[20];
-extern bool verbose;
-extern bool waitIndef;
+extern char port[MAX_PORT_CHARS];
 extern struct ServiceRegistration service_repository;
 
 // When the broker gets a response form the server, it will need to send it back to the originting client that requeted it.

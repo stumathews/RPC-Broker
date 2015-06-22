@@ -1,6 +1,6 @@
 #include "broker_support.h"
 #include "common.h"
-#define MAX_PORT_CHARS 20
+
 extern char port[MAX_PORT_CHARS ];
 extern bool verbose_flag;
 extern bool waitIndef_flag;

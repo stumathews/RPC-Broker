@@ -1,16 +1,12 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern char port[20];
+extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
-// Unpack the service registration request, return it in ServiceRegistration to caller
 struct ServiceRegistration* UnpackServiceRegistrationBuffer(char* buffer, int buflen)
 {
-    // NB: struct ServiceRegistration* unpacked will be populated
-    // --
-
     if( verbose_flag)
         PRINT("Unpacking service registration request...\n");
 

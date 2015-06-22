@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <msgpack.h>
 #include <stulibc.h>
+#define MAX_HEADER_NAME_SIZE 20
+#define MAX_PORT_CHARS 20
 
 enum RequestType {REQUEST_SERVICE, REQUEST_SERVICE_RESPONSE, REQUEST_REGISTRATION};
 

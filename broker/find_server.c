@@ -1,10 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
-#define MAX_HEADER_NAME_SIZE 20
 
-extern char port[20];
-extern bool verbose;
-extern bool waitIndef;
+extern char port[MAX_PORT_CHARS];
 extern struct ServiceRegistration service_repository;
 
 static char* get_op_name( char* protocol_buffer, int protocol_buffer_len);
