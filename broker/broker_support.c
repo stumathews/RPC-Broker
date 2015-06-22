@@ -26,16 +26,10 @@ void setWaitIndefinitely(char* arg)
     waitIndef = true;
 }
 
-void find_client(char *buffer, int len, Destination *dest)
-{
-    PRINT("Response for client %s %s\n", dest->address, dest->port);
-    unpack_data( buffer,len, verbose);
-}
 
 void print_service_repository()
 {
-    if(verbose)
-        printf("Service registrations:\n");
+    printf("Service registrations:\n");
 
     struct list_head *pos, *q;
     struct ServiceRegistration* tmp = Alloc( sizeof( struct ServiceRegistration ));
@@ -49,9 +43,6 @@ void print_service_repository()
             PRINT("Null service!\n");
             return;
         }
-
-        if( verbose )
-            PRINT("In list_for_each\n");
 
         PRINT("Service Registration:\n"
                 "Service name:%s\n"

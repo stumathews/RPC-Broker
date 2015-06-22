@@ -76,9 +76,9 @@ int main( int argc, char* argv[])
     // use the server API...implemented by the client-proxy's getServerDate();
     strServerDate = getServerDate();
     //printf("Returned result from server was: %s\n",strServerDate);
-    echo("Stuart Mathews");
+    echo("Bruce Mathews");
     getBrokerName();
-    int sum  = add(20,80);
+    int sum  = add(20,199);
 
     LIB_Uninit();
 }
