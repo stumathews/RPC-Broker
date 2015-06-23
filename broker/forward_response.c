@@ -1,4 +1,5 @@
 #include "common.h"
+#include "broker_support.h"
 
 extern char port[MAX_PORT_CHARS];
 extern struct ServiceRegistration service_repository;

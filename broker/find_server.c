@@ -46,13 +46,9 @@ static char* get_op_name( char* protocol_buffer, int protocol_buffer_len)
     msgpack_unpacked unpacked_result;
     msgpack_unpack_return return_status;
     size_t off = 0;
-<<<<<<< HEAD
     char header_name[MAX_HEADER_NAME_SIZE] = {0};
     
     msgpack_unpacked_init(&unpacked_result);
-=======
-    msgpack_unpacked_init(&result);
->>>>>>> 9efbca1fef9a36263e37ece84be0f19e0260a3d3
 
     return_status = msgpack_unpack_next(&unpacked_result, protocol_buffer, protocol_buffer_len, &off);
 
@@ -73,34 +69,7 @@ static char* get_op_name( char* protocol_buffer, int protocol_buffer_len)
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
-<<<<<<< HEAD
             return str; 
-=======
-
-            struct list_head *pos, *q;
-        
-            if( list_empty( &service_repository.list ))
-            {
-                PRINT("No services registered in broker.\n");
-                return;
-            }
-
-            list_for_each( pos, &service_repository.list)
-            {
-                ServiceReg *sreg  = list_entry( pos, struct ServiceRegistration, list );
-
-                for( int i = 0 ; i < sreg->num_services;i++)
-                {
-                    if( STR_Equals( str, sreg->services[i]))
-                    {
-                        dest->address = sreg->address;
-                        dest->port = sreg->port;
-                        PRINT("FOUND server for required service '%s' at location '%s:%s'\n",str, dest->address,dest->port);
-                        goto done;
-                    }
-                }
-            }
->>>>>>> 9efbca1fef9a36263e37ece84be0f19e0260a3d3
         }
 
         return_status = msgpack_unpack_next(&unpacked_result, protocol_buffer, protocol_buffer_len, &off);
