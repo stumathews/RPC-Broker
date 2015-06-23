@@ -2,7 +2,7 @@ rm broker_exe;
 gcc broker/broker.c \
     broker/broker_support.c \
     common/common.c \
-    broker/UnpackServiceRegistrationBuffer.c \
+    broker/unpack_service_registration_buffer.c \
     broker/find_server.c \
     broker/register_service.c \
     broker/forward_request.c \

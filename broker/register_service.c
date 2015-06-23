@@ -4,16 +4,20 @@
 extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
+static void perform_diagnostics(struct ServiceRegistration* service_registration,bool verbose_flag);
 
-// Add the service registration request to the service repository
 void register_service( char* buffer,int buflen)
 {
-    struct ServiceRegistration *service_registration =  UnpackServiceRegistrationBuffer(buffer, buflen );
+    struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(buffer, buflen );
     
-    list_add( &(service_registration->list),&(service_repository.list)); // add service registration to the repository
+    list_add( &(service_registration->list),&(service_repository.list)); 
 
-// Diagnostics only:
+    perform_diagnostics(service_registration,verbose_flag);
 
+}
+
+static void perform_diagnostics(struct ServiceRegistration* service_registration,bool verbose_flag)
+{
     if(verbose_flag)
         PRINT("Registering service '%s':\n",service_registration->service_name);
 
@@ -24,7 +28,6 @@ void register_service( char* buffer,int buflen)
             PRINT("Service %s\n", service_registration->services[i]);
         }
     }
-
 
     if( verbose_flag )
         print_service_repository();
