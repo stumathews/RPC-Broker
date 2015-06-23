@@ -38,8 +38,8 @@ int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool v
     pkt.len = ntohl(pkt.len);
     if( verbose )
     {
-        printf("Sent %d bytes(size of packet)\n",rc);
-        printf("send pkt length as %u\n",pkt.len);
+        PRINT("Sent %d bytes(size of packet)\n",rc);
+        PRINT("send pkt length as %u\n",pkt.len);
     }
 
     // send packet
@@ -47,8 +47,8 @@ int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool v
         netError(1,errno,"failed to send packed data\n");
     if( verbose )
     {
-        printf("Sent packet %d bytes(packet buffer)\n",rc);
-        printf("buffer packet  length %d\n",length);
+        PRINT("Sent packet %d bytes(packet buffer)\n",rc);
+        PRINT("buffer packet  length %d\n",length);
     }
     return rc;
 }
@@ -121,7 +121,6 @@ char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
             case 'd':
                 ival = va_arg(ap,int);
                 msgpack_pack_int(&pk, ival);
-                PRINT("%d\n",ival);
                 break;
             case 's':
                 sval =  va_arg(ap, char *);

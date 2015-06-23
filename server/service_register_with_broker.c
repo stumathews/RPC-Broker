@@ -3,7 +3,7 @@
 #include "server_interface.h"
 
 extern bool verbose;
-extern char port[20];
+extern char port[MAX_PORT_CHARS];
 
 // =====================
 // SERVICE Registration

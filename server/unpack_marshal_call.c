@@ -4,30 +4,31 @@
 #include "server_interface.h"
 
 extern bool verbose;
-extern char broker_address[30];
-extern char broker_port[20];
-// unpack the service request's operation and parameters and call server function.
+extern char broker_address[MAX_ADDRESS_CHARS];
+extern char broker_port[MAX_PORT_CHARS];
+
 void unpack_marshal_call_send( char* buffer, int buflen )
 {
 
-    msgpack_unpacked result;
-    msgpack_unpack_return ret;
+    msgpack_unpacked unpacked_result;
+    msgpack_unpack_return return_status;
     size_t off = 0;
     int i = 0;
-    msgpack_unpacked_init(&result);
+    msgpack_unpacked_init(&unpacked_result);
     void** params = 0;
 
-    ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+    return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
     
-    while (ret == MSGPACK_UNPACK_SUCCESS) 
+    while (return_status == MSGPACK_UNPACK_SUCCESS) 
     {
-        msgpack_object obj = result.data;
-        char header_name[20];  // stores the protocol header
+        msgpack_object obj = unpacked_result.data;
+        char header_name[MAX_HEADER_NAME_SIZE];  // stores the protocol header
         char* op_name;         // stores the service request operation name
 
-        memset(header_name, '\0', 20);
+        memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
         msgpack_object val = extract_header( &obj, header_name);
 
+        // Extract the operation name to call.
         if( STR_Equals( "op", header_name) && val.type == MSGPACK_OBJECT_STR )
         {
             msgpack_object_str string = val.via.str;
@@ -40,7 +41,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             strncpy(str, string.ptr,str_len); 
 
             PRINT("%s(",str);
-        } 
+        } // below: Get list of parameters for the operation
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
             msgpack_object_array array = val.via.array;
@@ -49,12 +50,12 @@ void unpack_marshal_call_send( char* buffer, int buflen )
 
             for( int i = 0; i < array.size;i++)
             {
-                PRINT("*",i);
-                msgpack_object_type type = array.ptr[i].type;
+                msgpack_object_type param_type = array.ptr[i].type;
                 msgpack_object param = array.ptr[i];
+
                 params[i] = NULL;
 
-                if( type == MSGPACK_OBJECT_STR ) //param is a char*
+                if( param_type == MSGPACK_OBJECT_STR ) //param is a char*
                 {
                     int str_len = param.via.str.size;
                     char* str = Alloc( str_len);
@@ -67,7 +68,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
 
                     params[i] = str;
                 }
-                else if(type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
+                else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
                 {
                      int64_t ival = param.via.i64;
                      int64_t *pival = Alloc( sizeof(int) );
@@ -76,65 +77,79 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                     params[i] = pival;
                     PRINT("int param%d(%d),",i,*(int*)(params[i]));
                 }
-
             }
             PRINT(");");
 
             // Now arrange for the service call to be invoked and marshal the parmeters into the function call
+            
             // Note: This should probably be generated but I'm unsure how to do this automatically.
             // Current research has pointed me to trying to use Macros or a macro-like manguge such as M4 to generate this:
+            
             if( STR_Equals( op_name, "echo") )
             {
                 char* param0 = (char*)params[0];
+            
                 echo(param0);
-                msgpack_sbuffer sbuf;
-                pack_client_response_data( &sbuf, op_name, "%s", param0);
-                unpack_data( sbuf.data, sbuf.size, verbose);
-                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
-                msgpack_sbuffer_destroy(&sbuf);
+            
+                msgpack_sbuffer response;
+                
+                pack_client_response_data( &response, op_name, "%s", param0);
+                
+                if( verbose ) unpack_data( response.data, response.size, verbose);
+
+                send_request( response.data, response.size, broker_address, broker_port,verbose );
+
+                msgpack_sbuffer_destroy(&response);
             }
             else if( STR_Equals( op_name,"getBrokerName"))
             {
                 char* brokerName = getBrokerName();
                 PRINT("getBrokername() results in '%s'\n", brokerName);
-                msgpack_sbuffer sbuf;
+                msgpack_sbuffer response;
 
-                pack_client_response_data( &sbuf, op_name, "%s", brokerName);
-                unpack_data( sbuf.data, sbuf.size, verbose);
-                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
-                msgpack_sbuffer_destroy(&sbuf);
+                pack_client_response_data( &response, op_name, "%s", brokerName);
+
+                if( verbose ) unpack_data( response.data, response.size, verbose);
+                
+                send_request( response.data, response.size, broker_address, broker_port,verbose );
+                
+                msgpack_sbuffer_destroy(&response);
                 
             }
             else if( STR_Equals( op_name,"getServerDate"))
             {
-                PRINT("getServerDate() result is %s", getServerDate());
-                msgpack_sbuffer sbuf;
-                pack_client_response_data( &sbuf, op_name, "%s", getServerDate());
-                unpack_data( sbuf.data, sbuf.size, verbose);
-                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
-                msgpack_sbuffer_destroy(&sbuf);
+                msgpack_sbuffer response;
+                pack_client_response_data( &response, op_name, "%s", getServerDate());
+                
+                if( verbose ) unpack_data( response.data, response.size, verbose);
+
+                send_request( response.data, response.size, broker_address, broker_port,verbose );
+
+                msgpack_sbuffer_destroy(&response);
             }
             else if( STR_Equals( op_name,"add"))
             {
                 int param0 = *(int*)params[0];
                 int param1 = *(int*)params[1];
-                PRINT("two in values are %d and %d\n", param0, param1);
-                PRINT("The result of add() is %d\n", add(param0, param1 ));
-                msgpack_sbuffer sbuf;
-                pack_client_response_data( &sbuf, op_name, "%d", add(param0,param1));
-                unpack_data( sbuf.data, sbuf.size, verbose);
-                send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose );
-                msgpack_sbuffer_destroy(&sbuf);
+                msgpack_sbuffer response;
+                
+                pack_client_response_data( &response, op_name, "%d", add(param0,param1));
+                
+                if( verbose ) unpack_data( response.data, response.size, verbose);
+                
+                send_request( response.data, response.size, broker_address, broker_port,verbose );
+                
+                msgpack_sbuffer_destroy(&response);
             }
         }
 
-        ret = msgpack_unpack_next(&result, buffer, buflen, &off);
+        return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
 
     } // finished unpacking.
 
-    msgpack_unpacked_destroy(&result);
+    msgpack_unpacked_destroy(&unpacked_result);
 
-    if (ret == MSGPACK_UNPACK_PARSE_ERROR) 
+    if (return_status == MSGPACK_UNPACK_PARSE_ERROR) 
     {
         printf("The data in the buf is invalid format.\n");
     }

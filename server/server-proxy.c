@@ -8,9 +8,9 @@
 #include "common.h"
 #include "server_interface.h"
 
-char port[20] = {0};
-char broker_port[20] = {0};
-char broker_address[30] = {0};
+char port[MAX_PORT_CHARS] = {0};
+char broker_port[MAX_PORT_CHARS] = {0};
+char broker_address[MAX_ADDRESS_CHARS] = {0};
 static bool waitIndef = false;
 bool verbose = false;
 static bool registered_with_broker = false;
@@ -24,9 +24,6 @@ static void setBeVerbose(char* arg);
 static void server( SOCKET s, struct sockaddr_in *peerp );
 
 
-// =====================
-// Server start up code
-// =====================
 int main( int argc, char **argv )
 {
     LIB_Init();
@@ -161,7 +158,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         printf("read %d bytes of data\n",d_rc);
     }
     
-    // note: will also send the response of the call to the broker
     unpack_marshal_call_send( dbuf, pkt.len);
 
 }
