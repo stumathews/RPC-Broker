@@ -17,6 +17,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
     msgpack_unpacked_init(&unpacked_result);
     void** params = 0;
 
+    int message_id;
     return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
     
     while (return_status == MSGPACK_UNPACK_SUCCESS) 
@@ -42,6 +43,12 @@ void unpack_marshal_call_send( char* buffer, int buflen )
 
             PRINT("%s(",str);
         } // below: Get list of parameters for the operation
+        else if(STR_Equals( "message_id", header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
+        {
+            int64_t ival = val.via.i64;
+            message_id = ival;
+            PRINT("message_id: %d,",message_id);
+        }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
             msgpack_object_array array = val.via.array;
@@ -84,7 +91,6 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             
             // Note: This should probably be generated but I'm unsure how to do this automatically.
             // Current research has pointed me to trying to use Macros or a macro-like manguge such as M4 to generate this:
-            
             if( STR_Equals( op_name, "echo") )
             {
                 char* param0 = (char*)params[0];
@@ -93,7 +99,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             
                 msgpack_sbuffer response;
                 
-                pack_client_response_data( &response, op_name, "%s", param0);
+                pack_client_response_data( &response, op_name, message_id, "%s", param0);
                 
                 if( verbose ) unpack_data( response.data, response.size, verbose);
 
@@ -107,7 +113,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 PRINT("getBrokername() results in '%s'\n", brokerName);
                 msgpack_sbuffer response;
 
-                pack_client_response_data( &response, op_name, "%s", brokerName);
+                pack_client_response_data( &response, op_name, message_id,"%s", brokerName);
 
                 if( verbose ) unpack_data( response.data, response.size, verbose);
                 
@@ -119,7 +125,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             else if( STR_Equals( op_name,"getServerDate"))
             {
                 msgpack_sbuffer response;
-                pack_client_response_data( &response, op_name, "%s", getServerDate());
+                pack_client_response_data( &response, op_name, message_id, "%s", getServerDate());
                 
                 if( verbose ) unpack_data( response.data, response.size, verbose);
 
@@ -133,7 +139,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 int param1 = *(int*)params[1];
                 msgpack_sbuffer response;
                 
-                pack_client_response_data( &response, op_name, "%d", add(param0,param1));
+                pack_client_response_data( &response, op_name, message_id, "%d", add(param0,param1));
                 
                 if( verbose ) unpack_data( response.data, response.size, verbose);
                 

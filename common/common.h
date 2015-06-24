@@ -50,7 +50,7 @@ int send_request(char* buffer, int bufsize,char* address, char* port, bool verbo
 int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool verbose);
 void unpack_data(char const* buf, size_t len, bool verbose);
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
-char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
+char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
 void _return();
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
 void pack_map_str( char* key, char* value, msgpack_packer* pk);
