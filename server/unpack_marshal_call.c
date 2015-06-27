@@ -40,14 +40,13 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
+            PRINT("Incomming operation: %s\n", str);
 
-            PRINT("%s(",str);
         } // below: Get list of parameters for the operation
-        else if(STR_Equals( "message_id", header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
+        else if(STR_Equals( "message-id", header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
         {
             int64_t ival = val.via.i64;
             message_id = ival;
-            PRINT("message_id: %d,",message_id);
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
@@ -71,8 +70,6 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                     str[str_len] = '\0';
                     strncpy(str, param.via.str.ptr,str_len); 
 
-                    PRINT("char* param%d(%s),",i,str);
-
                     params[i] = str;
                 }
                 else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
@@ -82,10 +79,8 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                      *pival = ival; 
 
                     params[i] = pival;
-                    PRINT("int param%d(%d),",i,*(int*)(params[i]));
                 }
             }
-            PRINT(");");
 
             // Now arrange for the service call to be invoked and marshal the parmeters into the function call
             
@@ -98,7 +93,6 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 echo(param0);
             
                 msgpack_sbuffer response;
-                
                 pack_client_response_data( &response, op_name, message_id, "%s", param0);
                 
                 if( verbose ) unpack_data( response.data, response.size, verbose);
@@ -110,7 +104,6 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             else if( STR_Equals( op_name,"getBrokerName"))
             {
                 char* brokerName = getBrokerName();
-                PRINT("getBrokername() results in '%s'\n", brokerName);
                 msgpack_sbuffer response;
 
                 pack_client_response_data( &response, op_name, message_id,"%s", brokerName);
@@ -147,6 +140,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 
                 msgpack_sbuffer_destroy(&response);
             }
+            PRINT("Sent response.\n");
         }
 
         return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
@@ -157,6 +151,6 @@ void unpack_marshal_call_send( char* buffer, int buflen )
 
     if (return_status == MSGPACK_UNPACK_PARSE_ERROR) 
     {
-        printf("The data in the buf is invalid format.\n");
+        PRINT("The data in the buf is invalid format.\n");
     }
 }

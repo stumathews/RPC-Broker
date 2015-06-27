@@ -33,14 +33,19 @@ typedef struct ServiceRegistration
     struct list_head list;
 } ServiceReg;
 
+typedef struct ClientRequestRegistration
+{
+    char* address;
+    char* port;  
+    char* operation;
+    int message_id;
+    struct list_head list;
+} ClientReg;
+
 typedef struct ProtocolHeader
 {
-    // Header Text
-    char header[20];
-    // Header Value type
+    char header[MAX_HEADER_NAME_SIZE];
     msgpack_object val;
-
-    // internal list structure
     struct list_head list;
 } ProtocolHeaders;
 
@@ -55,4 +60,8 @@ void _return();
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
 void pack_map_str( char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival,msgpack_packer* pk );
+struct packet *send_and_receive(char* buffer, int bufsize,char* address, char* port, bool verbose, char* wait_response_port);
+char* get_header_str_value (char* buffer, int len, char* look_header_name );
+int get_header_int_value (char* buffer, int len, char* look_header_name );
+char* get_op_name( char* protocol_buffer, int protocol_buffer_len);
 #endif

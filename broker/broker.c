@@ -2,6 +2,7 @@
 #include "broker_support.h"
 
 struct ServiceRegistration service_repository;
+struct ClientRequestRegistration client_request_repository;
 char port[MAX_PORT_CHARS] = {0};
 bool verbose_flag = false;
 bool waitIndef_flag = false;
@@ -15,6 +16,7 @@ int main( int argc, char **argv )
 {
     LIB_Init();
     INIT_LIST_HEAD(&service_repository.list);
+    INIT_LIST_HEAD(&client_request_repository.list);
 
     struct Argument* portNumberArg = CMD_CreateNewArgument("port",
                                                         "port <number>",

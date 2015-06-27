@@ -12,7 +12,7 @@ struct ServFunction
 
 char* getServerDate();
 int add( int one, int two );
-void echo(char* echo);
+char* echo(char* echo);
 char* getBrokerName();
 inline char* Reverse(char* data){}
 

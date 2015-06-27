@@ -11,10 +11,10 @@
 #include <stulibc.h>
 #include <stdarg.h>
 
-extern char broker_address[30];
-extern char broker_port[20];
+extern char broker_address[MAX_ADDRESS_CHARS];
+extern char broker_port[MAX_PORT_CHARS];
 extern bool verbose;
-
+extern char wait_response_port[MAX_PORT_CHARS];
 int add( int one, int two )
 {
     
@@ -22,25 +22,27 @@ int add( int one, int two )
 
     pack_client_request_data( &sbuf, (char*)__func__, "%d%d",one,two);
 
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
+    struct packet *result = send_and_receive( sbuf.data, sbuf.size, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
     
-    _return();
+    return  get_header_int_value(result->buffer, result->len, "reply");
+    
 }
 
-void echo(char* echo)
+char* echo(char* echo)
 {
 
     msgpack_sbuffer sbuf;
 
     pack_client_request_data( &sbuf, (char*)__func__, "%s",echo);
 
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
+    struct packet *result = send_and_receive( sbuf.data, sbuf.size, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
     
-    _return();
+    return  get_header_str_value(result->buffer, result->len, "reply");
+    
 }
 
 char* getBrokerName()
@@ -50,11 +52,12 @@ char* getBrokerName()
 
     pack_client_request_data( &sbuf, (char*)__func__, "");
     
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port, verbose);
+    struct packet *result = send_and_receive( sbuf.data, sbuf.size, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
 
-    _return();
+    return  get_header_str_value(result->buffer, result->len, "reply");
+
 }
 
 char* getServerDate()
@@ -64,23 +67,12 @@ char* getServerDate()
 
     pack_client_request_data( &sbuf, (char*)__func__, "");
     
-    send_request(sbuf.data,sbuf.size, broker_address, broker_port,verbose);
+    struct packet *result = send_and_receive( sbuf.data, sbuf.size, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
 
-    // --
-    // Read response from the Broker
-    // ---
-
-    char* dummyResult = "11:11:05am";
-
-    // return result (incomplete)
-    _return();
+    return  get_header_str_value(result->buffer, result->len, "reply");
 }
 
 
-void _return()
-{
-
-}
 

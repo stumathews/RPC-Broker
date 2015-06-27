@@ -20,7 +20,6 @@ int send_request(char* buffer, int bufsize,char* address, char* port, bool verbo
 
     struct sockaddr_in peer;
 	SOCKET s;
-    
 	s = netTcpClient(address,port);
 	return client( s, &peer, buffer,bufsize,verbose );
 }
@@ -76,7 +75,7 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk)
 
 void unpack_data(char const* buf, size_t len, bool verbose)
 {
-    
+    if( len == 0 ) { return; } 
     /* buf is allocated by client. */
     msgpack_unpacked result;
     msgpack_unpack_return ret;
@@ -92,13 +91,15 @@ void unpack_data(char const* buf, size_t len, bool verbose)
     {
         msgpack_object obj = result.data;
         msgpack_object_print(stdout, obj);
-        printf("\n");
+        
+        if( obj.type != MSGPACK_OBJECT_NIL) { printf("\n"); }
+        
         ret = msgpack_unpack_next(&result, buf, len, &off);
     }
     msgpack_unpacked_destroy(&result);
 
     if (ret == MSGPACK_UNPACK_PARSE_ERROR) {
-        printf("The data in the buf is invalid format.\n");
+        PRINT("The data in the buf is invalid format.\n");
     }
 }
 
@@ -171,4 +172,131 @@ enum RequestType determine_request_type(struct packet* pkt)
     else { PRINT("pack failed\n"); }
 
     msgpack_unpacked_destroy(&result);
+}
+
+int get_header_int_value (char* buffer, int buflen, char* look_header_name )
+{
+    size_t off = 0;
+    int i = 0;
+    msgpack_unpacked unpacked_result;
+    msgpack_unpack_return return_status;
+    msgpack_unpacked_init(&unpacked_result);
+    int return_value = 0;
+
+    return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
+
+    while (return_status == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = unpacked_result.data;
+
+        char header_name[MAX_HEADER_NAME_SIZE];
+        memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
+
+        msgpack_object val = extract_header( &obj, header_name);
+        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(look_header_name,header_name) == 0 )
+        {
+                return_value = val.via.i64;
+        }
+        else
+        {
+            // this is not a header or array but something else
+        }
+        return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
+    } // finished unpacking.
+
+    msgpack_unpacked_destroy(&unpacked_result);
+
+    if (return_status == MSGPACK_UNPACK_PARSE_ERROR) 
+    {
+        PRINT("The data in the buf is invalid format.\n");
+    }
+    return return_value;
+}
+
+char* get_header_str_value (char* buffer, int buflen, char* look_header_name )
+{
+    size_t off = 0;
+    int i = 0;
+    msgpack_unpacked unpacked_result;
+    msgpack_unpack_return return_status;
+    msgpack_unpacked_init(&unpacked_result);
+    char* str;
+    return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
+
+    while (return_status == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object obj = unpacked_result.data;
+
+        char header_name[MAX_HEADER_NAME_SIZE];
+        memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
+
+        msgpack_object val = extract_header( &obj, header_name);
+
+        if( val.type == MSGPACK_OBJECT_STR &&  STR_Equals( look_header_name, header_name ) == true)
+        {
+                int str_len = val.via.str.size;
+                str = Alloc( str_len);
+
+                memset( str, '\0', str_len);
+                str[str_len] = '\0';
+                strncpy(str, val.via.str.ptr,str_len); 
+                break;
+        }
+        else
+        {
+            // this is not a header or array but something else
+        }
+        return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
+    } // finished unpacking.
+
+    msgpack_unpacked_destroy(&unpacked_result);
+
+    if (return_status == MSGPACK_UNPACK_PARSE_ERROR) 
+    {
+        PRINT("The data in the buf is invalid format.\n");
+    }
+    return str;
+}
+char* get_op_name( char* protocol_buffer, int protocol_buffer_len)
+{
+
+    msgpack_unpacked unpacked_result;
+    msgpack_unpack_return return_status;
+    size_t off = 0;
+    char header_name[MAX_HEADER_NAME_SIZE] = {0};
+    
+    msgpack_unpacked_init(&unpacked_result);
+
+    return_status = msgpack_unpack_next(&unpacked_result, protocol_buffer, protocol_buffer_len, &off);
+
+    while (return_status == MSGPACK_UNPACK_SUCCESS) 
+    {
+        msgpack_object result_data = unpacked_result.data;
+        
+        memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
+        
+        msgpack_object val = extract_header( &result_data, header_name);
+        
+        if( STR_Equals( "op", header_name) && val.type == MSGPACK_OBJECT_STR )
+        {
+            msgpack_object_str string = val.via.str;
+            int str_len = string.size;
+            char* str = Alloc(str_len);
+            
+            memset( str, '\0', str_len);
+            str[str_len] = '\0';
+            strncpy(str, string.ptr,str_len); 
+            return str; 
+        }
+
+        return_status = msgpack_unpack_next(&unpacked_result, protocol_buffer, protocol_buffer_len, &off);
+
+    } // finished unpacking.
+
+    msgpack_unpacked_destroy(&unpacked_result);
+
+    if (return_status == MSGPACK_UNPACK_PARSE_ERROR) 
+    {
+        PRINT("The data in the buf is invalid format.\n");
+    }
 }

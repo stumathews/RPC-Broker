@@ -3,10 +3,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <stulibc.h>
+#include "common.h"
 
-char broker_address[30] = {0};
-char broker_port[20] = {0};
+char broker_address[MAX_ADDRESS_CHARS] = {0};
+char broker_port[MAX_PORT_CHARS] = {0};
+char wait_response_port[MAX_PORT_CHARS] = {0};
+bool wait_response_indef = false;
 bool verbose = false;
+
+
+static void setWaitResponsePort(char* arg)
+{
+    CHECK_STRING(arg, IS_NOT_EMPTY);
+    strncpy( wait_response_port, arg, strlen(arg));
+}
 
 static void setBrokerPortNumber(char* arg)
 {
@@ -18,6 +28,11 @@ static void setBrokerAddress(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
     strncpy( broker_address, arg, strlen(arg));
+}
+
+static void setWaitResponseIndef( char* arg)
+{
+    wait_response_indef = true;
 }
 
 static void setVerbose(char* arg)
@@ -45,9 +60,24 @@ void setupCmd(int argc, char* argv[])
                                                         false,
                                                         false,
                                                         setVerbose);
+    
+    struct Argument* waitResponsePortArg = CMD_CreateNewArgument("wait-port",
+                                                        "",
+                                                        "The port that the broker can connect to deliver the response",
+                                                        true,
+                                                        true,
+                                                        setWaitResponsePort);
+    struct Argument* waitResponseIndefArg = CMD_CreateNewArgument("wait-reponse-indef",
+                                                        "",
+                                                        "Should we wait indefinitely for the reponse",
+                                                        false,
+                                                        false,
+                                                        setWaitResponseIndef);
     CMD_AddArgument(portNumber);
     CMD_AddArgument(brokerAddress);
     CMD_AddArgument(verboseArg);
+    CMD_AddArgument(waitResponsePortArg);
+    CMD_AddArgument(waitResponseIndefArg);
 
     if( argc > 1 )
     {
@@ -70,16 +100,11 @@ int main( int argc, char* argv[])
     
     setupCmd(argc, argv);
 
-    char* strServerDate = (char*) calloc( 80,sizeof(char) );
-    memset( strServerDate, '\0', 80);
-    
-    // use the server API...implemented by the client-proxy's getServerDate();
-    strServerDate = getServerDate();
-    //printf("Returned result from server was: %s\n",strServerDate);
-    echo("Bruce Mathews");
-    getBrokerName();
+    PRINT("Got server date reply as %s", getServerDate());
+    PRINT( "reverse echo = %s", echo("Bruce Mathews") );
+    PRINT( "broker name = %s", getBrokerName());
     int sum  = add(20,199);
-
+    PRINT("sum = %d", sum);
     LIB_Uninit();
 }
 

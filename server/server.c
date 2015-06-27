@@ -12,17 +12,15 @@ char* getServerDate()
 
 char* getBrokerName()
 {
-    PRINT("Calling getBrokerName()\n");
     char* name = Alloc( sizeof(char) );
     strcpy( name, "peter");
     return name;
 }
 
-void echo(char* data)
+char* echo(char* data)
 {
-    PRINT("Calling echo(char* data)\n");
     STR_Reverse(data);
-    PRINT("%s",data);
+    return data;
 }
 
 int add( int one, int two )

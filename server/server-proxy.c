@@ -155,9 +155,8 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     
     if(verbose)
     {
-        printf("read %d bytes of data\n",d_rc);
+        PRINT("read %d bytes of data\n",d_rc);
     }
-    
     unpack_marshal_call_send( dbuf, pkt.len);
 
 }

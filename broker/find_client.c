@@ -1,0 +1,41 @@
+#include "broker_support.h"
+#include "common.h"
+
+extern bool verbose_flag;
+extern struct ClientRequestRegistration client_request_repository;
+
+Destination* find_client(char *buffer, int len)
+{
+
+    char* op_name = get_op_name( buffer, len );
+    Destination* dest = Alloc( sizeof( Destination));
+
+    struct list_head *pos, *q;
+
+    if( list_empty( &client_request_repository.list ))
+    {
+        PRINT("No client requests registered in broker\n");
+    }
+
+    list_for_each( pos, &client_request_repository.list)
+    {
+        ClientReg *crreg_entry  = list_entry( pos, struct ClientRequestRegistration, list );
+        char* requested_operation = Alloc(sizeof(char));
+        int*  message_id = Alloc( sizeof(int));
+    
+        *message_id = get_header_int_value( buffer, len, "message-id");
+        requested_operation = get_header_str_value(buffer, len, "op"); 
+        if( *message_id == crreg_entry->message_id && STR_Equals(requested_operation, crreg_entry->operation ))
+        {
+            dest->address = crreg_entry->address;
+            dest->port = crreg_entry->port;
+            if( verbose_flag ) { PRINT("found client at %s:%s\n", dest->address, dest->port);}
+            list_del( &crreg_entry->list);
+            return dest;
+        }       
+
+       
+    }
+
+    return dest;
+}
