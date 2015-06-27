@@ -2,4 +2,5 @@ rm client_exe
 gcc client/client-proxy.c \
     client/client.c \
     common/common.c \
+    client/pack_client_request_data.c \
     -o client_exe -I server -I common -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib -l stu -l msgpack -std=c99

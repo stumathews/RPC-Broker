@@ -6,7 +6,7 @@ extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 static void perform_diagnostics(struct ServiceRegistration* service_registration,bool verbose_flag);
 
-void register_service( char* buffer,int buflen)
+void register_service( char* buffer,int buflen, struct sockaddr_in* peerp)
 {
     struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(buffer, buflen );
     

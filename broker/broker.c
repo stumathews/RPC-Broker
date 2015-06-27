@@ -173,20 +173,20 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         // Do client service request forwarding:
         // 1. Forward to the service that is registered to handle that request
-        forward_request(pkt.buffer, pkt.len);
+        forward_request(pkt.buffer, pkt.len, peerp);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
         // Do Service Registration:
         // 1. register the service request details in repository
-        register_service(pkt.buffer, pkt.len);
+        register_service(pkt.buffer, pkt.len,peerp);
     }
     else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
         // Do Service response - INCOMPLETE:
         // 1. Find client, that this response needs to be sent to
         // and forward the response to that client
-        forward_response(pkt.buffer, pkt.len); //to the client
+        forward_response(pkt.buffer, pkt.len, peerp); //to the client
     }
     else 
     {
