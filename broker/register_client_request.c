@@ -6,7 +6,8 @@ extern bool verbose_flag;
 
 struct ClientRequestRegistration *register_client_request( char* op, Destination* src, int message_id )
 {
-    if( verbose_flag) {PRINT("Registering client request from '%s:%s' for operation '%s'\n", src->address,src->port,  op);}
+    if(verbose_flag) { PRINT("Registering client request from host '%s' for operation '%s'\n", src->address,  op); }
+
     ClientReg* client_request_registration = Alloc( sizeof( struct ClientRequestRegistration) );
     client_request_registration->address = src->address;
     client_request_registration->port = src->port;

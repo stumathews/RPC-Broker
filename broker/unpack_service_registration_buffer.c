@@ -11,7 +11,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
         PRINT("Unpacking service registration request...\n");
 
     struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration) );
-    unpacked->num_services = 0; // set this to 0 so we know if its set to something else later or not
+    unpacked->num_services = 0;
 
     size_t off = 0;
     int i = 0;
@@ -39,22 +39,22 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
             str[str_len] = '\0';
             strncpy(str, val.via.str.ptr,str_len); 
     
-            if( STR_Equals( "sender-address", header_name ) == true)
+            if( STR_Equals( SENDER_ADDRESS_HDR, header_name ) == true)
             {
                 unpacked->address = str;
             }
-            else if( STR_Equals("reply-port",header_name) == true)
+            else if( STR_Equals(REPLY_PORT_HDR,header_name) == true)
             {
                 unpacked->port = str;
             }
-            else if( STR_Equals("service-name",header_name) == true)
+            else if( STR_Equals(SERVICE_NAME_HDR,header_name) == true)
             {
                 unpacked->service_name = str;
             }
         }
         else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
         {
-            if( STR_Equals("services-count",header_name) == true)
+            if( STR_Equals(SERVICES_COUNT_HDR,header_name) == true)
             {
                 unpacked->num_services = val.via.i64;
                 unpacked->services = Alloc(sizeof(char)*val.via.i64);
@@ -97,6 +97,5 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
     {
         PRINT("The data in the buf is invalid format.\n");
     }
-
     return unpacked;
 } 

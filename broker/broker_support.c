@@ -7,7 +7,6 @@ extern bool waitIndef_flag;
 extern struct ServiceRegistration service_repository;
 extern struct ClientRequestRegistration client_request_repository;
 
-
 void print_service_repository()
 {
     PRINT("Service registrations:\n");
@@ -18,7 +17,7 @@ void print_service_repository()
         struct ServiceRegistration* sreg_entry = list_entry( pos, struct ServiceRegistration, list );
         if( sreg_entry  == NULL )
         {
-            PRINT("Found a NULL service registration entry in servic erepository list. Exiting.!\n");
+            PRINT("Found a NULL(empty) service registration entry in service repository list. Not good. Exiting!\n");
             return;
         }
 
@@ -43,7 +42,7 @@ void print_client_request_repository()
         struct ClientRequestRegistration* crreg_entry = list_entry( pos, struct ClientRequestRegistration, list );
         if( crreg_entry  == NULL )
         {
-            PRINT("Found a NULL client request registration entry in client request repository list. Exiting.!\n");
+            PRINT("Found a NULLi(empty) client request registration entry in client request repository list. Not good. Exiting!\n");
             return;
         }
 

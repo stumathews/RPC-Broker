@@ -5,9 +5,9 @@ extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
-Destination* find_server(char* buffer, int buflen)
+Destination* find_server_for_request(Packet packet)
 {
-    char* op_name = get_op_name( buffer, buflen );
+    char* op_name = get_op_name( packet );
 
     Destination *dest = Alloc( sizeof(Destination) );
     dest->address = NULL;
@@ -19,6 +19,7 @@ Destination* find_server(char* buffer, int buflen)
     if( list_empty( &service_repository.list ))
     {
         PRINT("No services registered in broker.\n");
+        return dest;;
     }
 
     list_for_each( pos, &service_repository.list)

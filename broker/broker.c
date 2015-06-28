@@ -135,7 +135,8 @@ static void main_event_loop()
 }
 
 // ====================================
-// Broker connection processing routine - what we do with connections received from clients and servers who contact this broker.
+// Broker connection processing routine.
+// Deals with connections received from clients and servers.
 // ====================================
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
@@ -143,7 +144,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     // 2. Read the packet data
     // 3. Do stuff based on the packet data
 
-    struct packet pkt;
+    struct Packet pkt;
 
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
@@ -154,11 +155,8 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if(verbose_flag) 
         PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
     
-    pkt.buffer = (char*) malloc( sizeof(char) * pkt.len);
+    pkt.buffer = (char*) Alloc( sizeof(char) * pkt.len);
     int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
-
-    // pkt.len now contains the length of the data
-    // pkt.buffer now contains data
 
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
@@ -168,27 +166,19 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
         PRINT("Read %d bytes of data.\n",d_rc);
     }
 
-    // do stuff based on the packet data
     int request_type = -1; // -1 represents invalid state
    
     if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
     {
-        // Do client service request forwarding:
-        // 1. Forward to the service that is registered to handle that request
-        forward_request(pkt.buffer, pkt.len, peerp);
+        forward_request(pkt, peerp);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
-        // Do Service Registration:
-        // 1. register the service request details in repository
-        register_service(pkt.buffer, pkt.len,peerp);
+        register_service(pkt,peerp);
     }
     else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
-        // Do Service response - INCOMPLETE:
-        // 1. Find client, that this response needs to be sent to
-        // and forward the response to that client
-        forward_response(pkt.buffer, pkt.len, peerp); //to the client
+        forward_response(pkt, peerp); //to the client
     }
     else 
     {

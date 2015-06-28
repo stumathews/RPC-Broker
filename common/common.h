@@ -5,16 +5,24 @@
 #include <stdio.h>
 #include <msgpack.h>
 #include <stulibc.h>
+
+#define MESSAGE_ID_HDR "message-id"
+#define OPERATION_HDR "op"
+#define REPLY_PORT_HDR "reply-port"
+#define SENDER_ADDRESS_HDR "sender-address"
+#define SERVICE_NAME_HDR "service-name"
+#define SERVICES_COUNT_HDR "services-count"
+
 #define MAX_HEADER_NAME_SIZE 20
 #define MAX_PORT_CHARS 20
 #define MAX_ADDRESS_CHARS 29
 
 enum RequestType {REQUEST_SERVICE, REQUEST_SERVICE_RESPONSE, REQUEST_REGISTRATION};
 
-struct packet {
+typedef struct Packet {
     uint32_t len;
     char* buffer;
-};
+}Packet;
 
 typedef struct DestinationEndpoint
 {
@@ -28,8 +36,8 @@ typedef struct ServiceRegistration
     char* address;
     char* port;  
     char** services;
-    int num_services;
     char* service_name;
+    int num_services;
     struct list_head list;
 } ServiceReg;
 
@@ -50,18 +58,20 @@ typedef struct ProtocolHeader
 } ProtocolHeaders;
 
 
-enum RequestType determine_request_type(struct packet* pkt);
-int send_request(char* buffer, int bufsize,char* address, char* port, bool verbose);
-int client(SOCKET s, struct sockaddr_in* peerp, char* buffer, int length, bool verbose);
-void unpack_data(char const* buf, size_t len, bool verbose);
-char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
-char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
-void _return();
-msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
+enum RequestType determine_request_type(struct Packet* pkt);
+int send_request(Packet packet,char* address, char* port, bool verbose);
+int client(SOCKET s, struct sockaddr_in* peerp, Packet packet, bool verbose);
+int get_header_int_value (Packet packet, char* look_header_name );
+void unpack_data(Packet packet, bool verbose);
 void pack_map_str( char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival,msgpack_packer* pk );
-struct packet *send_and_receive(char* buffer, int bufsize,char* address, char* port, bool verbose, char* wait_response_port);
-char* get_header_str_value (char* buffer, int len, char* look_header_name );
-int get_header_int_value (char* buffer, int len, char* look_header_name );
-char* get_op_name( char* protocol_buffer, int protocol_buffer_len);
+
+char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
+char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
+
+char* get_header_str_value (Packet packet, char* look_header_name );
+char* get_op_name( Packet packet);
+msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
+struct Packet *send_and_receive(Packet packet,char* address, char* port, bool verbose, char* wait_response_port);
+
 #endif

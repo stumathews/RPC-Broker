@@ -3,11 +3,11 @@ gcc broker/broker.c \
     broker/broker_support.c \
     common/common.c \
     broker/unpack_service_registration_buffer.c \
-    broker/find_server.c \
+    broker/find_server_for_request.c \
     broker/register_service.c \
     broker/forward_request.c \
     broker/forward_response.c \
-    broker/find_client.c \
+    broker/find_client_for_response.c \
     broker/get_sender_address.c \
     broker/register_client_request.c \
     -o broker_exe \
