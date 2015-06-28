@@ -6,8 +6,6 @@ extern struct ServiceRegistration service_repository;
 
 void forward_response(Packet packet, struct sockaddr_in* peerp)
 {
-    Destination *dest = Alloc( sizeof( Destination ));
-
-    dest = find_client_for_response(packet);
+    Destination* dest = find_client_for_response(packet);
     send_request( packet, dest->address, dest->port, false );
 }

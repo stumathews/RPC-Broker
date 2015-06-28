@@ -16,7 +16,7 @@ Destination* find_server_for_request(Packet packet)
 
     struct list_head *pos, *q;
 
-    if( list_empty( &service_repository.list ))
+    if(list_empty( &service_repository.list ))
     {
         PRINT("No services registered in broker.\n");
         return dest;;
@@ -24,7 +24,7 @@ Destination* find_server_for_request(Packet packet)
 
     list_for_each( pos, &service_repository.list)
     {
-        ServiceReg *sreg_entry  = list_entry( pos, struct ServiceRegistration, list );
+       ServiceReg *sreg_entry  = list_entry( pos, struct ServiceRegistration, list );
 
         for( int i = 0 ; i < sreg_entry->num_services;i++)
         {

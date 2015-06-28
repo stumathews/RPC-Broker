@@ -144,19 +144,19 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     // 2. Read the packet data
     // 3. Do stuff based on the packet data
 
-    struct Packet pkt;
+    struct Packet packet;
 
-    int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
-    pkt.len = ntohl(pkt.len);
+    int n_rc = netReadn( s,(char*) &packet.len, sizeof(uint32_t));
+    packet.len = ntohl(packet.len);
 
     if( n_rc < 1 )
         netError(1, errno,"Failed to receiver packet size\n");
     
     if(verbose_flag) 
-        PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+        PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
     
-    pkt.buffer = (char*) Alloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, pkt.buffer, sizeof( char) * pkt.len);
+    packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
+    int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
@@ -168,17 +168,17 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 
     int request_type = -1; // -1 represents invalid state
    
-    if( (request_type = determine_request_type(&pkt)) == REQUEST_SERVICE )
+    if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
-        forward_request(pkt, peerp);
+        forward_request(packet, peerp);
     }
     else if ( request_type == REQUEST_REGISTRATION )
     {
-        register_service(pkt,peerp);
+        register_service(packet,peerp);
     }
     else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
-        forward_response(pkt, peerp); //to the client
+        forward_response(packet, peerp); //to the client
     }
     else 
     {

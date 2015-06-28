@@ -24,6 +24,7 @@ int add( int one, int two )
     pack_client_request_data( &sbuf, (char*)__func__, "%d%d",one,two);
 
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
+
     Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
@@ -40,6 +41,7 @@ char* echo(char* echo)
     pack_client_request_data( &sbuf, (char*)__func__, "%s",echo);
 
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
+
     Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
@@ -54,7 +56,9 @@ char* getBrokerName()
     msgpack_sbuffer sbuf;
 
     pack_client_request_data( &sbuf, (char*)__func__, "");
+
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
+
     Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
