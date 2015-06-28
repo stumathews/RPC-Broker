@@ -12,6 +12,7 @@
 #define SENDER_ADDRESS_HDR "sender-address"
 #define SERVICE_NAME_HDR "service-name"
 #define SERVICES_COUNT_HDR "services-count"
+#define REPLY_HDR "reply"
 
 #define MAX_HEADER_NAME_SIZE 20
 #define MAX_PORT_CHARS 20
@@ -67,7 +68,7 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival,msgpack_packer* pk );
 
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
-char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
+Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
 
 char* get_header_str_value (Packet packet, char* look_header_name );
 char* get_op_name( Packet packet);

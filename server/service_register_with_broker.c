@@ -57,6 +57,7 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
         i--;    
     }
     // send registration message to broker
-    send_request( sbuf.data, sbuf.size, broker_address, broker_port,verbose);
+    Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size;
+    send_request( pkt, broker_address, broker_port,verbose);
     msgpack_sbuffer_destroy(&sbuf);
 }

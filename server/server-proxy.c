@@ -137,7 +137,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 {
 
     // Wait for connections from the broker.
-    struct packet pkt;
+    Packet pkt;
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
 

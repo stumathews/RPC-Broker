@@ -1,12 +1,8 @@
 #include <msgpack.h>
 #include "common.h"
 
-char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...)
+Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...)
 {
-    // ---------
-    // PACK DATA
-    // ----------
-    
     msgpack_sbuffer_init(sbuf);
     
     msgpack_packer pk;
@@ -55,4 +51,8 @@ char* pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_id
                 break;
         }
     }
+    Packet ret;
+    ret.buffer = sbuf->data;
+    ret.len = sbuf->size;
+    return ret;
 }

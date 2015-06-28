@@ -3,15 +3,8 @@
 
 extern char wait_response_port[MAX_PORT_CHARS];
 
-// pack the object to send to the broker. (client's service request)
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
 {
-
-
-    // ---------
-    // PACK DATA
-    // ----------
-
     msgpack_sbuffer_init(sbuf);
 
     msgpack_packer pk;
@@ -34,8 +27,6 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     int ival;
     int numargs = 0;
 
-    // we need to know before hand how many arguments we have
-    // as we have to make space for numargs items in the array
     for( p = fmt;*p;p++)
     {
         if(*p != '%') {
@@ -44,7 +35,6 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
         numargs++;
     }
     
-    // pack an array of numargs capacity (the params)
     msgpack_pack_array(&pk, numargs);
 
     for( p = fmt;*p;p++)

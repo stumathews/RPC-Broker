@@ -103,8 +103,8 @@ int main( int argc, char* argv[])
     PRINT("Got server date reply as %s", getServerDate());
     PRINT( "reverse echo = %s", echo("Bruce Mathews") );
     PRINT( "broker name = %s", getBrokerName());
-    int sum  = add(20,199);
-    PRINT("sum = %d", sum);
+    PRINT("sum = %d",add(20,199));
+
     LIB_Uninit();
 }
 
