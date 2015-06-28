@@ -75,24 +75,24 @@ Packet *send_and_receive(Packet packet,char* address, char* port, bool verbose, 
 Packet *process_response( SOCKET s, struct sockaddr_in *peerp )
 {
 
-    Packet *pkt = Alloc( sizeof(Packet));
+    Packet *packet = Alloc( sizeof(Packet));
     
-    int n_rc = netReadn( s,(char*) &pkt->len, sizeof(uint32_t));
-    pkt->len = ntohl(pkt->len);
+    int n_rc = netReadn( s,(char*) &packet->len, sizeof(uint32_t));
+    packet->len = ntohl(packet->len);
 
     if( verbose)
-        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt->len );
+        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,packet->len );
 
     if( n_rc < 1 )
         netError(1, errno,"failed to receiver packet size\n");
     
-    pkt->buffer = (char*) Alloc( sizeof(char) * pkt->len);
-    int d_rc  = netReadn( s, pkt->buffer, sizeof( char) * pkt->len);
+    packet->buffer = (char*) Alloc( sizeof(char) * packet->len);
+    int d_rc  = netReadn( s, packet->buffer, sizeof( char) * packet->len);
 
     if( d_rc < 1 )
         netError(1, errno,"failed to receive message\n");
     
     if(verbose) { PRINT("read %d bytes of data\n",d_rc); }
 
-    return pkt;
+    return packet;
 }

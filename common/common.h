@@ -13,6 +13,8 @@
 #define SERVICE_NAME_HDR "service-name"
 #define SERVICES_COUNT_HDR "services-count"
 #define REPLY_HDR "reply"
+#define REQUEST_TYPE_HDR "request_type"
+#define SERVICE_PARAMS_HDR "params"
 
 #define MAX_HEADER_NAME_SIZE 20
 #define MAX_PORT_CHARS 20
