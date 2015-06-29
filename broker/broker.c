@@ -165,6 +165,10 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Read %d bytes of data.\n",d_rc);
     }
+    struct in_addr address = peerp->sin_addr; 
+    unsigned long srcAddr = address.s_addr; // load with inet_pton();
+    unsigned short sin_port = peerp->sin_port; //load with htons
+    PRINT("Sender is %s:%d", inet_ntoa(address),  ntohs(sin_port) );
 
     // do stuff based on the packet data
     int request_type = -1; // -1 represents invalid state
