@@ -6,7 +6,7 @@
 
 
 
-// Send request.
+// Send request to broker.
 int send_request(char* buffer, int bufsize,char* address, char* port, bool verbose)
 {
     // --------------------------
