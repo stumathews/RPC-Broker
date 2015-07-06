@@ -40,7 +40,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
-            PRINT("Incomming operation: %s\n", str);
+            PRINT("broker [%s] ->\n", op_name);
 
         } // below: Get list of parameters for the operation
         else if(STR_Equals( "message-id", header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
@@ -140,7 +140,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 
                 msgpack_sbuffer_destroy(&response);
             }
-            PRINT("Sent response.\n");
+            PRINT("broker <- response [%s].\n",op_name);
         }
 
         return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);
