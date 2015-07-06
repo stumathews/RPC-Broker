@@ -28,3 +28,17 @@ main
 /Default/
 *.in
 Makefile
+aclocal.m4
+autom4te.cache/
+*.txt
+config.guess
+config.h
+config.hin
+config.status
+config.sub
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+missing                                                                                                                                  stamp-h1
