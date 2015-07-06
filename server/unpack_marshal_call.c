@@ -43,7 +43,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             PRINT("broker [%s] ->\n", op_name);
 
         } // below: Get list of parameters for the operation
-        else if(STR_Equals( "message-id", header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
+        else if(STR_Equals( MESSAGE_ID_HDR, header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
         {
             int64_t ival = val.via.i64;
             message_id = ival;
