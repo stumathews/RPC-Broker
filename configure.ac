@@ -4,7 +4,7 @@ AM_CONFIG_HEADER(config.h:config.hin)
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_C_CONST
-AC_SUBST([LIBINC], ["-I ../../stulibc/src/includes -I ..\common -I ../server -I ../../msgpack-c/include"])
+AC_SUBST([LIBINC], ["-I ../../stulibc/src/includes -I ../common -I ../server -I ../../msgpack-c/include"])
 AC_SUBST([LIBLINK],["-L/usr/local/lib -lmsgpack -lstu"])
 #AC_LIBTOOL_WIN32_DLL
 AC_CHECK_HEADERS([sys/socket.h])
