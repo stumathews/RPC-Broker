@@ -4,7 +4,7 @@
 
 extern bool wait_response_indef;
 extern bool verbose;
-static Packet *process_response( SOCKET s, struct sockaddr_in *peerp );
+static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
 
 Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port)
 {
@@ -63,16 +63,17 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
                 netError( 1, errno, "accept failed" );
 
             // do network functionality on this socket that now represents a connection with the peer (client) 
-            result = process_response( s1, &peer );
+            result = get_response( s1, &peer );
             CLOSE( s1 );
         }
         else { DBG("not our socket. continuing"); }
     }
     CLOSE(s);
-    return result;
+    return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
 
-Packet *process_response( SOCKET s, struct sockaddr_in *peerp )
+// Read data from socket, and return it
+Packet *get_response( SOCKET s, struct sockaddr_in *peerp )
 {
 
     Packet *packet = Alloc( sizeof(Packet));
@@ -94,5 +95,5 @@ Packet *process_response( SOCKET s, struct sockaddr_in *peerp )
     
     if(verbose) { PRINT("read %d bytes of data\n",d_rc); }
 
-    return packet;
+    return packet; // dangling pointer - add might be deallocated when stack frame finishes
 }

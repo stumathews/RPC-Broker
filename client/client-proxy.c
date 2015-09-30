@@ -29,7 +29,7 @@ int add( int one, int two )
 
     msgpack_sbuffer_destroy(&sbuf);
     
-    return  get_header_int_value(result, REPLY_HDR); // dangling pointer result/
+    return  get_header_int_value(result, REPLY_HDR);
     
 }
 
