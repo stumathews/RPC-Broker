@@ -7,7 +7,7 @@
 
 
 // Send request.
-int send_request(Packet packet,char* address, char* port, bool verbose)
+int send_request(Packet *packet,char* address, char* port, bool verbose)
 {
     // --------------------------
     // SEND PACKED DATA TO BROKER
@@ -15,7 +15,7 @@ int send_request(Packet packet,char* address, char* port, bool verbose)
    
     if(verbose)
     {
-        PRINT("Size to send: %d\n",packet.len);
+        PRINT("Size to send: %d\n",packet->len);
     }
 
     struct sockaddr_in peer;
@@ -24,11 +24,11 @@ int send_request(Packet packet,char* address, char* port, bool verbose)
 	return client( s, &peer, packet,verbose );
 }
 // Send request to listening broker socket
-int client(SOCKET s, struct sockaddr_in* peerp, Packet packet, bool verbose)
+int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose)
 {
     struct Packet pkt;
-    pkt.len = htonl(packet.len);
-    pkt.buffer = packet.buffer;
+    pkt.len = htonl(packet->len);
+    pkt.buffer = packet->buffer;
 
     // Send size of packet
     int rc = 0; 
@@ -73,9 +73,9 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk)
     msgpack_pack_str_body(pk, value, strlen(value));
 }
 
-void unpack_data(Packet packet, bool verbose)
+void unpack_data(Packet* packet, bool verbose)
 {
-    if( packet.len == 0 ) { return; } 
+    if( packet->len == 0 ) { return; } 
     /* buf is allocated by client. */
     msgpack_unpacked result;
     msgpack_unpack_return ret;
@@ -84,7 +84,7 @@ void unpack_data(Packet packet, bool verbose)
     msgpack_unpacked_init(&result);
 
     // Go ahead unpack an object
-    ret = msgpack_unpack_next(&result, packet.buffer, packet.len, &off);
+    ret = msgpack_unpack_next(&result, packet->buffer, packet->len, &off);
 
     // Go and get the rest of all was good
     while (ret == MSGPACK_UNPACK_SUCCESS) 
@@ -94,7 +94,7 @@ void unpack_data(Packet packet, bool verbose)
         
         if( obj.type != MSGPACK_OBJECT_NIL) { printf("\n"); }
         
-        ret = msgpack_unpack_next(&result, packet.buffer, packet.len, &off);
+        ret = msgpack_unpack_next(&result, packet->buffer, packet->len, &off);
     }
     msgpack_unpacked_destroy(&result);
 
@@ -174,7 +174,7 @@ enum RequestType determine_request_type(struct Packet* pkt)
     msgpack_unpacked_destroy(&result);
 }
 
-int get_header_int_value (Packet packet, char* look_header_name )
+int get_header_int_value (Packet* packet, char* look_header_name )
 {
     size_t off = 0;
     int i = 0;
@@ -183,7 +183,7 @@ int get_header_int_value (Packet packet, char* look_header_name )
     msgpack_unpacked_init(&unpacked_result);
     int return_value = 0;
 
-    return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+    return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
 
     while (return_status == MSGPACK_UNPACK_SUCCESS) 
     {
@@ -201,7 +201,7 @@ int get_header_int_value (Packet packet, char* look_header_name )
         {
             // this is not a header or array but something else
         }
-        return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+        return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
     } // finished unpacking.
 
     msgpack_unpacked_destroy(&unpacked_result);
@@ -213,7 +213,7 @@ int get_header_int_value (Packet packet, char* look_header_name )
     return return_value;
 }
 
-char* get_header_str_value (Packet packet, char* look_header_name )
+char* get_header_str_value (Packet* packet, char* look_header_name )
 {
     size_t off = 0;
     int i = 0;
@@ -221,7 +221,7 @@ char* get_header_str_value (Packet packet, char* look_header_name )
     msgpack_unpack_return return_status;
     msgpack_unpacked_init(&unpacked_result);
     char* str;
-    return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+    return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
 
     while (return_status == MSGPACK_UNPACK_SUCCESS) 
     {
@@ -246,7 +246,7 @@ char* get_header_str_value (Packet packet, char* look_header_name )
         {
             // this is not a header or array but something else
         }
-        return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+        return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
     } // finished unpacking.
 
     msgpack_unpacked_destroy(&unpacked_result);
@@ -255,9 +255,9 @@ char* get_header_str_value (Packet packet, char* look_header_name )
     {
         PRINT("The data in the buf is invalid format.\n");
     }
-    return str;
+    return str; // dangling pointer
 }
-char* get_op_name( Packet packet)
+char* get_op_name( Packet* packet)
 {
 
     msgpack_unpacked unpacked_result;
@@ -267,7 +267,7 @@ char* get_op_name( Packet packet)
     
     msgpack_unpacked_init(&unpacked_result);
 
-    return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+    return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
 
     while (return_status == MSGPACK_UNPACK_SUCCESS) 
     {
@@ -286,10 +286,10 @@ char* get_op_name( Packet packet)
             memset( str, '\0', str_len);
             str[str_len] = '\0';
             strncpy(str, string.ptr,str_len); 
-            return str; 
+            return str;  // dnagling pointer
         }
 
-        return_status = msgpack_unpack_next(&unpacked_result, packet.buffer, packet.len, &off);
+        return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off);
 
     } // finished unpacking.
 

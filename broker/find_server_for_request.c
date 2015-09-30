@@ -5,7 +5,7 @@ extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
-Destination* find_server_for_request(Packet packet)
+Destination* find_server_for_request(Packet* packet)
 {
     char* op_name = get_op_name( packet );
 

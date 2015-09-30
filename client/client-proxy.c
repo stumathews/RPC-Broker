@@ -25,11 +25,11 @@ int add( int one, int two )
 
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
 
-    Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
+    Packet *result = send_and_receive( &pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
     
-    return  get_header_int_value(*result, REPLY_HDR);
+    return  get_header_int_value(result, REPLY_HDR); // dangling pointer result/
     
 }
 
@@ -42,11 +42,11 @@ char* echo(char* echo)
 
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
 
-    Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
+    Packet *result = send_and_receive( &pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
     
-    return  get_header_str_value(*result, REPLY_HDR);
+    return  get_header_str_value(result, REPLY_HDR);
     
 }
 
@@ -59,11 +59,11 @@ char* getBrokerName()
 
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
 
-    Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
+    Packet *result = send_and_receive( &pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
 
-    return  get_header_str_value(*result, REPLY_HDR);
+    return  get_header_str_value(result, REPLY_HDR);
 
 }
 
@@ -76,11 +76,11 @@ char* getServerDate()
    
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
     
-    Packet *result = send_and_receive( pkt, broker_address, broker_port, verbose, wait_response_port );
+    Packet *result = send_and_receive( &pkt, broker_address, broker_port, verbose, wait_response_port );
 
     msgpack_sbuffer_destroy(&sbuf);
 
-    return  get_header_str_value(*result, REPLY_HDR);
+    return  get_header_str_value(result, REPLY_HDR);
 }
 
 

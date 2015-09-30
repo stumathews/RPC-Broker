@@ -6,7 +6,7 @@ extern bool wait_response_indef;
 extern bool verbose;
 static Packet *process_response( SOCKET s, struct sockaddr_in *peerp );
 
-Packet *send_and_receive(Packet packet,char* address, char* port, bool verbose, char* wait_response_port)
+Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port)
 {
     send_request(packet, address, port, verbose );
 

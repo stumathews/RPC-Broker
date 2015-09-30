@@ -95,9 +95,9 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 msgpack_sbuffer response;
                 Packet pkt = pack_client_response_data( &response, operation, message_id, "%s", param0);
                 
-                if( verbose ) unpack_data( pkt, verbose);
+                if( verbose ) unpack_data( &pkt, verbose);
 
-                send_request( pkt, broker_address, broker_port,verbose );
+                send_request( &pkt, broker_address, broker_port,verbose );
 
                 msgpack_sbuffer_destroy(&response);
             }
@@ -108,9 +108,9 @@ void unpack_marshal_call_send( char* buffer, int buflen )
 
                 Packet pkt = pack_client_response_data( &response, operation, message_id,"%s", brokerName);
 
-                if( verbose ) unpack_data( pkt, verbose);
+                if( verbose ) unpack_data( &pkt, verbose);
                 
-                send_request( pkt, broker_address, broker_port,verbose );
+                send_request( &pkt, broker_address, broker_port,verbose );
                 
                 msgpack_sbuffer_destroy(&response);
                 
@@ -120,9 +120,9 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 msgpack_sbuffer response;
                 Packet pkt = pack_client_response_data( &response, operation, message_id, "%s", getServerDate());
                 
-                if( verbose ) unpack_data( pkt, verbose);
+                if( verbose ) unpack_data( &pkt, verbose);
 
-                send_request( pkt, broker_address, broker_port,verbose );
+                send_request( &pkt, broker_address, broker_port,verbose );
 
                 msgpack_sbuffer_destroy(&response);
             }
@@ -134,9 +134,9 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 
                 Packet pkt = pack_client_response_data( &response, operation, message_id, "%d", add(param0,param1));
                 
-                if( verbose ) unpack_data( pkt, verbose);
+                if( verbose ) unpack_data( &pkt, verbose);
                 
-                send_request( pkt, broker_address, broker_port,verbose );
+                send_request( &pkt, broker_address, broker_port,verbose );
                 
                 msgpack_sbuffer_destroy(&response);
             }
