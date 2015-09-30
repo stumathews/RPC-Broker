@@ -96,7 +96,7 @@ static void main_event_loop()
        int res = 0;
 
        if( waitIndef_flag )
-          res =  select( s+1, &readfds, NULL, NULL, NULL);//&timeout);
+          res =  select( s+1, &readfds, NULL, NULL, NULL);
        else
           res =  select( s+1, &readfds, NULL, NULL, &timeout);
 
@@ -121,7 +121,7 @@ static void main_event_loop()
                 if ( !isvalidsock( s1 ) )
                     netError( 1, errno, "accept failed" );
                 
-                //Process connection:
+                //Data arrived: Process it
                 server( s1, &peer );
                 CLOSE( s1 );
             }
@@ -165,6 +165,9 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         PRINT("Read %d bytes of data.\n",d_rc);
     }
+
+    /* Packet now holds the received data (in this case msgpack protocol formatted data)
+     * ---------------------------------- */
 
     int request_type = -1; // -1 represents invalid state
    
