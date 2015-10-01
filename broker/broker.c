@@ -16,6 +16,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp );
 int main( int argc, char **argv )
 {
     LIB_Init();
+
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
 
@@ -25,20 +26,28 @@ int main( int argc, char **argv )
                                                         true,
                                                         true,
                                                         setPortNumber);
+
     struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
                                                         "",
                                                         "Prints all messages verbosly",
                                                         false,
                                                         false,
                                                         setVerboseFlag);
+
     struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
                                                         "",
-                                                        "Wait indefinitely for new connections,else 60 secs and then dies",
+                                                        "Wait indefinitely for new connections, else 60 secs and then dies",
                                                         false,
                                                         false,
                                                         setWaitIndefinitelyFlag);
 
-    struct Argument* ourAddressCMD = CMD_CreateNewArgument("our-address","our-address <address>","Set our address", true, true, setOurAddress);
+    struct Argument* ourAddressCMD = CMD_CreateNewArgument("our-address",
+                                                        "our-address <address>",
+                                                        "Set our address",
+                                                        true,
+                                                        true,
+                                                        setOurAddress);
+
     CMD_AddArgument(waitIndefArg);
     CMD_AddArgument(portNumberArg);
     CMD_AddArgument(verboseArg);
@@ -87,7 +96,6 @@ static void main_event_loop()
     const int on = 1;
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
-    // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
     s = netTcpServer(our_address,port);
 
@@ -95,7 +103,8 @@ static void main_event_loop()
 
     do
     {
-       if(verbose_flag) PRINT("Listening.\n");
+       if(verbose_flag) PRINT("** Listening.\n");
+
        // wait/block on this listening socket...
        int res = 0;
 
@@ -106,7 +115,7 @@ static void main_event_loop()
 
         if( res == 0 )
         {
-            LOG( "timeout");
+            LOG( "broker listen timeout!");
             netError(1,errno,"timeout!");
         }
         else if( res == -1 )
@@ -153,22 +162,14 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     int n_rc = netReadn( s,(char*) &packet.len, sizeof(uint32_t));
     packet.len = ntohl(packet.len);
 
-    if( n_rc < 1 )
-        netError(1, errno,"Failed to receiver packet size\n");
-    
-    if(verbose_flag) 
-        PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
+    if( n_rc < 1 ) netError(1, errno,"Failed to receiver packet size\n");
+    if(verbose_flag) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
     
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
     int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
-    if( d_rc < 1 )
-        netError(1, errno,"failed to receive message\n");
-    
-    if(verbose_flag)
-    {
-        PRINT("Read %d bytes of data.\n",d_rc);
-    }
+    if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
+    if(verbose_flag) PRINT("Read %d bytes of data.\n",d_rc);
 
     /* Packet now holds the received data (in this case msgpack protocol formatted data)
      * ---------------------------------- */
@@ -179,21 +180,20 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
         Destination *src = get_sender_address( &packet, peerp); 
         forward_request(&packet, src);
-    }
-
-
-    if ( request_type == REQUEST_REGISTRATION )
+    } 
+    else if ( request_type == REQUEST_REGISTRATION )  
     {
         register_service_request(&packet);
-    }
-    
-    if( request_type == REQUEST_SERVICE_RESPONSE )
+    } 
+    else if( request_type == REQUEST_SERVICE_RESPONSE )
     {
         Packet* response = &packet;
         forward_response(response); //to the client
+    } 
+    else 
+    {
+        PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);    
     }
-    
-    PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);    
 
     MEM_DeAlloc( packet.buffer, "packet.buffer" );
     
