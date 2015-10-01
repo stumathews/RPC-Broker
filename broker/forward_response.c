@@ -4,8 +4,8 @@
 extern char port[MAX_PORT_CHARS];
 extern struct ServiceRegistration service_repository;
 
-void forward_response(Packet* packet, struct sockaddr_in* peerp)
+void forward_response(Packet* response)
 {
-    Destination* dest = find_client_for_response(packet);
-    send_request( packet, dest->address, dest->port, false );
+    Destination* client = find_client_for_response(response);
+    send_request( response, client->address, client->port, false );
 }

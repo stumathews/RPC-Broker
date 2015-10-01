@@ -173,21 +173,25 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
    
     if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
-        forward_request(&packet, peerp);
+        Destination *src = get_sender_address( &packet, peerp); 
+        forward_request(&packet, src);
     }
 
 
     if ( request_type == REQUEST_REGISTRATION )
     {
-        register_service(&packet,peerp);
+        register_service_request(&packet);
     }
     
     if( request_type == REQUEST_SERVICE_RESPONSE )
     {
-        forward_response(&packet, peerp); //to the client
+        Packet* response = &packet;
+        forward_response(response); //to the client
     }
     
     PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);    
+
+    MEM_DeAlloc( packet.buffer, "packet.buffer" );
     
     return;
 }

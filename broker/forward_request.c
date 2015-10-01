@@ -5,10 +5,8 @@ extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 extern struct ServiceRequestRegistration client_request_repository;
 
-// send the client's service requets to the server that is known to be able to process it
-void forward_request(Packet* packet, struct sockaddr_in* peerp)
+void forward_request(Packet* packet, Destination* src)
 {
-    Destination *src = get_sender_address( packet, peerp); 
     Destination *dest = find_server_for_request(packet);
     
     char* requested_operation = Alloc(sizeof(char));

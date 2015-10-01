@@ -77,11 +77,7 @@ void setWaitIndefinitelyFlag(char* arg)
     waitIndef_flag = true;
 }
 
-void update_repository()
-{
-    
-}
-
+// TODO: make more robust
 void acknowledgement()
 {
     // Send a message back to sender(client or server) with general ACK
