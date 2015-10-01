@@ -163,7 +163,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     packet.len = ntohl(packet.len);
 
     if( n_rc < 1 ) netError(1, errno,"Failed to receiver packet size\n");
-    if(verbose_flag) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
+    if( verbose_flag ) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
     
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
     int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
@@ -171,15 +171,12 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
     if(verbose_flag) PRINT("Read %d bytes of data.\n",d_rc);
 
-    /* Packet now holds the received data (in this case msgpack protocol formatted data)
-     * ---------------------------------- */
-
     int request_type = -1; // -1 represents invalid state
    
     if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
         Destination *src = get_sender_address( &packet, peerp); 
-        forward_request(&packet, src);
+        forward_request(&packet, src); // to the server
     } 
     else if ( request_type == REQUEST_REGISTRATION )  
     {
