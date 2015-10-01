@@ -4,6 +4,7 @@
 
 extern bool wait_response_indef;
 extern bool verbose;
+extern char our_address[MAX_ADDRESS_CHARS];
 static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
 
 Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port)
@@ -29,7 +30,7 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
         PRINT("client waiting for response...\n");
 
     // NB: This is always ever non-blocking 
-    s = netTcpServer("localhost",wait_response_port);
+    s = netTcpServer(our_address ,wait_response_port);
 
     FD_SET(s, &readfds);
     if(verbose) { PRINT("About wait for read on port %s...\n", wait_response_port); }

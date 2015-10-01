@@ -38,6 +38,6 @@ void setVerboseFlag(char* arg);
 
 // Sets the wait indefinitely flag in the broker
 void setWaitIndefinitelyFlag(char* arg);
-void setBrokerAddress(char* arg);
+void setOurAddress(char* arg);
 
 #endif

@@ -11,6 +11,7 @@
 char port[MAX_PORT_CHARS] = {0};
 char broker_port[MAX_PORT_CHARS] = {0};
 char broker_address[MAX_ADDRESS_CHARS] = {0};
+char our_address[MAX_ADDRESS_CHARS] = {0};
 static bool waitIndef = false;
 bool verbose = false;
 static bool registered_with_broker = false;
@@ -19,6 +20,7 @@ void unpack_marshal_call_send( char* buffer, int buflen);
 static void setBrokerPort( char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
+static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -30,6 +32,7 @@ int main( int argc, char **argv )
 
     struct Argument* portNumber = CMD_CreateNewArgument("port","port <number>","Set the port that the server will listen on", true, true, setPortNumber);
     struct Argument* brokerAddressCMD = CMD_CreateNewArgument("baddress","baddress <address>","Set the address of the broker", true, true, setBrokerAddress);
+    struct Argument* ourAddressCMD = CMD_CreateNewArgument("our-address","our-address <address>","Set the address we listen on (broker uses to deliver responses)", true, true, setOurAddress);
     struct Argument* brokerPortCMD = CMD_CreateNewArgument("bport","bport <port>","Set the port of the broker", true, true, setBrokerPort);
     struct Argument* waitIndefCMD = CMD_CreateNewArgument("waitindef","","wait indefinitely for connections", false, false, setWaitIndef);
     struct Argument* beVerboseCMD = CMD_CreateNewArgument("verbose","","be verbose wtih messages", false, false, setBeVerbose);
@@ -39,6 +42,7 @@ int main( int argc, char **argv )
     CMD_AddArgument(brokerAddressCMD);
     CMD_AddArgument(brokerPortCMD);
     CMD_AddArgument(beVerboseCMD);
+    CMD_AddArgument(ourAddressCMD);
 
     struct sockaddr_in local;
     struct sockaddr_in peer;
@@ -179,6 +183,11 @@ static void setBrokerAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );
     strncpy( broker_address, arg, strlen(arg) );
+}
+static void setOurAddress(char* arg)
+{
+    CHECK_STRING( arg, IS_NOT_EMPTY );
+    strncpy( our_address, arg, strlen(arg) );
 }
 
 static void setWaitIndef(char* arg)

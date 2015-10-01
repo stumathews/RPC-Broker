@@ -9,6 +9,7 @@ char broker_address[MAX_ADDRESS_CHARS] = {0};
 char broker_port[MAX_PORT_CHARS] = {0};
 char wait_response_port[MAX_PORT_CHARS] = {0};
 bool wait_response_indef = false;
+char our_address[MAX_ADDRESS_CHARS] = {0};
 bool verbose = false;
 
 
@@ -30,6 +31,11 @@ static void setBrokerAddress(char* arg)
     strncpy( broker_address, arg, strlen(arg));
 }
 
+static void setOurAddress(char* arg)
+{
+    CHECK_STRING(arg, IS_NOT_EMPTY);
+    strncpy( our_address, arg, strlen(arg));
+}
 static void setWaitResponseIndef( char* arg)
 {
     wait_response_indef = true;
@@ -42,14 +48,14 @@ static void setVerbose(char* arg)
 void setupCmd(int argc, char* argv[])
 {
 
-    struct Argument* portNumber = CMD_CreateNewArgument("port",
-                                                        "port <number>",
+    struct Argument* portNumber = CMD_CreateNewArgument("broker-port",
+                                                        "broker-port <number>",
                                                         "Set the broker port that the client will connect to",
                                                         true,
                                                         true,
                                                         setBrokerPortNumber);
-    struct Argument* brokerAddress = CMD_CreateNewArgument("address",
-                                                        "address <address>",
+    struct Argument* brokerAddress = CMD_CreateNewArgument("broker-address",
+                                                        "broker-address <address>",
                                                         "Set the broker address that the client will connect to",
                                                         true,
                                                         true,
@@ -61,7 +67,7 @@ void setupCmd(int argc, char* argv[])
                                                         false,
                                                         setVerbose);
     
-    struct Argument* waitResponsePortArg = CMD_CreateNewArgument("wait-port",
+    struct Argument* waitResponsePortArg = CMD_CreateNewArgument("our-wait-port",
                                                         "",
                                                         "The port that the broker can connect to deliver the response",
                                                         true,
@@ -73,11 +79,18 @@ void setupCmd(int argc, char* argv[])
                                                         false,
                                                         false,
                                                         setWaitResponseIndef);
+    struct Argument* ourAddress = CMD_CreateNewArgument("our-address",
+                                                        "our-address <address>",
+                                                        "Set our address broker will contact us on",
+                                                        true,
+                                                        true,
+                                                        setOurAddress);
     CMD_AddArgument(portNumber);
     CMD_AddArgument(brokerAddress);
     CMD_AddArgument(verboseArg);
     CMD_AddArgument(waitResponsePortArg);
     CMD_AddArgument(waitResponseIndefArg);
+    CMD_AddArgument(ourAddress);
 
     if( argc > 1 )
     {
