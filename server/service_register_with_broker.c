@@ -4,6 +4,7 @@
 
 extern bool verbose;
 extern char port[MAX_PORT_CHARS];
+extern char broker_address[MAX_ADDRESS_CHARS];
 
 // =====================
 // SERVICE Registration

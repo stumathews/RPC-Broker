@@ -2,6 +2,7 @@
 #include "common.h"
 
 extern char port[MAX_PORT_CHARS ];
+extern char broker_address[MAX_ADDRESS_CHARS];
 extern bool verbose_flag;
 extern bool waitIndef_flag;
 extern struct ServiceRegistration service_repository;
@@ -81,4 +82,10 @@ void setWaitIndefinitelyFlag(char* arg)
 void acknowledgement()
 {
     // Send a message back to sender(client or server) with general ACK
+}
+
+void setBrokerAddress(char* arg)
+{
+    CHECK_STRING( arg, IS_NOT_EMPTY );
+    strncpy( broker_address, arg, strlen(arg) );
 }

@@ -6,6 +6,7 @@ struct ClientRequestRegistration client_request_repository;
 char port[MAX_PORT_CHARS] = {0};
 bool verbose_flag = false;
 bool waitIndef_flag = false;
+char broker_address[MAX_ADDRESS_CHARS] = {0};
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -36,9 +37,12 @@ int main( int argc, char **argv )
                                                         false,
                                                         false,
                                                         setWaitIndefinitelyFlag);
+
+    struct Argument* brokerAddressCMD = CMD_CreateNewArgument("baddress","baddress <address>","Set the address of the broker", true, true, setBrokerAddress);
     CMD_AddArgument(waitIndefArg);
     CMD_AddArgument(portNumberArg);
     CMD_AddArgument(verboseArg);
+    CMD_AddArgument(brokerAddressCMD);
 
 
     if( argc > 1 )
@@ -85,7 +89,7 @@ static void main_event_loop()
 
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
-    s = netTcpServer("localhost",port);
+    s = netTcpServer(broker_address,port);
 
     FD_SET(s, &readfds);
 

@@ -79,7 +79,7 @@ int main( int argc, char **argv )
 
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
-    s = netTcpServer("localhost",port);
+    s = netTcpServer(broker_address,port);
 
     FD_SET(s, &readfds);
     if(verbose) PRINT("About wait for read on port %s...\n", port);
