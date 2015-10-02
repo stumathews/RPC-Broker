@@ -68,7 +68,7 @@ int main( int argc, char **argv )
     }
     else
     {
-        CMD_ShowUsages("server <options>");
+        CMD_ShowUsages("server", "stumathews@gmail.com", "the server component");
         exit(0);
     }
 

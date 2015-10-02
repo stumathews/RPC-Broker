@@ -5,22 +5,7 @@
 #include <stdio.h>
 #include <msgpack.h>
 #include <stulibc.h>
-
-#define MESSAGE_ID_HDR "message-id"
-#define OPERATION_HDR "op"
-#define REPLY_PORT_HDR "reply-port"
-#define SENDER_ADDRESS_HDR "sender-address"
-#define SERVICE_NAME_HDR "service-name"
-#define SERVICES_COUNT_HDR "services-count"
-#define REPLY_HDR "reply"
-#define REQUEST_TYPE_HDR "request_type"
-#define SERVICE_PARAMS_HDR "params"
-
-#define MAX_HEADER_NAME_SIZE 20
-#define MAX_PORT_CHARS 20
-#define MAX_ADDRESS_CHARS 29
-
-enum RequestType {REQUEST_SERVICE, REQUEST_SERVICE_RESPONSE, REQUEST_REGISTRATION};
+#include "protocol.h"
 
 typedef struct Packet {
     uint32_t len;

@@ -2,9 +2,6 @@
 #include <stulibc.h>
 #include <msgpack.h>
 
-#define REQUEST_TYPE_IDENT "request_type"
-
-
 
 // Send request.
 int send_request(Packet *packet,char* address, char* port, bool verbose)
@@ -158,13 +155,13 @@ enum RequestType determine_request_type(struct Packet* pkt)
 
         msgpack_object val = extract_header( &obj, header_name );
 
-        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_IDENT,header_name) == 0 )
+        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_HDR,header_name) == 0 )
         {
             return val.via.i64;
         }
         else
         {
-            PRINT("Expecting request_type. got header name as '%s' and value as '%d'\n.",header_name, val.via.i64);
+            PRINT("Expecting '%s' - got header name as '%s' and value as '%d'\n.",REQUEST_TYPE_HDR, header_name, val.via.i64);
             exit(1);
         }
         

@@ -22,10 +22,10 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
     msgpack_packer pk;
     msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-    pack_map_int("request_type",REQUEST_REGISTRATION,&pk);
-    pack_map_str("sender-address",sr->address,&pk);
-    pack_map_str("reply-port",sr->port,&pk);
-    pack_map_str("service-name","theServiceName",&pk);
+    pack_map_int(REQUEST_TYPE_HDR,REQUEST_REGISTRATION,&pk);
+    pack_map_str(SENDER_ADDRESS_HDR,sr->address,&pk);
+    pack_map_str(REPLY_PORT_HDR,sr->port,&pk);
+    pack_map_str(SERVICE_NAME_HDR,"theServiceName",&pk);
 
     // pull in the services defined in the server code: server.c
     extern char* services[];
@@ -37,10 +37,10 @@ bool service_register_with_broker( char *broker_address, char* broker_port )
             PRINT("Service %s.\n", services[i]);
         i++;
     }
-    pack_map_int("services-count",i,&pk);
+    pack_map_int(SERVICES_COUNT_HDR,i,&pk);
     msgpack_pack_map(&pk,1);
     msgpack_pack_str(&pk, 8);
-    msgpack_pack_str_body(&pk, "services", 8);
+    msgpack_pack_str_body(&pk, SERVICES_HDR, 8);
     msgpack_pack_array(&pk, i);
 
     if( verbose )

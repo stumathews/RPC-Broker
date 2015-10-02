@@ -8,14 +8,14 @@ Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_i
     msgpack_packer pk;
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
-    pack_map_int("request_type",REQUEST_SERVICE_RESPONSE,&pk);
-    pack_map_int("message-id",message_id,&pk);
+    pack_map_int(REQUEST_TYPE_HDR,REQUEST_SERVICE_RESPONSE,&pk);
+    pack_map_int(MESSAGE_ID_HDR,message_id,&pk);
 
-    pack_map_str("op",op,&pk);
+    pack_map_str(OPERATION_HDR,op,&pk);
 
     msgpack_pack_map(&pk,1);
     msgpack_pack_str(&pk, 5);
-    msgpack_pack_str_body(&pk, "reply", 5);
+    msgpack_pack_str_body(&pk, REPLY_HDR, 5);
     
     va_list ap;
     va_start(ap,(const char*)fmt);

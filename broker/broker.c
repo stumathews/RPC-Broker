@@ -64,7 +64,7 @@ int main( int argc, char **argv )
     }
     else
     {
-        CMD_ShowUsages("broker <options>");
+        CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
         exit(0);
     }
 

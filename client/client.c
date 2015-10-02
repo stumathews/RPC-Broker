@@ -102,7 +102,7 @@ void setupCmd(int argc, char* argv[])
     }
     else
     {
-        CMD_ShowUsages("client <options>");
+        CMD_ShowUsages("client <options>","stumathews@gmail.com","the client component");
         exit(0);
     }
 }
