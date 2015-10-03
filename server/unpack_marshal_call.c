@@ -1,4 +1,3 @@
-
 #include <stulibc.h>
 #include "common.h"
 #include "server_interface.h"

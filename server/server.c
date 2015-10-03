@@ -13,7 +13,7 @@ char* getServerDate()
 char* getBrokerName()
 {
     char* name = Alloc( sizeof(char) );
-    strcpy( name, "peter");
+    strcpy( name, "broker v0.1");
     return name;
 }
 

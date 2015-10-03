@@ -7,10 +7,6 @@ extern char port[MAX_PORT_CHARS];
 extern char broker_address[MAX_ADDRESS_CHARS];
 extern char our_address[MAX_ADDRESS_CHARS];
 
-// =====================
-// SERVICE Registration
-// =====================
-
 /**
  * @brief Craft a service registration message and send it of fto the broker.
  * 

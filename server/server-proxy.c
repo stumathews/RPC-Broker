@@ -8,15 +8,58 @@
 #include "common.h"
 #include "server_interface.h"
 
+/**
+ * @brief the server port 
+ * 
+ */
 char port[MAX_PORT_CHARS] = {0};
+/**
+ * @brief the brokers port
+ * 
+ */
 char broker_port[MAX_PORT_CHARS] = {0};
+/**
+ * @brief the brokers address
+ * 
+ */
 char broker_address[MAX_ADDRESS_CHARS] = {0};
+/**
+ * @brief the servers address
+ * 
+ */
 char our_address[MAX_ADDRESS_CHARS] = {0};
+/**
+ * @brief wait forever for data on socket?
+ * 
+ */
 static bool waitIndef = false;
+/**
+ * @brief Should we say everything we do 
+ * 
+ */
 bool verbose = false;
+/**
+ * @brief Is registered with broker
+ * 
+ */
 static bool registered_with_broker = false;
+/**
+ * @brief Register with the broker_
+ * 
+ * @param broker_address the broker address to contact for registration
+ * @param broker_port the broker port
+ * @return bool
+ */
 bool service_register_with_broker( char *broker_address, char* broker_port );
+/**
+ * @brief Unpack service request, execute operation adn send the response back to the broker
+ * 
+ * @param buffer the client's request
+ * @param buflen the length of the request
+ * @return void
+ */
 void unpack_marshal_call_send( char* buffer, int buflen);
+
 static void setBrokerPort( char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -134,8 +177,6 @@ int main( int argc, char **argv )
     EXIT( 0 );
 }
 
-
-static void server( SOCKET s, struct sockaddr_in *peerp )
 /**
  * @brief Main Server processing routine. called when the server gets a connection from the broker
  * 
@@ -143,6 +184,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
  * @param peerp the peerp
  * @return void
  */
+static void server( SOCKET s, struct sockaddr_in *peerp )
 {
 
     // Wait for connections from the broker.
