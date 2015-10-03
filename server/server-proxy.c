@@ -66,6 +66,13 @@ static void setBrokerAddress(char* arg);
 static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
+/**
+ * @brief Main Server processing routine. called when the server gets a connection from the broker
+ * 
+ * @param s the socket
+ * @param peerp the peerp
+ * @return void
+ */
 static void server( SOCKET s, struct sockaddr_in *peerp );
 
 
@@ -177,13 +184,7 @@ int main( int argc, char **argv )
     EXIT( 0 );
 }
 
-/**
- * @brief Main Server processing routine. called when the server gets a connection from the broker
- * 
- * @param s the socket
- * @param peerp the peerp
- * @return void
- */
+
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
 
