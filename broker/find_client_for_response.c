@@ -4,10 +4,10 @@
 extern bool verbose_flag;
 extern struct ClientRequestRegistration client_request_repository;
 
-Destination* find_client_for_response(Packet *packet)
+Location* find_client_for_response(Packet *packet)
 {
     char* op_name = get_op_name(packet);
-    Destination* dest = Alloc(sizeof(Destination));
+    Location* dest = Alloc(sizeof(Location));
 
     struct list_head *pos, *q;
 

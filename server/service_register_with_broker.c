@@ -10,8 +10,15 @@ extern char our_address[MAX_ADDRESS_CHARS];
 // =====================
 // SERVICE Registration
 // =====================
-// Craft a service registration message and send it of fto the broker.
-bool service_register_with_broker( char *broker_address, char* broker_port )
+
+/**
+ * @brief Craft a service registration message and send it of fto the broker.
+ * 
+ * @param broker_address the broker address
+ * @param broker_port the broker port
+ * @return void
+ */
+void service_register_with_broker( char *broker_address, char* broker_port )
 {
     ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
     sr->address = our_address; // TODO: Get our actual IP address

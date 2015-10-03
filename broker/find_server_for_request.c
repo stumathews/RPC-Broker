@@ -5,11 +5,11 @@ extern char port[MAX_PORT_CHARS];
 extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 
-Destination* find_server_for_request(Packet* packet)
+Location* find_server_for_request(Packet* packet)
 {
     char* op_name = get_op_name( packet );
 
-    Destination *dest = Alloc( sizeof(Destination) );
+    Location *dest = Alloc( sizeof(Location) );
     dest->address = NULL;
     dest->port = NULL;
 

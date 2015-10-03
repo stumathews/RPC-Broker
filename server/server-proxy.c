@@ -134,10 +134,15 @@ int main( int argc, char **argv )
     EXIT( 0 );
 }
 
-// == Main Server processing routine ==
-// called when the server gets a connection from the broker
-//
+
 static void server( SOCKET s, struct sockaddr_in *peerp )
+/**
+ * @brief Main Server processing routine. called when the server gets a connection from the broker
+ * 
+ * @param s the socket
+ * @param peerp the peerp
+ * @return void
+ */
 {
 
     // Wait for connections from the broker.

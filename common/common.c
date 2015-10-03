@@ -3,13 +3,19 @@
 #include <msgpack.h>
 
 
-// Send request.
+
+/**
+ * @brief Send request
+ * 
+ * @param packet data to send
+ * @param address address to send data to
+ * @param port port to connect to on address
+ * @param verbose true if this function should report verbose messages
+ * @return int number of bytes sent
+ */
 int send_request(Packet *packet,char* address, char* port, bool verbose)
 {
-    // --------------------------
-    // SEND PACKED DATA TO BROKER
-    // -------------------------
-   
+  
     if(verbose)
     {
         PRINT("Size to send: %d\n",packet->len);
@@ -20,7 +26,16 @@ int send_request(Packet *packet,char* address, char* port, bool verbose)
 	s = netTcpClient(address,port);
 	return client( s, &peer, packet,verbose );
 }
-// Send request to listening broker socket
+
+/**
+ * @brief Send request to listening broker socket
+ * 
+ * @param s socket
+ * @param peerp peerp 
+ * @param packet packet to send
+ * @param verbose true if verbose messages ar eallowed
+ * @return int number of bytes sent
+ */
 int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose)
 {
     struct Packet pkt;
@@ -50,7 +65,15 @@ int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose)
 }
 
 
-void pack_map_int(char* key, int ival,msgpack_packer* pk )
+/**
+ * @brief Packs a int header
+ * 
+ * @param key header name
+ * @param ival value
+ * @param pk msgpack_packer
+ * @return void
+ */
+void pack_map_int(char* key, int ival, msgpack_packer* pk )
 {
     msgpack_pack_map(pk,1);
     msgpack_pack_str(pk, strlen(key));
@@ -58,8 +81,16 @@ void pack_map_int(char* key, int ival,msgpack_packer* pk )
     msgpack_pack_int(pk, ival);
 
 }
-// Packs a key/value pair like this: {"key"=>"valuet"}
-// where key is a string and value if an char
+
+/**
+ * @brief Packs a key/value pair like this: {"key"=>"valuet"}
+where key is a string and value if an char
+ * 
+ * @param key header name
+ * @param value header value
+ * @param pk msgpack_packer address
+ * @return void
+ */
 void pack_map_str( char* key, char* value, msgpack_packer* pk)
 {
 
@@ -70,6 +101,13 @@ void pack_map_str( char* key, char* value, msgpack_packer* pk)
     msgpack_pack_str_body(pk, value, strlen(value));
 }
 
+/**
+ * @brief Displays the contents of the protocol messages
+ * 
+ * @param packet the protocol messages
+ * @param verbose true if should verbose log messages in this function
+ * @return void
+ */
 void unpack_data(Packet* packet, bool verbose)
 {
     if( packet->len == 0 ) { return; } 
@@ -100,6 +138,13 @@ void unpack_data(Packet* packet, bool verbose)
     }
 }
 
+/**
+ * @brief Gets the msgpack object for the named header
+ * 
+ * @param obj the source to extract from
+ * @param header_buffer the header name to look
+ * @return msgpack_object the result
+ */
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer )
 {
     // msgpack_object.type (msgpack_object_type)
@@ -132,11 +177,13 @@ msgpack_object extract_header( msgpack_object* obj, char* header_buffer )
     }
 }
 
-void unpack_headers( struct Packet* pkt )
-{
 
-}
-
+/**
+ * @brief Determines the request-type header type
+ * 
+ * @param pkt the protocl message
+ * @return RequestType the determined request type
+ */
 enum RequestType determine_request_type(struct Packet* pkt)
 {
     msgpack_unpacked result;
@@ -171,6 +218,13 @@ enum RequestType determine_request_type(struct Packet* pkt)
     msgpack_unpacked_destroy(&result);
 }
 
+/**
+ * @brief Gets the integer value of a header
+ * 
+ * @param packet protocol message
+ * @param look_header_name header name to look for
+ * @return int result
+ */
 int get_header_int_value (Packet* packet, char* look_header_name )
 {
     size_t off = 0;
@@ -210,6 +264,13 @@ int get_header_int_value (Packet* packet, char* look_header_name )
     return return_value;
 }
 
+/**
+ * @brief Gets the string value associated with the named header
+ * 
+ * @param packet protocol message
+ * @param look_header_name header name to look for
+ * @return char* the result value
+ */
 char* get_header_str_value (Packet* packet, char* look_header_name )
 {
     size_t off = 0;
@@ -254,6 +315,12 @@ char* get_header_str_value (Packet* packet, char* look_header_name )
     }
     return str; // dangling pointer
 }
+/**
+ * @brief Find the operation name in the protocol message
+ * 
+ * @param packet the protocol message
+ * @return char* the operation found
+ */
 char* get_op_name( Packet* packet)
 {
 

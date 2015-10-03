@@ -6,6 +6,6 @@ extern struct ServiceRegistration service_repository;
 
 void forward_response(Packet* response)
 {
-    Destination* client = find_client_for_response(response);
+    Location* client = find_client_for_response(response);
     send_request( response, client->address, client->port, false );
 }

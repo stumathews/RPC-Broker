@@ -7,18 +7,30 @@
 #include <stulibc.h>
 #include "protocol.h"
 
+/**
+ * @brief A packet consisting of the length of it and then the trailing data
+ * 
+ */
 typedef struct Packet {
     uint32_t len;
     char* buffer;
 }Packet;
 
+/**
+ * @brief Used to describe a address/port combination
+ * 
+ */
 typedef struct DestinationEndpoint
 {
     char* address;
     char* port;
-} Destination;
+} Location;
 
-// object to represent a service registration from server to broker
+
+/**
+ * @brief object to represent a service registration from server to broker
+ * 
+ */
 typedef struct ServiceRegistration
 {
     char* address;
@@ -29,6 +41,10 @@ typedef struct ServiceRegistration
     struct list_head list;
 } ServiceReg;
 
+/**
+ * @brief Represents a client registration
+ * 
+ */
 typedef struct ClientRequestRegistration
 {
     char* address;
@@ -38,13 +54,6 @@ typedef struct ClientRequestRegistration
     struct list_head list;
 } ClientReg;
 
-typedef struct ProtocolHeader
-{
-    char header[MAX_HEADER_NAME_SIZE];
-    msgpack_object val;
-    struct list_head list;
-} ProtocolHeaders;
-
 
 enum RequestType determine_request_type(struct Packet* pkt);
 int send_request(Packet* packet,char* address, char* port, bool verbose);
@@ -53,10 +62,8 @@ int get_header_int_value (Packet* packet, char* look_header_name );
 void unpack_data(Packet* packet, bool verbose);
 void pack_map_str( char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival,msgpack_packer* pk );
-
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...);
 Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op,int message_id,char* fmt, ...);
-
 char* get_header_str_value (Packet* packet, char* look_header_name );
 char* get_op_name( Packet* packet);
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer );

@@ -1,6 +1,16 @@
 #include <msgpack.h>
 #include "common.h"
 
+/**
+ * @brief Creates a response protocol message 
+ * 
+ * @param sbuf msgpack buffer
+ * @param op operation name to make 
+ * @param message_id message id to use
+ * @param fmt format of the response message
+ * @param  the respone message parameters
+ * @return Packet the resulting protocol message
+ */
 Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...)
 {
     msgpack_sbuffer_init(sbuf);

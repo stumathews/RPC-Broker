@@ -7,6 +7,16 @@ extern bool verbose;
 extern char our_address[MAX_ADDRESS_CHARS];
 static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
 
+/**
+ * @brief Sends a packet of data and waits for its response
+ * 
+ * @param packet the data to send
+ * @param address the address to send the data to
+ * @param port the port to connect to on the address
+ * @param verbose true if this function should log verbose messages
+ * @param wait_response_port the port that we'll listen locally on for responses(we send this port to recipient)
+ * @return Packet* the response from the receipient
+ */
 Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port)
 {
     send_request(packet, address, port, verbose );
@@ -73,7 +83,14 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
     return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
 
-// Read data from socket, and return it
+
+/**
+ * @brief Read data from socket, and return it
+ * 
+ * @param s the socket we're reading from
+ * @param peerp the peer on the other side
+ * @return Packet* te response data we read from the socket
+ */
 Packet *get_response( SOCKET s, struct sockaddr_in *peerp )
 {
 

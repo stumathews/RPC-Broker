@@ -4,6 +4,15 @@
 extern char wait_response_port[MAX_PORT_CHARS];
 extern char our_address[MAX_ADDRESS_CHARS];
 
+/**
+ * @brief Packs a client's request for a service into a protocol message
+ * 
+ * @param sbuf msgpack buffer
+ * @param op operation the client wants
+ * @param fmt the format of the operation call
+ * @param  the parameters of the operatio call
+ * @return char* the protocol service request message
+ */
 char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
 {
     msgpack_sbuffer_init(sbuf);

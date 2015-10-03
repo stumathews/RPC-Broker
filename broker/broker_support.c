@@ -1,13 +1,42 @@
 #include "broker_support.h"
 #include "common.h"
 
+/**
+ * @brief Broker port
+ * 
+ */
 extern char port[MAX_PORT_CHARS ];
+/**
+ * @brief Broker address
+ * 
+ */
 extern char our_address[MAX_ADDRESS_CHARS];
+/**
+ * @brief true if the broker should print messages
+ * 
+ */
 extern bool verbose_flag;
+/**
+ * @brief true if the broker should wait indefinitely until data arrives on its listening port
+ * 
+ */
 extern bool waitIndef_flag;
+/**
+ * @brief List of servers that have registered with the broker
+ * 
+ */
 extern struct ServiceRegistration service_repository;
+/**
+ * @brief List of clients that have pending requests
+ * 
+ */
 extern struct ClientRequestRegistration client_request_repository;
 
+/**
+ * @brief Prints the contents of the services registered with this broker
+ * 
+ * @return void
+ */
 void print_service_repository()
 {
     PRINT("Service registrations:\n");
@@ -33,6 +62,11 @@ void print_service_repository()
     }
 }
 
+/**
+ * @brief Prints the list of clients with requests sent to the broker. Currently not purged of old, already serviced requests
+ * 
+ * @return void
+ */
 void print_client_request_repository()
 {
     PRINT("Client request registrations:\n");
@@ -60,6 +94,12 @@ void print_client_request_repository()
 }
 
 
+/**
+ * @brief Set the brokers port number
+ * 
+ * @param arg The port number as a string
+ * @return void
+ */
 void setPortNumber(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
@@ -68,22 +108,45 @@ void setPortNumber(char* arg)
     strncpy( port, arg, strlen(arg));
 }
 
+/**
+ * @brief Set the verbose flag
+ * 
+ * @param arg (ignored)
+ * @return void
+ */
 void setVerboseFlag(char* arg)
 {
     verbose_flag = true;
 }
 
+/**
+ * @brief Sets the wait indefinitely flag
+ * 
+ * @param arg (ignored)
+ * @return void
+ */
 void setWaitIndefinitelyFlag(char* arg)
 {
     waitIndef_flag = true;
 }
 
-// TODO: make more robust
+
+/**
+ * @brief Future call to acknowledge recept of message from client or server
+ * 
+ * @return void
+ */
 void acknowledgement()
 {
     // Send a message back to sender(client or server) with general ACK
 }
 
+/**
+ * @brief Sets the address that the broker will bind to (its listening port)
+ * 
+ * @param arg the address
+ * @return void
+ */
 void setOurAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );

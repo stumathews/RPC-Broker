@@ -4,7 +4,7 @@
 extern struct ClientRequestRegistration client_request_repository;
 extern bool verbose_flag;
 
-struct ClientRequestRegistration *register_client_request( char* op, Destination* src, int message_id )
+struct ClientRequestRegistration *register_client_request( char* op, Location* src, int message_id )
 {
     if(verbose_flag) { PRINT("Registering client request from host '%s' for operation '%s'\n", src->address,  op); }
 

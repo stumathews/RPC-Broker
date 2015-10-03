@@ -7,6 +7,13 @@ extern bool verbose;
 extern char broker_address[MAX_ADDRESS_CHARS];
 extern char broker_port[MAX_PORT_CHARS];
 
+/**
+ * @brief Unpackets service request, extracts parameters and calls server functions and sends back the response to the broker
+ * 
+ * @param buffer the service request from the client/broker
+ * @param buflen the length of the data
+ * @return void
+ */
 void unpack_marshal_call_send( char* buffer, int buflen )
 {
 

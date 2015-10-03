@@ -11,8 +11,14 @@ char our_address[MAX_ADDRESS_CHARS] = {0};
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
 
-//NB: see broker_support.c for additional functions used in the broker code
 
+/**
+ * @brief see broker_support.c for additional functions used in the broker code
+ * 
+ * @param argc Number of args
+ * @param argv args
+ * @return int
+ */
 int main( int argc, char **argv )
 {
     LIB_Init();
@@ -78,7 +84,12 @@ int main( int argc, char **argv )
     EXIT( 0 );
 }
 
-// Continually waits for network service registrations from services,  and service requests from clients.
+
+/**
+ * @brief Continually waits for network service registrations from services,  and service requests from clients.
+ * 
+ * @return void
+ */
 static void main_event_loop()
 {
     struct sockaddr_in local;
@@ -147,10 +158,14 @@ static void main_event_loop()
     } while ( 1 );
 }
 
-// ====================================
-// Broker connection processing routine.
-// Deals with connections received from clients and servers.
-// ====================================
+
+/**
+ * @brief Broker connection processing routine. Deals with connections received from clients and servers.
+ * 
+ * @param s The socket
+ * @param peerp the peerlen
+ * @return void
+ */
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
     // 1. Read the size of packet.
@@ -175,7 +190,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
    
     if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
-        Destination *src = get_sender_address( &packet, peerp); 
+        Location *src = get_sender_address( &packet, peerp); 
         forward_request(&packet, src); // to the server
     } 
     else if ( request_type == REQUEST_REGISTRATION )  

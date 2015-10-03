@@ -5,9 +5,9 @@ extern bool verbose_flag;
 extern struct ServiceRegistration service_repository;
 extern struct ServiceRequestRegistration client_request_repository;
 
-void forward_request(Packet* packet, Destination* src)
+void forward_request(Packet* packet, Location* src)
 {
-    Destination *dest = find_server_for_request(packet);
+    Location *dest = find_server_for_request(packet);
     
     char* requested_operation = Alloc(sizeof(char));
     int*  message_id = Alloc( sizeof(int));
