@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{60915505-F331-4FDD-B55E-B834FA3F03BA}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakeBuildCommandLine>make</NMakeBuildCommandLine>
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <IncludePath>D:\src\Personal\broker\doc;D:\src\Personal\msgpack-c\include\msgpack;D:\src\Personal\msgpack-c\include;D:\src\Personal\broker\common;D:\src\Personal\stulibc\src\includes;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakeBuildCommandLine>make</NMakeBuildCommandLine>
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="broker\.libs\lt-broker.c" />
+    <ClCompile Include="broker\broker.c" />
+    <ClCompile Include="broker\broker_support.c" />
+    <ClCompile Include="broker\find_client_for_response.c" />
+    <ClCompile Include="broker\find_server_for_request.c" />
+    <ClCompile Include="broker\forward_request.c" />
+    <ClCompile Include="broker\forward_response.c" />
+    <ClCompile Include="broker\get_sender_address.c" />
+    <ClCompile Include="broker\register_client_request.c" />
+    <ClCompile Include="broker\register_service.c" />
+    <ClCompile Include="broker\unpack_service_registration_buffer.c" />
+    <ClCompile Include="client\.libs\lt-client.c" />
+    <ClCompile Include="client\client-proxy.c" />
+    <ClCompile Include="client\client.c" />
+    <ClCompile Include="client\pack_client_request_data.c" />
+    <ClCompile Include="client\send_and_receive.c" />
+    <ClCompile Include="common\common.c" />
+    <ClCompile Include="doc\ip_address.c" />
+    <ClCompile Include="doc\listen.c" />
+    <ClCompile Include="doc\usestulibc.c" />
+    <ClCompile Include="doc\use_buffer_unpack.c" />
+    <ClCompile Include="server\.libs\lt-server.c" />
+    <ClCompile Include="server\pack_client_response_data.c" />
+    <ClCompile Include="server\server-proxy.c" />
+    <ClCompile Include="server\server.c" />
+    <ClCompile Include="server\service_register_with_broker.c" />
+    <ClCompile Include="server\unpack_marshal_call.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="broker\broker_support.h" />
+    <ClInclude Include="common\common.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="server\server_interface.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
