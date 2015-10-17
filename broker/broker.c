@@ -1,12 +1,35 @@
 #include <stulibc.h>
 #include "broker_support.h"
 
+/**
+ * @brief List of services registered with the broker
+ * 
+ */
 struct ServiceRegistration service_repository;
+
+/**
+ * @brief Keeps track of the list of client requests that have come into the broker
+ * 
+ */
 struct ClientRequestRegistration client_request_repository;
+
+/**
+ * @brief Port that the broker is listening on
+ * 
+ */
 char port[MAX_PORT_CHARS] = {0};
-bool verbose_flag = false;
-bool waitIndef_flag = false;
 char our_address[MAX_ADDRESS_CHARS] = {0};
+
+/**
+ * @brief The address that the broker is listening on
+ * 
+ */
+bool verbose_flag = false;
+/**
+ * @brief Indicates if the broker should wait on the listening port indefinitely
+ * 
+ */
+bool waitIndef_flag = false;
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -26,52 +49,25 @@ int main( int argc, char **argv )
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
 
-    struct Argument* portNumberArg = CMD_CreateNewArgument("port",
-                                                        "port <number>",
-                                                        "Set the port that the broker will listen on",
-                                                        true,
-                                                        true,
-                                                        setPortNumber);
+    struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
+    struct Argument* cmdVerbose =    CMD_CreateNewArgument("v","","Prints all messages verbosly",false,false,setVerboseFlag);
+    struct Argument* cmdWaitIndef =  CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
+    struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
 
-    struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
-                                                        "",
-                                                        "Prints all messages verbosly",
-                                                        false,
-                                                        false,
-                                                        setVerboseFlag);
-
-    struct Argument* waitIndefArg = CMD_CreateNewArgument("waitindef",
-                                                        "",
-                                                        "Wait indefinitely for new connections, else 60 secs and then dies",
-                                                        false,
-                                                        false,
-                                                        setWaitIndefinitelyFlag);
-
-    struct Argument* ourAddressCMD = CMD_CreateNewArgument("our-address",
-                                                        "our-address <address>",
-                                                        "Set our address",
-                                                        true,
-                                                        true,
-                                                        setOurAddress);
-
-    CMD_AddArgument(waitIndefArg);
-    CMD_AddArgument(portNumberArg);
-    CMD_AddArgument(verboseArg);
-    CMD_AddArgument(ourAddressCMD);
-
+    CMD_AddArgument(cmdWaitIndef);
+    CMD_AddArgument(cmdPort);
+    CMD_AddArgument(cmdVerbose);
+    CMD_AddArgument(cmdMyAddress);
 
     if( argc > 1 )
-    {
-        enum ParseResult result = CMD_Parse(argc,argv,true);
-        if( result != PARSE_SUCCESS )
-        {
-            return 1;
-        }
+    {        
+      if( (CMD_Parse(argc, argv, true) != PARSE_SUCCESS) )
+	return 1;  // Note CMD_Parse will emit error messages as appropriate      
     }
     else
     {
-        CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
-        exit(0);
+      CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
+      exit(0);
     }
 
     if(verbose_flag) PRINT("Broker starting.\n");
