@@ -80,12 +80,12 @@ int main( int argc, char **argv )
 {
     LIB_Init();
 
-    struct Argument* portNumber = CMD_CreateNewArgument("port","port <number>","Set the port that the server will listen on", true, true, setPortNumber);
-    struct Argument* brokerAddressCMD = CMD_CreateNewArgument("baddress","baddress <address>","Set the address of the broker", true, true, setBrokerAddress);
-    struct Argument* ourAddressCMD = CMD_CreateNewArgument("our-address","our-address <address>","Set the address we listen on (broker uses to deliver responses)", true, true, setOurAddress);
-    struct Argument* brokerPortCMD = CMD_CreateNewArgument("bport","bport <port>","Set the port of the broker", true, true, setBrokerPort);
-    struct Argument* waitIndefCMD = CMD_CreateNewArgument("waitindef","","wait indefinitely for connections", false, false, setWaitIndef);
-    struct Argument* beVerboseCMD = CMD_CreateNewArgument("verbose","","be verbose wtih messages", false, false, setBeVerbose);
+    struct Argument* portNumber = CMD_CreateNewArgument("p","port <number>","Set the port that the server will listen on", true, true, setPortNumber);
+    struct Argument* brokerAddressCMD = CMD_CreateNewArgument("ba","baddress <address>","Set the address of the broker", true, true, setBrokerAddress);
+    struct Argument* ourAddressCMD = CMD_CreateNewArgument("oq","our-address <address>","Set the address we listen on (broker uses to deliver responses)", true, true, setOurAddress);
+    struct Argument* brokerPortCMD = CMD_CreateNewArgument("bp","bport <port>","Set the port of the broker", true, true, setBrokerPort);
+    struct Argument* waitIndefCMD = CMD_CreateNewArgument("w","","wait indefinitely for connections", false, false, setWaitIndef);
+    struct Argument* beVerboseCMD = CMD_CreateNewArgument("v","","be verbose wtih messages", false, false, setBeVerbose);
 
     CMD_AddArgument(portNumber);
     CMD_AddArgument(waitIndefCMD);

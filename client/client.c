@@ -48,38 +48,38 @@ static void setVerbose(char* arg)
 void setupCmd(int argc, char* argv[])
 {
 
-    struct Argument* portNumber = CMD_CreateNewArgument("broker-port",
+    struct Argument* portNumber = CMD_CreateNewArgument("bp",
                                                         "broker-port <number>",
                                                         "Set the broker port that the client will connect to",
                                                         true,
                                                         true,
                                                         setBrokerPortNumber);
-    struct Argument* brokerAddress = CMD_CreateNewArgument("broker-address",
+    struct Argument* brokerAddress = CMD_CreateNewArgument("ba",
                                                         "broker-address <address>",
                                                         "Set the broker address that the client will connect to",
                                                         true,
                                                         true,
                                                         setBrokerAddress);
-    struct Argument* verboseArg = CMD_CreateNewArgument("verbose",
+    struct Argument* verboseArg = CMD_CreateNewArgument("v",
                                                         "",
                                                         "Prints all messages verbosly",
                                                         false,
                                                         false,
                                                         setVerbose);
     
-    struct Argument* waitResponsePortArg = CMD_CreateNewArgument("our-wait-port",
+    struct Argument* waitResponsePortArg = CMD_CreateNewArgument("wp",
                                                         "",
                                                         "The port that the broker can connect to deliver the response",
                                                         true,
                                                         true,
                                                         setWaitResponsePort);
-    struct Argument* waitResponseIndefArg = CMD_CreateNewArgument("wait-reponse-indef",
+    struct Argument* waitResponseIndefArg = CMD_CreateNewArgument("w",
                                                         "",
                                                         "Should we wait indefinitely for the reponse",
                                                         false,
                                                         false,
                                                         setWaitResponseIndef);
-    struct Argument* ourAddress = CMD_CreateNewArgument("our-address",
+    struct Argument* ourAddress = CMD_CreateNewArgument("oa",
                                                         "our-address <address>",
                                                         "Set our address broker will contact us on",
                                                         true,
