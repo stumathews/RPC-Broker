@@ -80,10 +80,10 @@ int main( int argc, char **argv )
 {
     LIB_Init();
 
-    struct Argument* portNumber = CMD_CreateNewArgument("p","port <number>","Set the port that the server will listen on", true, true, setPortNumber);
-    struct Argument* brokerAddressCMD = CMD_CreateNewArgument("ba","baddress <address>","Set the address of the broker", true, true, setBrokerAddress);
-    struct Argument* ourAddressCMD = CMD_CreateNewArgument("oq","our-address <address>","Set the address we listen on (broker uses to deliver responses)", true, true, setOurAddress);
-    struct Argument* brokerPortCMD = CMD_CreateNewArgument("bp","bport <port>","Set the port of the broker", true, true, setBrokerPort);
+    struct Argument* portNumber = CMD_CreateNewArgument("p","p <number>","Set the port that the server will listen on", true, true, setPortNumber);
+    struct Argument* brokerAddressCMD = CMD_CreateNewArgument("ba","ba <address>","Set the address of the broker", true, true, setBrokerAddress);
+    struct Argument* ourAddressCMD = CMD_CreateNewArgument("oa","oa <address>","Set the address we listen on (broker uses to deliver responses)", true, true, setOurAddress);
+    struct Argument* brokerPortCMD = CMD_CreateNewArgument("bp","bp <port>","Set the port of the broker", true, true, setBrokerPort);
     struct Argument* waitIndefCMD = CMD_CreateNewArgument("w","","wait indefinitely for connections", false, false, setWaitIndef);
     struct Argument* beVerboseCMD = CMD_CreateNewArgument("v","","be verbose wtih messages", false, false, setBeVerbose);
 
