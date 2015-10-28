@@ -1,34 +1,13 @@
 #include <stulibc.h>
 #include "broker_support.h"
 
-/**
- * @brief List of services registered with the broker
- * 
- */
 struct ServiceRegistration service_repository;
-
-/**
- * @brief Keeps track of the list of client requests that have come into the broker
- * 
- */
 struct ClientRequestRegistration client_request_repository;
 
-/**
- * @brief Port that the broker is listening on
- * 
- */
 char port[MAX_PORT_CHARS] = {0};
 char our_address[MAX_ADDRESS_CHARS] = {0};
 
-/**
- * @brief The address that the broker is listening on
- * 
- */
 bool verbose_flag = false;
-/**
- * @brief Indicates if the broker should wait on the listening port indefinitely
- * 
- */
 bool waitIndef_flag = false;
 
 static void main_event_loop();
