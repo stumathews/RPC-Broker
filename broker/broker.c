@@ -51,7 +51,7 @@ int main( int argc, char **argv )
 
     if(verbose_flag) PRINT("Broker starting.\n");
 
-    INIT();
+    NETINIT();
     
     main_event_loop();
 
@@ -82,7 +82,7 @@ static void main_event_loop()
     const int on = 1;
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
-    // NB: This is always ever non-blocking 
+    // NB: Getting a socket is always non-blocking
     s = netTcpServer(our_address,port);
 
     FD_SET(s, &readfds);
@@ -91,7 +91,7 @@ static void main_event_loop()
     {
        if(verbose_flag) PRINT("** Listening.\n");
 
-       // wait/block on this listening socket...
+       /* wait/block on this listening socket... */
        int res = 0;
 
        if( waitIndef_flag )
@@ -101,13 +101,13 @@ static void main_event_loop()
 
         if( res == 0 )
         {
-            LOG( "broker listen timeout!");
-            netError(1,errno,"timeout!");
+            LOG( "broker listen timeout!" );
+            netError(1,errno, "timeout!" );
         }
         else if( res == -1 )
         {
-            LOG("Select error!");
-            netError(1,errno,"select error!!");
+            LOG( "Select error!" );
+            netError( 1,errno, "select error!!" );
         }
         else
         {
@@ -126,7 +126,7 @@ static void main_event_loop()
             }
             else
             {
-                DBG("Not our socket. continuing");
+                DBG("Not our socket. continuing listening");
                 continue;
             }
         }
@@ -161,12 +161,12 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
     if(verbose_flag) PRINT("Read %d bytes of data.\n",d_rc);
 
-    int request_type = -1; // -1 represents invalid state
+    int request_type = -1; // default -1 represents invalid state
    
     if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
-        Location *src = get_sender_address( &packet, peerp); 
-        forward_request(&packet, src); // to the server
+        Location *src = get_sender_address( &packet, peerp );
+        forward_request(&packet, src); // to the server/service
     } 
     else if ( request_type == REQUEST_REGISTRATION )  
     {
