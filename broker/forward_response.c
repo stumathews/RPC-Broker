@@ -1,9 +1,6 @@
 #include "common.h"
 #include "broker_support.h"
 
-extern char port[MAX_PORT_CHARS];
-extern struct ServiceRegistration service_repository;
-
 void forward_response(Packet* response)
 {
     Location* client = find_client_for_response(response);
