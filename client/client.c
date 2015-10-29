@@ -12,6 +12,39 @@ bool wait_response_indef = false;
 char our_address[MAX_ADDRESS_CHARS] = {0};
 bool verbose = false;
 
+static void setWaitResponsePort(char* arg);
+static void setBrokerPortNumber(char* arg);
+static void setBrokerAddress(char* arg);
+static void setOurAddress(char* arg);
+static void setWaitResponseIndef( char* arg);
+static void setVerbose(char* arg);
+static void setupCmd(int argc, char* argv[]);
+
+int main( int argc, char* argv[])
+{
+    LIB_Init();
+
+    setupCmd(argc, argv);
+
+    PRINT("Got server date reply as %s", getServerDate());
+    PRINT( "reverse echo = %s", echo("Bruce Mathews") );
+    PRINT( "broker name = %s", getBrokerName());
+    PRINT("sum = %d",add(20,199));
+
+    LIB_Uninit();
+}
+
+void call_server()
+{
+}
+
+void start_task()
+{
+}
+
+void use_Broker_API()
+{
+}
 
 static void setWaitResponsePort(char* arg)
 {
@@ -24,7 +57,6 @@ static void setBrokerPortNumber(char* arg)
     CHECK_STRING(arg, IS_NOT_EMPTY);
     strncpy( broker_port, arg, strlen(arg));
 }
-
 static void setBrokerAddress(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
@@ -45,6 +77,7 @@ static void setVerbose(char* arg)
 {
     verbose = true;
 }
+
 void setupCmd(int argc, char* argv[])
 {
 
@@ -75,30 +108,4 @@ void setupCmd(int argc, char* argv[])
         CMD_ShowUsages("client <options>","stumathews@gmail.com","the client component");
         exit(0);
     }
-}
-
-int main( int argc, char* argv[])
-{
-    LIB_Init();
-    
-    setupCmd(argc, argv);
-
-    PRINT("Got server date reply as %s", getServerDate());
-    PRINT( "reverse echo = %s", echo("Bruce Mathews") );
-    PRINT( "broker name = %s", getBrokerName());
-    PRINT("sum = %d",add(20,199));
-
-    LIB_Uninit();
-}
-
-void call_server()
-{
-}
-
-void start_task()
-{
-}
-
-void use_Broker_API()
-{
 }
