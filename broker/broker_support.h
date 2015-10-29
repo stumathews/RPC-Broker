@@ -26,9 +26,10 @@ Location* find_server_for_request(Packet* packet);
  * @brief Find a client who this response(brokered) from the server is for
  * 
  * @param packet Address of the packet
+ * @param dest client to send the reponse to
  * @return Location* the client who will get the response
  */
-Location* find_client_for_response(Packet* packet);
+Location* find_client_for_response(Packet* packet, Location* dest);
 
 
 /**
