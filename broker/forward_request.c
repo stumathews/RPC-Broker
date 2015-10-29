@@ -12,6 +12,7 @@ void forward_request(Packet* packet, Location* src)
     char* requested_operation = Alloc(sizeof(char));
     int*  message_id = Alloc( sizeof(int));
     
+    // extract a few detalis from the service request
     *message_id = get_header_int_value( packet, MESSAGE_ID_HDR);
     requested_operation = get_header_str_value(packet, OPERATION_HDR); 
 
@@ -26,5 +27,5 @@ void forward_request(Packet* packet, Location* src)
     if(verbose_flag) 
         PRINT("About to forward request to %s:%s\n", dest->address, dest->port);
 
-    send_request( packet, dest->address, dest->port,verbose_flag);
+    send_request( packet, dest->address, dest->port, verbose_flag);
 }

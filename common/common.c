@@ -15,10 +15,9 @@
  */
 int send_request(Packet *packet,char* address, char* port, bool verbose)
 {
-  
     if(verbose)
     {
-        PRINT("Size to send: %d\n",packet->len);
+        PRINT("Send request; Size to send: %d\n", packet->len);
     }
 
     struct sockaddr_in peer;

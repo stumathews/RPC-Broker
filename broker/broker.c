@@ -118,9 +118,9 @@ static void main_event_loop()
                 if ( !isvalidsock( s1 ) )
                     netError( 1, errno, "accept failed" );
                 
-                //Data arrived: Process it
+                // Data arrived,  Process it
                 server( s1, &peer );
-                CLOSE( s1 );
+                NETCLOSE( s1 );
             }
             else
             {
@@ -133,7 +133,7 @@ static void main_event_loop()
 
 
 /**
- * @brief Broker connection processing routine. Deals with connections received from clients and servers.
+ * @brief Waits for connections received from clients and servers.
  * 
  * @param s The socket
  * @param peerp the peerlen
@@ -141,19 +141,19 @@ static void main_event_loop()
  */
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
-    // 1. Read the size of packet.
-    // 2. Read the packet data
-    // 3. Do stuff based on the packet data
 
     struct Packet packet;
 
+    // 1. Read the size of packet.
     int n_rc = netReadn( s,(char*) &packet.len, sizeof(uint32_t));
     packet.len = ntohl(packet.len);
 
-    if( n_rc < 1 ) netError(1, errno,"Failed to receiver packet size\n");
+    if( n_rc < 1 ) netError(1, errno, "Failed to receiver packet size\n");
     if( verbose_flag ) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
     
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
+
+    // 2. Read the packet data
     int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
     if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
@@ -164,7 +164,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
     {
         Location *src = get_sender_address( &packet, peerp );
-        forward_request(&packet, src); // to the server/service
+        forward_request(&packet, src); // to the server
     } 
     else if ( request_type == REQUEST_REGISTRATION )  
     {
