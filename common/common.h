@@ -68,5 +68,6 @@ char* get_header_str_value (Packet* packet, char* look_header_name );
 char* get_op_name( Packet* packet);
 msgpack_object extract_header( msgpack_object* obj, char* header_buffer );
 struct Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port);
-
+void printSetting( Node* LinkedListNode);
+void printKeyValuePair( Node* LinkedListNode);
 #endif

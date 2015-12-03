@@ -363,3 +363,19 @@ char* get_op_name( Packet* packet)
         PRINT("The data in the buf is invalid format.\n");
     }
 }
+
+void printKeyValuePair( Node* LinkedListNode)
+{
+	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
+	PRINT("key: %s, value: %s\n", header->key, header->value);
+}
+
+void printSetting( Node* LinkedListNode)
+{
+	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
+	PRINT("header: %s\n",header->key);
+	List* settings = header->value;
+	settings->fnPrint = printKeyValuePair;
+	LIST_Print(settings);
+
+}
