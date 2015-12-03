@@ -8,6 +8,7 @@
 #include "common.h"
 #include "server_interface.h"
 
+#define CONFIG_FILENAME "config.ini"
 /**
  * @brief the server port 
  * 
@@ -104,10 +105,35 @@ int main( int argc, char **argv )
     fd_set readfds;
     FD_ZERO( &readfds);
     const int on = 1;
+    List* settings = (void*)null;
 
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
-    if( argc > 1 )
+    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1))
+	{
+		DBG("Using config file located in '%s'", CONFIG_FILENAME);
+		settings = LIST_GetInstance();
+		if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
+		{
+			setWaitIndef(INI_GetSetting(settings, "options", "wait"));
+			setBeVerbose(INI_GetSetting(settings, "options", "verbose"));
+			setPortNumber(INI_GetSetting(settings, "networking", "port"));
+			setOurAddress(INI_GetSetting(settings, "networking", "address"));
+
+			setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
+			setBrokerPort(INI_GetSetting(settings, "broker", "port"));
+
+			if(verbose)
+			{
+				LIST_ForEach(settings, printSetting);
+			}
+		}
+		else
+		{
+			ERR_Print("Failed to parse config file", 1);
+		}
+	}
+    else if( argc > 1 )
     {
         enum ParseResult result = CMD_Parse(argc,argv,true);
         if( result != PARSE_SUCCESS )
@@ -180,6 +206,7 @@ int main( int argc, char **argv )
 
     } while ( 1 );
 
+    LIST_FreeInstance(settings);
     LIB_Uninit();
     EXIT( 0 );
 }
