@@ -135,4 +135,7 @@ void setWaitIndefinitelyFlag(char* arg);
  */
 void setOurAddress(char* arg);
 
+void printSetting( Node* LinkedListNode);
+void printKeyValuePair( Node* LinkedListNode);
+
 #endif

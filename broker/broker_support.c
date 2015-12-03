@@ -1,5 +1,6 @@
 #include "broker_support.h"
 #include "common.h"
+#include "../config.h"
 
 /**
  * @brief Broker port
@@ -106,6 +107,7 @@ void setPortNumber(char* arg)
     CHK_ExitIf( strlen(arg) > MAX_PORT_CHARS + 1, "The length of the port you specified is larger than MAX_PORT_CHARS ","setPortNumber" );
 
     strncpy( port, arg, strlen(arg));
+    DBG("port = %s", arg);
 }
 
 /**
@@ -116,6 +118,7 @@ void setPortNumber(char* arg)
  */
 void setVerboseFlag(char* arg)
 {
+	DBG("verbose = true");
     verbose_flag = true;
 }
 
@@ -127,6 +130,7 @@ void setVerboseFlag(char* arg)
  */
 void setWaitIndefinitelyFlag(char* arg)
 {
+	DBG("Wait indefinitely = true");
     waitIndef_flag = true;
 }
 
@@ -151,4 +155,20 @@ void setOurAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );
     strncpy( our_address, arg, strlen(arg) );
+    DBG("address = %s", arg);
+}
+
+void printKeyValuePair( Node* LinkedListNode)
+{
+	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
+	PRINT("key: %s, value: %s\n", header->key, header->value);
+}
+void printSetting( Node* LinkedListNode)
+{
+	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
+	PRINT("header: %s\n",header->key);
+	List* settings = header->value;
+	settings->fnPrint = printKeyValuePair;
+	LIST_Print(settings);
+
 }

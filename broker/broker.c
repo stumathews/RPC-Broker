@@ -1,12 +1,15 @@
 #include <stulibc.h>
 #include "broker_support.h"
+#include "../config.h"
 
 struct ServiceRegistration service_repository;
 struct ClientRequestRegistration client_request_repository;
 char port[MAX_PORT_CHARS] = {0};
 char our_address[MAX_ADDRESS_CHARS] = {0};
+static const char* CONFIG_FILENAME = "broker.ini";
 bool verbose_flag = false;
 bool waitIndef_flag = false;
+
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -26,20 +29,46 @@ int main( int argc, char **argv )
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
 
-    struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
+    struct Argument* cmdPort = 		 CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
     struct Argument* cmdVerbose =    CMD_CreateNewArgument("v","","Prints all messages verbosly",false,false,setVerboseFlag);
     struct Argument* cmdWaitIndef =  CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
-    struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
+    struct Argument* cmdMyAddress =  CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
+
+    List* settings = {0};
 
     CMD_AddArgument(cmdWaitIndef);
     CMD_AddArgument(cmdPort);
     CMD_AddArgument(cmdVerbose);
     CMD_AddArgument(cmdMyAddress);
 
-    if( argc > 1 )
-    {        
-      if( (CMD_Parse(argc, argv, true) != PARSE_SUCCESS) )
-	return 1;  // Note CMD_Parse will emit error messages as appropriate      
+    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1))
+    {
+    	DBG("Using config file located in '%s'", CONFIG_FILENAME);
+    	settings = LIST_GetInstance();
+    	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
+    	{
+    		setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
+    		setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
+			setPortNumber(INI_GetSetting(settings, "networking", "port"));
+			setOurAddress(INI_GetSetting(settings, "networking", "address"));
+
+			if(verbose_flag)
+			{
+				LIST_ForEach(settings, printSetting);
+			}
+    	}
+    	else
+    	{
+    		ERR_Print("Failed to parse config file", 1);
+    	}
+    }
+    else if(argc > 1)
+    {
+    	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS))
+		{
+    	  PRINT("CMD line parsing failed.");
+		  return 1;  // Note CMD_Parse will emit error messages as appropriate
+		}
     }
     else
     {
@@ -53,6 +82,7 @@ int main( int argc, char **argv )
     
     main_event_loop();
 
+    LIST_FreeInstance(settings);
     LIB_Uninit();
     EXIT( 0 );
 }
