@@ -82,9 +82,9 @@ static void setVerbose(char* arg)
 void setupCmd(int argc, char* argv[])
 {
 
-    struct Argument* portNumber = 			CMD_CreateNewArgument("bp", "bp <number>", "Set the broker port that the client will connect to", true,true,setBrokerPortNumber);
-    struct Argument* brokerAddress = 		CMD_CreateNewArgument("ba","ba <address>","Set the broker address that the client will connect to",true,true,setBrokerAddress);
-    struct Argument* verboseArg = 			CMD_CreateNewArgument("v", "", "Prints all messages verbosly",false,false,setVerbose);
+    struct Argument* portNumber = CMD_CreateNewArgument("bp", "bp <number>", "Set the broker port that the client will connect to", true,true,setBrokerPortNumber);
+    struct Argument* brokerAddress = CMD_CreateNewArgument("ba","ba <address>","Set the broker address that the client will connect to",true,true,setBrokerAddress);
+    struct Argument* verboseArg = CMD_CreateNewArgument("v", "", "Prints all messages verbosly",false,false,setVerbose);
     struct Argument* waitResponsePortArg =  CMD_CreateNewArgument("wp", "","The port that the broker can connect to deliver the response",true,true,setWaitResponsePort);
     struct Argument* waitResponseIndefArg = CMD_CreateNewArgument("w","","Should we wait indefinitely for the reponse",false,false,setWaitResponseIndef);
     struct Argument* ourAddress = 			CMD_CreateNewArgument("oa","oa <address>","Set our address broker will contact us on",true,true,setOurAddress);
