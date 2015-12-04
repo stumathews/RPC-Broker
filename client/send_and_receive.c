@@ -34,7 +34,7 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
     Packet *result;
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
-    INIT();
+    NETINIT();
 
     if( verbose ) 
         PRINT("client waiting for response...\n");
@@ -75,11 +75,11 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
 
             // do network functionality on this socket that now represents a connection with the peer (client) 
             result = get_response( s1, &peer );
-            CLOSE( s1 );
+            NETCLOSE( s1 );
         }
         else { DBG("not our socket. continuing"); }
     }
-    CLOSE(s);
+    NETCLOSE(s);
     return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
 

@@ -148,7 +148,7 @@ int main( int argc, char **argv )
         exit(0);
     }
 
-    INIT();
+    NETINIT();
     
     if( verbose ) 
         PRINT("Server listening...\n");
@@ -195,7 +195,7 @@ int main( int argc, char **argv )
 
                 // do network functionality on this socket that now represents a connection with the peer (client) 
                 server( s1, &peer );
-                CLOSE( s1 );
+                NETCLOSE( s1 );
             }
             else
             {
