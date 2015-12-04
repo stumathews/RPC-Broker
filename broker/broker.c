@@ -6,7 +6,7 @@ struct ServiceRegistration service_repository;
 struct ClientRequestRegistration client_request_repository;
 char port[MAX_PORT_CHARS] = {0};
 char our_address[MAX_ADDRESS_CHARS] = {0};
-static const char* CONFIG_FILENAME = "broker.ini";
+static const char* CONFIG_FILENAME = "config.ini";
 bool verbose_flag = false;
 bool waitIndef_flag = false;
 
