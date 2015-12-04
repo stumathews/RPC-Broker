@@ -28,7 +28,7 @@ Location* find_client_for_response(Packet *packet, Location* dest)
             dest->address = crreg_entry->address;
             dest->port = crreg_entry->port;
             if( verbose_flag ) { PRINT("found client at %s:%s\n", dest->address, dest->port);}
-            list_del( &crreg_entry->list);
+            //list_del( &crreg_entry->list);
             return dest;
         }       
 
