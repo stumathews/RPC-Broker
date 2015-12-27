@@ -21,7 +21,7 @@ print $beginning;
 open( interfaceHandle , 'server_interface.h');
 
 while( <interfaceHandle>) {
-	if (/^([\w*]+)\s+(\w+)\s*\((.*)\);$/){
+	if (/([\w*]+)\s+(\w+)\s*\((.*)\);/){
 		my $fnRet = $1;
 		my $fnName = $2;
 		my $fnParams = $3;			
