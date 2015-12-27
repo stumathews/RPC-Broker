@@ -272,6 +272,11 @@ static void setWaitIndef(char* arg)
 
 static void setBeVerbose(char* arg)
 {
-    verbose = true;
+    if( STR_Equals(arg,"true") || STR_Equals(arg,"1")) {
+	verbose = true;
+    } else {
+
+	verbose = false;
+    }
 }
 
