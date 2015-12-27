@@ -26,7 +26,7 @@ int add( int one, int two );
  * @param echo input
  * @return char* output
  */
-char* echo(char* echo);
+char* echo(char* message);
 /**
  * @brief Gets the name of the broker
  * 
