@@ -3,7 +3,7 @@
 #include <stulibc.h>
 
 
-char* services[] = {"getServerDate","getBrokerName","echo","add",NULL};
+char* services[] = {"getServerDate","getBrokerName","echo","add","sayHello",NULL};
 
 char* getServerDate() 
 {
@@ -28,4 +28,14 @@ int add( int one, int two )
     return (one + two);
 }
 
+char* sayHello(int age, char* name)
+{
+	char* buffer = MEM_Alloc(sizeof(char) * 80 );
+	if( buffer != null ){
+		snprintf(buffer, 80, "Hello %s, you are %d years old", name, age);
+	} else {
+		return "failed.";
+	}
 
+	return buffer;
+}

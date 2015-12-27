@@ -33,12 +33,7 @@ char* echo(char* message);
  * @return char* the name of the broker
  */
 char* getBrokerName();
-/**
- * @brief Reverse a string
- * 
- * @param data data to revese
- * @return char* the reverse of the data
- */
-inline char* Reverse(char* data){}
+
+char* sayHello(int age, char* name);
 
 #endif

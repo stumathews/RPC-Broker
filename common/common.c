@@ -15,12 +15,9 @@
  */
 int send_request(Packet *packet,char* address, char* port, bool verbose)
 {
-    if(verbose)
-    {
-        PRINT("Send request; Size to send: %d\n", packet->len);
-    }
+	unpack_data(packet, 1 );
 
-    struct sockaddr_in peer;
+	struct sockaddr_in peer;
 	SOCKET s;
 	s = netTcpClient(address,port);
 	PRINT("Send to %s:%s\n", address, port);
@@ -204,6 +201,13 @@ enum RequestType determine_request_type(struct Packet* pkt)
 
         if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_HDR,header_name) == 0 )
         {
+		if( val.via.i64 == SERVICE_REQUEST ) {
+			PRINT("[SERVICE REQUEST]\n");
+		} else if( val.via.i64 == SERVICE_REQUEST_RESPONSE ) {
+			PRINT("[SERVICE_REQUEST_RESPONSE]\n");
+		} else if (val.via.i64 == SERVICE_REGISTRATION ) {
+
+}
             return val.via.i64;
         }
         else

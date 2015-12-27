@@ -119,7 +119,11 @@ void setPortNumber(char* arg)
 void setVerboseFlag(char* arg)
 {
 	DBG("verbose = true");
-    verbose_flag = true;
+    	if( STR_Equals(arg, "true") || STR_Equals(arg, "1") ) {
+		verbose_flag = true;
+	} else {
+		verbose_flag = false;
+	}
 }
 
 /**

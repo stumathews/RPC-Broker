@@ -46,17 +46,17 @@ int main( int argc, char **argv )
     	DBG("Using config file located in '%s'", CONFIG_FILENAME);
     	settings = LIST_GetInstance();
     	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
-    	{
-    		setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
-    		setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
-			setPortNumber(INI_GetSetting(settings, "networking", "port"));
-			setOurAddress(INI_GetSetting(settings, "networking", "address"));
+	{
+		setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
+		setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
+		setPortNumber(INI_GetSetting(settings, "networking", "port"));
+		setOurAddress(INI_GetSetting(settings, "networking", "address"));
 
-			if(verbose_flag)
-			{
-				LIST_ForEach(settings, printSetting);
-			}
-    	}
+		if(verbose_flag)
+		{
+			LIST_ForEach(settings, printSetting);
+		}
+	}
     	else
     	{
     		ERR_Print("Failed to parse config file", 1);
@@ -190,17 +190,19 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if(verbose_flag) PRINT("Read %d bytes of data.\n",d_rc);
 
     int request_type = -1; // default -1 represents invalid state
+
+    
    
-    if( (request_type = determine_request_type(&packet)) == REQUEST_SERVICE )
+    if( (request_type = determine_request_type(&packet)) == SERVICE_REQUEST )
     {
         Location *src = get_sender_address( &packet, peerp );
         forward_request(&packet, src); // to the server
     } 
-    else if ( request_type == REQUEST_REGISTRATION )  
+    else if ( request_type == SERVICE_REGISTRATION )  
     {
         register_service_request(&packet);
     } 
-    else if( request_type == REQUEST_SERVICE_RESPONSE )
+    else if( request_type == SERVICE_REQUEST_RESPONSE )
     {
         Packet* response = &packet;
         forward_response(response); //to the client

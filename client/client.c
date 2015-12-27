@@ -31,6 +31,7 @@ int main( int argc, char* argv[])
     PRINT( "reverse echo = %s", echo("Bruce Mathews") );
     PRINT( "broker name = %s", getBrokerName());
     PRINT("sum = %d",add(20,199));
+    PRINT("sayHello = %s",sayHello(20,"Stuart"));
 
     LIB_Uninit();
 }

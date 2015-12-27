@@ -89,64 +89,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             }
 
             // Now arrange for the service call to be invoked and marshal the parmeters into the function call
-            
-            // Note: This should probably be generated but I'm unsure how to do this automatically.
-            // Current research has pointed me to trying to use Macros or a macro-like manguge such as M4 to generate this:
-            if( STR_Equals( operation, "echo") )
-            {
-                char* param0 = (char*)params[0];
-            
-                echo(param0);
-            
-                msgpack_sbuffer response;
-                Packet pkt = pack_client_response_data( &response, operation, message_id, "%s", param0);
-                
-                if( verbose ) unpack_data( &pkt, verbose);
-
-                send_request( &pkt, broker_address, broker_port,verbose );
-
-                msgpack_sbuffer_destroy(&response);
-            }
-            else if( STR_Equals( operation,"getBrokerName"))
-            {
-                char* brokerName = getBrokerName();
-                msgpack_sbuffer response;
-
-                Packet pkt = pack_client_response_data( &response, operation, message_id,"%s", brokerName);
-
-                if( verbose ) unpack_data( &pkt, verbose);
-                
-                send_request( &pkt, broker_address, broker_port,verbose );
-                
-                msgpack_sbuffer_destroy(&response);
-                
-            }
-            else if( STR_Equals( operation,"getServerDate"))
-            {
-                msgpack_sbuffer response;
-                Packet pkt = pack_client_response_data( &response, operation, message_id, "%s", getServerDate());
-                
-                if( verbose ) unpack_data( &pkt, verbose);
-
-                send_request( &pkt, broker_address, broker_port,verbose );
-
-                msgpack_sbuffer_destroy(&response);
-            }
-            else if( STR_Equals( operation,"add"))
-            {
-                int param0 = *(int*)params[0];
-                int param1 = *(int*)params[1];
-                msgpack_sbuffer response;
-                
-                Packet pkt = pack_client_response_data( &response, operation, message_id, "%d", add(param0,param1));
-                
-                if( verbose ) unpack_data( &pkt, verbose);
-                
-                send_request( &pkt, broker_address, broker_port,verbose );
-                
-                msgpack_sbuffer_destroy(&response);
-            }
-            PRINT("broker <- response [%s].\n",operation);
+	    #include "proxy.gen.c"
         }
 
         return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);

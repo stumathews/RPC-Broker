@@ -19,10 +19,10 @@ while( <interfaceHandle>) {
 		for( my $i = 0; $i < scalar @params ; $i++ ) {				
 			if( $i % 2 == 0 ) {				
 				if( $params[$i] eq 'char*' ) {
-					$format .= '%s';					
+					#$format .= '%s';					
 				}
 				if ($params[$i] eq 'int') {
-					$format .= '%d';					
+					#$format .= '%d';					
 				}
 				$paramTypes[$paramCount] = $params[$i];	
 				$paramCount++;				
@@ -32,6 +32,14 @@ while( <interfaceHandle>) {
 			}
 		}
 		
+		if( $fnRet eq 'int' ){
+			$format = '%d';
+		} elsif ( $fnRet eq 'char*' ){
+			$format = '%s';
+		} else {
+			$format = '';
+		}		
+
 		@paramNames = grep { $_ ne '' } @paramNames;
 		
 		my $paramGets = '';

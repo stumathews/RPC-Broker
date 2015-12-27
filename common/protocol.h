@@ -72,6 +72,10 @@ Types of protocol messages:
  * @brief The types of protocol messages that exist in the specification
  * 
  */
-enum RequestType {REQUEST_SERVICE, REQUEST_SERVICE_RESPONSE, REQUEST_REGISTRATION};
+enum RequestType {
+	SERVICE_REQUEST, 
+	SERVICE_REQUEST_RESPONSE,
+	SERVICE_REGISTRATION
+};
 
 #endif

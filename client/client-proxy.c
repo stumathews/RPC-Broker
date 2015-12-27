@@ -85,3 +85,20 @@ char* getServerDate()
 
 
 
+char* sayHello( int age, char* name )
+{
+    
+    msgpack_sbuffer sbuf;
+
+    pack_client_request_data( &sbuf, (char*)__func__, "%d%s",age,name);
+
+    Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size; 
+
+    Packet *result = send_and_receive( &pkt, broker_address, broker_port, verbose, wait_response_port );
+
+    msgpack_sbuffer_destroy(&sbuf);
+    
+    return  get_header_str_value(result, REPLY_HDR);
+    
+}
+
