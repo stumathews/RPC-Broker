@@ -29,10 +29,10 @@ int main( int argc, char **argv )
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
 
-    struct Argument* cmdPort = 		 CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
-    struct Argument* cmdVerbose =    CMD_CreateNewArgument("v","","Prints all messages verbosly",false,false,setVerboseFlag);
-    struct Argument* cmdWaitIndef =  CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
-    struct Argument* cmdMyAddress =  CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
+    struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
+    struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosly",false,false,setVerboseFlag);
+    struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
+    struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
 
     List* settings = {0};
 
@@ -65,10 +65,10 @@ int main( int argc, char **argv )
     else if(argc > 1)
     {
     	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS))
-		{
-    	  PRINT("CMD line parsing failed.");
-		  return 1;  // Note CMD_Parse will emit error messages as appropriate
-		}
+	{
+    		PRINT("CMD line parsing failed.");
+		return 1;  // Note CMD_Parse will emit error messages as appropriate
+	}
     }
     else
     {
