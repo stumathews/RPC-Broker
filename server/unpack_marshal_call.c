@@ -89,7 +89,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             }
 
             // Now arrange for the service call to be invoked and marshal the parmeters into the function call
-	    #include "proxy.gen.c"
+	    proxy_invoke(message_id, operation, broker_address, broker_port, verbose, params);
         }
 
         return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off);

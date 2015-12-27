@@ -18,7 +18,7 @@ Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_i
     msgpack_packer pk;
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
-    pack_map_int(REQUEST_TYPE_HDR,REQUEST_SERVICE_RESPONSE,&pk);
+    pack_map_int(REQUEST_TYPE_HDR, SERVICE_REQUEST_RESPONSE,&pk);
     pack_map_int(MESSAGE_ID_HDR,message_id,&pk);
 
     pack_map_str(OPERATION_HDR,op,&pk);

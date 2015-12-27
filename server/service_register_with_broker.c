@@ -25,7 +25,7 @@ void service_register_with_broker( char *broker_address, char* broker_port )
     msgpack_packer pk;
     msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-    pack_map_int(REQUEST_TYPE_HDR,REQUEST_REGISTRATION,&pk);
+    pack_map_int(REQUEST_TYPE_HDR, SERVICE_REGISTRATION,&pk);
     pack_map_str(SENDER_ADDRESS_HDR,sr->address,&pk);
     pack_map_str(REPLY_PORT_HDR,sr->port,&pk);
     pack_map_str(SERVICE_NAME_HDR,"theServiceName",&pk);
