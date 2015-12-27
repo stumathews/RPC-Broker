@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
+open STDOUT, '>', "client-proxy.c";
 
 my $beginning = << "END";
 #include \"server_interface.h\"
