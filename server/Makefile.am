@@ -1,7 +1,7 @@
 AM_CPPFLAGS = $(LIBINC)
 bin_PROGRAMS = server
 server_SOURCES = \
-    server-proxy.c \
+    server_interface.c \
     server.c \
     ../common/common.c \
     unpack_marshal_call.c \

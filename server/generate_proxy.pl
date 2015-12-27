@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-
+open STDOUT, '>', "server-proxy.c";
 my $beginning = << "END";
 #include <stulibc.h>
 #include "common.h"
