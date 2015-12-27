@@ -17,3 +17,4 @@ AC_ARG_WITH(inspect,
                                                                                 [ AC_DEFINE(INSPECT_ERRORS, 1, "Inspect test suite errors")],
                                                                                 [ AC_DEFINE(INSPECT_ERRORS, 0, "Inspect test suite errors")])
 AC_OUTPUT(Makefile broker/Makefile client/Makefile server/Makefile)
+AC_PATH_PROG([PERL], [perl])
