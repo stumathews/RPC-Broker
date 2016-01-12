@@ -2,11 +2,11 @@
 #include "common.h"
 
 extern struct ClientRequestRegistration client_request_repository;
-extern bool verbose_flag;
+extern bool verbose;
 
 struct ClientRequestRegistration *register_client_request( char* op, Location* src, int message_id )
 {
-    if(verbose_flag) { PRINT("Registering client request from host '%s' for operation '%s'\n", src->address,  op); }
+    if(verbose) { PRINT("Registering client request from host '%s' for operation '%s'\n", src->address,  op); }
 
     ClientReg* client_request_registration = Alloc( sizeof( struct ClientRequestRegistration) );
     client_request_registration->address = src->address;

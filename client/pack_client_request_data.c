@@ -2,7 +2,7 @@
 #include "common.h"
 
 extern char wait_response_port[MAX_PORT_CHARS];
-extern char our_address[MAX_ADDRESS_CHARS];
+extern char client_address[MAX_ADDRESS_CHARS];
 
 /**
  * @brief Packs a client's request for a service into a protocol message
@@ -22,7 +22,7 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
 
     pack_map_int(REQUEST_TYPE_HDR, SERVICE_REQUEST,&pk);
     pack_map_int(MESSAGE_ID_HDR,rand(),&pk);
-    pack_map_str(SENDER_ADDRESS_HDR,our_address,&pk);
+    pack_map_str(SENDER_ADDRESS_HDR,client_address,&pk);
     pack_map_str(REPLY_PORT_HDR,wait_response_port,&pk);
 
     pack_map_str(OPERATION_HDR,op,&pk);

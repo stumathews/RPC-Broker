@@ -11,17 +11,17 @@ extern char port[MAX_PORT_CHARS ];
  * @brief Broker address
  * 
  */
-extern char our_address[MAX_ADDRESS_CHARS];
+extern char broker_address[MAX_ADDRESS_CHARS];
 /**
  * @brief true if the broker should print messages
  * 
  */
-extern bool verbose_flag;
+extern bool verbose;
 /**
  * @brief true if the broker should wait indefinitely until data arrives on its listening port
  * 
  */
-extern bool waitIndef_flag;
+extern bool waitIndef;
 /**
  * @brief List of servers that have registered with the broker
  * 
@@ -120,9 +120,9 @@ void setVerboseFlag(char* arg)
 {
 	DBG("verbose = true");
     	if( STR_Equals(arg, "true") || STR_Equals(arg, "1") ) {
-		verbose_flag = true;
+		verbose = true;
 	} else {
-		verbose_flag = false;
+		verbose = false;
 	}
 }
 
@@ -135,7 +135,7 @@ void setVerboseFlag(char* arg)
 void setWaitIndefinitelyFlag(char* arg)
 {
 	DBG("Wait indefinitely = true");
-    waitIndef_flag = true;
+    waitIndef = true;
 }
 
 
@@ -158,7 +158,7 @@ void acknowledgement()
 void setOurAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );
-    strncpy( our_address, arg, strlen(arg) );
+    strncpy( broker_address, arg, strlen(arg) );
     DBG("address = %s", arg);
 }
 

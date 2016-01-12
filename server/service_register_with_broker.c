@@ -5,7 +5,7 @@
 extern bool verbose;
 extern char port[MAX_PORT_CHARS];
 extern char broker_address[MAX_ADDRESS_CHARS];
-extern char our_address[MAX_ADDRESS_CHARS];
+extern char server_address[MAX_ADDRESS_CHARS];
 
 /**
  * @brief Craft a service registration message and send it of fto the broker.
@@ -17,7 +17,7 @@ extern char our_address[MAX_ADDRESS_CHARS];
 void service_register_with_broker( char *broker_address, char* broker_port )
 {
     ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
-    sr->address = our_address; // TODO: Get our actual IP address
+    sr->address = server_address; // TODO: Get our actual IP address
     sr->port = port;
     
     msgpack_sbuffer sbuf;

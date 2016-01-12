@@ -28,7 +28,7 @@ char broker_address[MAX_ADDRESS_CHARS] = {0};
  * @brief the servers address
  * 
  */
-char our_address[MAX_ADDRESS_CHARS] = {0};
+char server_address[MAX_ADDRESS_CHARS] = {0};
 /**
  * @brief wait forever for data on socket?
  * 
@@ -262,7 +262,7 @@ static void setBrokerAddress(char* arg)
 static void setOurAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );
-    strncpy( our_address, arg, strlen(arg) );
+    strncpy( server_address, arg, strlen(arg) );
 }
 
 static void setWaitIndef(char* arg)

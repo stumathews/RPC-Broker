@@ -10,7 +10,7 @@ char broker_address[MAX_ADDRESS_CHARS] = {0};
 char broker_port[MAX_PORT_CHARS] = {0};
 char wait_response_port[MAX_PORT_CHARS] = {0};
 bool wait_response_indef = false;
-char our_address[MAX_ADDRESS_CHARS] = {0};
+char client_address[MAX_ADDRESS_CHARS] = {0};
 bool verbose = false;
 
 static void setWaitResponsePort(char* arg);
@@ -68,7 +68,7 @@ static void setBrokerAddress(char* arg)
 static void setOurAddress(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( our_address, arg, strlen(arg));
+    strncpy(client_address, arg, strlen(arg));
 }
 static void setWaitResponseIndef( char* arg)
 {

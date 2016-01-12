@@ -4,7 +4,7 @@
 
 extern bool wait_response_indef;
 extern bool verbose;
-extern char our_address[MAX_ADDRESS_CHARS];
+extern char client_address[MAX_ADDRESS_CHARS];
 static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
 
 /**
@@ -17,9 +17,11 @@ static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
  * @param wait_response_port the port that we'll listen locally on for responses(we send this port to recipient)
  * @return Packet* the response from the receipient
  */
-Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose, char* wait_response_port)
+Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verbose, char* wait_response_port)
 {
-    send_request(packet, address, port, verbose );
+    send_request(packet, to_address, port, verbose );
+
+    /* wait for the response */
 
     struct sockaddr_in local;
     struct sockaddr_in peer;
@@ -36,48 +38,39 @@ Packet *send_and_receive(Packet* packet,char* address, char* port, bool verbose,
 
     NETINIT();
 
-    if( verbose ) 
+    if(verbose) {
         PRINT("client waiting for response...\n");
-
-    // NB: This is always ever non-blocking 
-    s = netTcpServer(our_address ,wait_response_port);
+    }
+    s = netTcpServer(client_address ,wait_response_port);
 
     FD_SET(s, &readfds);
     if(verbose) { PRINT("About wait for read on port %s...\n", wait_response_port); }
 
     // wait/block on this listening socket...
     int res = 0;
-    if( !wait_response_indef )
+    if(!wait_response_indef) {
         res = select( s+1, &readfds, NULL, NULL, &timeout);
-    else
+    } else {
         res = select( s+1, &readfds, NULL, NULL, NULL);
-
-    if( res == 0 )
-    {
-        LOG( "timeout");
-        netError(1,errno,"timeout!");
     }
-    else if( res == -1 )
-    {
+    if(res == 0) {
+        LOG("timeout");
+        netError(1,errno,"timeout!");
+    } else if(res == -1) {
         LOG("Select error!");
         netError(1,errno,"select error!!");
-    }
-    else
-    {
-        peerlen = sizeof( peer );
-
-        if( FD_ISSET(s,&readfds ))
-        {
+    } else {
+        peerlen = sizeof(peer);
+        if(FD_ISSET(s,&readfds)) {
             s1 = accept( s, ( struct sockaddr * )&peer, &peerlen );
 
-            if ( !isvalidsock( s1 ) )
-                netError( 1, errno, "accept failed" );
-
+            if (!isvalidsock(s1)) {
+                netError(1, errno, "accept failed");
+            }
             // do network functionality on this socket that now represents a connection with the peer (client) 
             result = get_response( s1, &peer );
             NETCLOSE( s1 );
-        }
-        else { DBG("not our socket. continuing"); }
+        } else { DBG("not our socket. continuing"); }
     }
     NETCLOSE(s);
     return result; // dangling pointer - stack frame finishes and could invalidate this address

@@ -5,11 +5,10 @@
 struct ServiceRegistration service_repository;
 struct ClientRequestRegistration client_request_repository;
 char port[MAX_PORT_CHARS] = {0};
-char our_address[MAX_ADDRESS_CHARS] = {0};
+char broker_address[MAX_ADDRESS_CHARS] = {0};
 static const char* CONFIG_FILENAME = "config.ini";
-bool verbose_flag = false;
-bool waitIndef_flag = false;
-
+bool verbose = false;
+bool waitIndef = false;
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
@@ -41,42 +40,33 @@ int main( int argc, char **argv )
     CMD_AddArgument(cmdVerbose);
     CMD_AddArgument(cmdMyAddress);
 
-    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1))
-    {
+    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
     	DBG("Using config file located in '%s'", CONFIG_FILENAME);
     	settings = LIST_GetInstance();
-    	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
-	{
-		setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
-		setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
-		setPortNumber(INI_GetSetting(settings, "networking", "port"));
-		setOurAddress(INI_GetSetting(settings, "networking", "address"));
+    	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
+			setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
+			setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
+			setPortNumber(INI_GetSetting(settings, "networking", "port"));
+			setOurAddress(INI_GetSetting(settings, "networking", "address"));
 
-		if(verbose_flag)
-		{
-			LIST_ForEach(settings, printSetting);
+			if(verbose) {
+				LIST_ForEach(settings, printSetting);
+			}
+		} else 	{
+				ERR_Print("Failed to parse config file", 1);
 		}
-	}
-    	else
-    	{
-    		ERR_Print("Failed to parse config file", 1);
-    	}
     }
-    else if(argc > 1)
-    {
-    	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS))
-	{
-    		PRINT("CMD line parsing failed.");
-		return 1;  // Note CMD_Parse will emit error messages as appropriate
-	}
-    }
-    else
-    {
+    else if(argc > 1) {
+    	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
+				PRINT("CMD line parsing failed.");
+			return 1;  // Note CMD_Parse will emit error messages as appropriate
+		}
+    } else {
       CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
       exit(0);
     }
 
-    if(verbose_flag) PRINT("Broker starting.\n");
+    if(verbose) { PRINT("Broker starting.\n"); }
 
     NETINIT();
     
@@ -111,54 +101,47 @@ static void main_event_loop()
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
     // NB: Getting a socket is always non-blocking
-    s = netTcpServer(our_address,port);
+#define SetupTCPServerSocket(our_address, port) netTcpServer((our_address), (port))
+    s = SetupTCPServerSocket(broker_address, port);
 
     FD_SET(s, &readfds);
 
     do
     {
-       if(verbose_flag) PRINT("** Listening.\n");
+       if(verbose) { PRINT("** Listening.\n"); }
 
        /* wait/block on this listening socket... */
        int res = 0;
 
-       if( waitIndef_flag )
-          res =  select( s+1, &readfds, NULL, NULL, NULL);
-       else
-          res =  select( s+1, &readfds, NULL, NULL, &timeout);
+       if(waitIndef) {
+          res =  select(s+1, &readfds, NULL, NULL, NULL);
+       } else {
+          res =  select(s+1, &readfds, NULL, NULL, &timeout);
+       }
 
-        if( res == 0 )
-        {
+        if(res == 0) {
             LOG( "broker listen timeout!" );
             netError(1,errno, "timeout!" );
         }
-        else if( res == -1 )
-        {
-            LOG( "Select error!" );
-            netError( 1,errno, "select error!!" );
-        }
-        else
-        {
-            peerlen = sizeof( peer );
-
-            if( FD_ISSET(s,&readfds ))
-            {
-                s1 = accept( s, ( struct sockaddr * )&peer, &peerlen );
-
-                if ( !isvalidsock( s1 ) )
-                    netError( 1, errno, "accept failed" );
-                
+        else if(res == -1) {
+            LOG("Select error!");
+            netError(1,errno, "select error!!");
+        } else {
+            peerlen = sizeof(peer);
+            if(FD_ISSET(s,&readfds)) {
+                s1 = accept(s,(struct sockaddr *)&peer, &peerlen);
+                if (!isvalidsock(s1)) {
+                    netError(1, errno, "accept failed");
+                }
                 // Data arrived,  Process it
-                server( s1, &peer );
+                server(s1, &peer);
                 NETCLOSE( s1 );
-            }
-            else
-            {
+            } else {
                 DBG("Not our socket. continuing listening");
                 continue;
             }
         }
-    } while ( 1 );
+    } while (1);
 }
 
 
@@ -179,7 +162,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     packet.len = ntohl(packet.len);
 
     if( n_rc < 1 ) netError(1, errno, "Failed to receiver packet size\n");
-    if( verbose_flag ) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
+    if( verbose ) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
     
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
 
@@ -187,7 +170,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
     if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
-    if(verbose_flag) PRINT("Read %d bytes of data.\n",d_rc);
+    if(verbose) PRINT("Read %d bytes of data.\n",d_rc);
 
     int request_type = -1; // default -1 represents invalid state
 

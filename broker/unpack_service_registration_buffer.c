@@ -2,12 +2,12 @@
 #include "common.h"
 
 extern char port[MAX_PORT_CHARS];
-extern bool verbose_flag;
+extern bool verbose;
 extern struct ServiceRegistration service_repository;
 
 struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen)
 {
-    if( verbose_flag)
+    if( verbose)
         PRINT("Unpacking service registration request...\n");
 
     struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration) );
@@ -62,7 +62,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
-            if( verbose_flag) 
+            if( verbose) 
                 PRINT("Processing services...\n");
 
             msgpack_object_array array = val.via.array;
@@ -79,7 +79,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
 
                 unpacked->services[i] = str;
 
-                if(verbose_flag)
+                if(verbose)
                     PRINT("Found service: '%s'\n",str);
             }
 

@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern bool verbose_flag;
+extern bool verbose;
 extern struct ServiceRegistration service_repository;
 extern struct ServiceRequestRegistration client_request_repository;
 
@@ -24,8 +24,8 @@ void forward_request(Packet* packet, Location* src)
         return;
     }
     
-    if(verbose_flag) 
+    if(verbose) 
         PRINT("About to forward request to %s:%s\n", dest->address, dest->port);
 
-    send_request( packet, dest->address, dest->port, verbose_flag);
+    send_request( packet, dest->address, dest->port, verbose);
 }

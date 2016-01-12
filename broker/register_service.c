@@ -2,7 +2,7 @@
 #include "common.h"
 
 extern char port[MAX_PORT_CHARS];
-extern bool verbose_flag;
+extern bool verbose;
 extern struct ServiceRegistration service_repository;
 static void perform_diagnostics(struct ServiceRegistration* service_registration,bool verbose_flag);
 
@@ -12,7 +12,7 @@ void register_service_request( Packet* packet)
     
     list_add( &(service_registration->list),&(service_repository.list)); 
 
-    perform_diagnostics(service_registration,verbose_flag);
+    perform_diagnostics(service_registration,verbose);
 
 }
 

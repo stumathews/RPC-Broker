@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern bool verbose_flag;
+extern bool verbose;
 extern struct ClientRequestRegistration client_request_repository;
 
 Location* find_client_for_response(Packet *packet, Location* dest)
@@ -27,7 +27,7 @@ Location* find_client_for_response(Packet *packet, Location* dest)
         {
             dest->address = crreg_entry->address;
             dest->port = crreg_entry->port;
-            if( verbose_flag ) { PRINT("found client at %s:%s\n", dest->address, dest->port);}
+            if( verbose ) { PRINT("found client at %s:%s\n", dest->address, dest->port);}
             //list_del( &crreg_entry->list);
             return dest;
         }       

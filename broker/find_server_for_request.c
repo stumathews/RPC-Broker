@@ -2,7 +2,7 @@
 #include "common.h"
 
 extern char port[MAX_PORT_CHARS];
-extern bool verbose_flag;
+extern bool verbose;
 extern struct ServiceRegistration service_repository;
 
 Location* find_server_for_request(Packet* packet)
@@ -32,7 +32,7 @@ Location* find_server_for_request(Packet* packet)
             {
                 dest->address = sreg_entry->address;
                 dest->port = sreg_entry->port;
-                if( verbose_flag) { PRINT("FOUND server for required service '%s' at location '%s:%s'\n",op_name, dest->address,dest->port); }
+                if( verbose) { PRINT("FOUND server for required service '%s' at location '%s:%s'\n",op_name, dest->address,dest->port); }
                 return dest;
             }
         }
