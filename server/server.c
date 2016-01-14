@@ -3,7 +3,7 @@
 #include <stulibc.h>
 
 
-char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate","sayDog",NULL};
+char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate","sayDog", "diffirence",NULL};
 char* getServerDate() 
 {
     return  "20 jan 2012";
@@ -48,4 +48,9 @@ char* sayDog(char* one, char* two, char* three, char* four)
 	char* final_part = STR_Join(first_part, second_part);
 
 	return final_part;
+}
+
+int diffirence(int one, int two)
+{
+	return two - one;
 }

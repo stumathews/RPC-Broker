@@ -38,4 +38,6 @@ char* sayHello(int age, char* name);
 
 char* sayDog(char* one, char* two, char* three, char* four);
 
+int diffirence(int one, int two);
+
 #endif

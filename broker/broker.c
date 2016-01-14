@@ -2,10 +2,14 @@
 #include "broker_support.h"
 #include "../config.h"
 
+#define SetupTCPServerSocket(our_address, port) netTcpServer((our_address), (port))
+
 struct ServiceRegistration service_repository;
 struct ClientRequestRegistration client_request_repository;
+
 char port[MAX_PORT_CHARS] = {0};
 char broker_address[MAX_ADDRESS_CHARS] = {0};
+
 static const char* CONFIG_FILENAME = "config.ini";
 bool verbose = false;
 bool waitIndef = false;
@@ -49,14 +53,13 @@ int main( int argc, char **argv )
 			setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
 			setPortNumber(INI_GetSetting(settings, "networking", "port"));
 			setOurAddress(INI_GetSetting(settings, "networking", "address"));
-
 		} else 	{
 				ERR_Print("Failed to parse config file", 1);
 		}
     }
     else if(argc > 1) {
     	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
-				PRINT("CMD line parsing failed.");
+			PRINT("CMD line parsing failed.");
 			return 1;  // Note CMD_Parse will emit error messages as appropriate
 		}
     } else {
@@ -72,6 +75,7 @@ int main( int argc, char **argv )
 
     LIST_FreeInstance(settings);
     LIB_Uninit();
+
 #ifdef __linux__
 	pthread_exit(NULL);
 #endif
@@ -80,7 +84,7 @@ int main( int argc, char **argv )
 
 
 /**
- * @brief Continually waits for network service registrations from services,  and service requests from clients.
+ * @brief Setup networking port and continually waits for network service registrations from services,  and service requests from clients.
  * 
  * @return void
  */
@@ -99,7 +103,6 @@ static void main_event_loop()
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
     // NB: Getting a socket is always non-blocking
-#define SetupTCPServerSocket(our_address, port) netTcpServer((our_address), (port))
     s = SetupTCPServerSocket(broker_address, port);
 
     FD_SET(s, &readfds);
@@ -141,16 +144,20 @@ static void main_event_loop()
     } while (1);
 }
 
+/***
+ * Wrapper function to accept connection and process it - so that it confirms to void* func(void*) prototype so can pass as a thread function
+ *
+ * @param params SOCKET* socket that is ready to read from
+ */
 void* thread_server(void* params)
 {
 	SOCKET* s = (SOCKET*) params;
-	SOCKET local = *s;
 	int peerlen;
 
 	struct sockaddr_in peer;
 	peerlen = sizeof(peer);
 
-	SOCKET s1 = accept(local,(struct sockaddr *)&peer, &peerlen);
+	SOCKET s1 = accept(*s,(struct sockaddr *)&peer, &peerlen);
 	if (!isvalidsock(s1)) {
 	    netError(1, errno, "accept failed");
 	}
@@ -172,47 +179,46 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     List* mem_pool = LIST_GetInstance();
     struct Packet packet;
 
-    // 1. Read the size of packet.
-    int n_rc = netReadn(s,(char*) &packet.len, sizeof(uint32_t));
+    int packet_size = netReadn(s,(char*) &packet.len, sizeof(uint32_t));
     packet.len = ntohl(packet.len);
 
-    if(n_rc < 1) {
+    if(packet_size < 1) {
     	netError(1, errno, "Failed to receiver packet size\n");
     }
-    DBG("Got: %d bytes(packet length).", n_rc);
+
+    DBG("Got: %d bytes(packet length).", packet_size);
     DBG("Packet length of %u\n",packet.len );
+
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len, mem_pool);
+    int data_size  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
-    // Read the packet data
-    int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
-
-    if( d_rc < 1 ) {
+    if( data_size < 1 ) {
     	netError(1, errno,"failed to receive message\n");
     }
 
     int request_type = -1; // default -1 represents invalid state
 
-    if(verbose) PRINT("Got %d bytes [%d+%d] : ", d_rc + n_rc, n_rc, d_rc);
-    if( (request_type = determine_request_type(&packet)) == SERVICE_REQUEST )
-    {
+    if(verbose) PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size, data_size);
 
+    if((request_type = determine_request_type(&packet)) == SERVICE_REQUEST)
+    {
     	if(verbose) printf("SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+
         Location *src = MEM_Alloc(sizeof(Location), mem_pool);
 		get_sender_address( &packet, peerp, src );
         forward_request_to_server(&packet, src); // to the server
     } 
-    else if ( request_type == SERVICE_REGISTRATION )  
+    else if (request_type == SERVICE_REGISTRATION)
     {
-    	//struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(packet.buffer, packet.len );
-
-    	if(verbose) printf("SERVICE_REGISTRATION\n");//, service_registration->service_name);
+    	if(verbose) printf("SERVICE_REGISTRATION\n");
         register_service_request(&packet);
     } 
-    else if( request_type == SERVICE_REQUEST_RESPONSE )
+    else if(request_type == SERVICE_REQUEST_RESPONSE)
     {
     	if(verbose) printf("SERVICE_REQUEST_RESPONSE(%s)\n",get_header_str_value(&packet, OPERATION_HDR));
+
         Packet* response = &packet;
-        forward_response_to_client(response); //to the client
+        forward_response_to_client(response);
     } 
     else 
     {
