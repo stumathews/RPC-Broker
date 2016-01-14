@@ -1,1 +1,0 @@
-gcc broker.c common.c -o broker -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib -l stu -l msgpack -std=c99 

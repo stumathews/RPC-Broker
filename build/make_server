@@ -1,1 +1,0 @@
-gcc server-proxy.c server.c common.c -o server -I ../stulibc/src/includes/ -I ../msgpack-c/include/ -L /usr/local/lib  -l stu -l msgpack -std=c99 
