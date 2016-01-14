@@ -2,13 +2,13 @@
  * Broker Protocol specification
  * ------------------------------
 
- The format contains multiple headers packed one after the other. 
+ The format of the dayload/data contains multiple headers packed one after the other.
  The order and headers determine the type of message.
 
 headers 
     Can be any string with an associated value.
-    header name bust be at most 20 characters (char[20])
-    the associated value can be either an integer or a string.
+    header name must be at most 20 characters (char[20])
+    the associated value can be either an *integer* or a *string*
     Example two headers are "name" and "age" :  
         { "name" : "Stuart" }
         { "age" : 27 }
@@ -21,7 +21,7 @@ Types of protocol messages:
 
     Sent by the service to advertise its services by name and register with the broker. 
 
-    { "request-type" : 0 }
+    { "request-type" : SERVICE_REGISTRATION }
     { "sender-address" : "127.0.0.1" }
     { "reply-port" : 8090 }
     { "services-count" : 3 }
@@ -32,18 +32,18 @@ Types of protocol messages:
     
     Sent by the client to request a service, processed by the broker and sent to approproate server to handle
 
-   { "request-type" :0 }
+   { "request-type" : SERVICE_REQUEST }
    { "message-id": 3456789 }
    { "sender-address" : "127.0.0.1" }
    { "reply-port": 8090 }
    { "op"=>"getServerDate" }
    { "params" => [ buffer, length, ... ] }
 
-** ServiceRequestReply **
+** ServiceRequestResponse **
     
     Sent by the service in response to a client's ServiceRequest. This is sent to the broker, who sends it to the requesting client.    
 
-    { type:0 }
+    { type:SERVICE_REQUEST_RESPONSE }
     { message-id: 3456789 }
     { "op" => "getServerDate" }
     { "reply" => [data1, data2], ... }
