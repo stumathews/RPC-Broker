@@ -12,7 +12,7 @@ bool waitIndef = false;
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
-void* thread_accept(void* param);
+void* thread_server(void* param);
 
 
 /**
@@ -106,7 +106,6 @@ static void main_event_loop()
 
     do
     {
-
        /* wait/block on this listening socket... */
        int res = 0;
 
@@ -127,12 +126,13 @@ static void main_event_loop()
             netError(1,errno, "select error!!");
         } else {
             if(FD_ISSET(s,&readfds)) {
-		if(verbose) { PRINT("++ Connection.\n"); }
-#ifdef __linux__
-		THREAD_RunAndForget(thread_accept, (void*)&s);
-#else
-		thread_accept((void*)&s);
-#endif
+            	if(verbose) { PRINT("++ Connection.\n"); }
+            		// Fork of a new thread to deal with this request and go back to listening for next request
+					#ifdef __linux__
+							THREAD_RunAndForget(thread_server, (void*)&s);
+					#else
+							thread_server((void*)&s);
+					#endif
             } else {
                 DBG("Not our socket. continuing listening");
                 continue;
@@ -141,14 +141,15 @@ static void main_event_loop()
     } while (1);
 }
 
-void* thread_accept(void* params)
+void* thread_server(void* params)
 {
 	SOCKET* s = (SOCKET*) params;
 	SOCKET local = *s;
-    	int peerlen;
+	int peerlen;
 
 	struct sockaddr_in peer;
-        peerlen = sizeof(peer);
+	peerlen = sizeof(peer);
+
 	SOCKET s1 = accept(local,(struct sockaddr *)&peer, &peerlen);
 	if (!isvalidsock(s1)) {
 	    netError(1, errno, "accept failed");
@@ -156,6 +157,7 @@ void* thread_accept(void* params)
 	// Data arrived,  Process it
 	server(s1, &peer);
 	NETCLOSE( s1 );
+	return (void*)0;
 }
 
 /**

@@ -35,6 +35,9 @@ int main( int argc, char* argv[])
     PRINT("sayDog = %s\n", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
 
     LIB_Uninit();
+#ifdef __linux__
+	pthread_exit(NULL);
+#endif
 }
 
 void call_server()
@@ -141,4 +144,5 @@ void setupCmd(int argc, char* argv[])
         exit(0);
     }
     LIST_FreeInstance(settings);
+
 }

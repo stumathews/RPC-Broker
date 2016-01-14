@@ -5,6 +5,22 @@
 extern bool wait_response_indef;
 extern char client_address[MAX_ADDRESS_CHARS];
 static Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose);
+struct SendArgs
+{
+	Packet* packet;
+	char* to_address;
+	char* port;
+	bool verbose;
+	char* wait_response_port;
+};
+
+void* thread_send_request(void* param)
+{
+	struct SendArgs *args  = (struct SendArgs*)param;
+	printf("args->to_address = %s, args->port = %s, args->verbose = %s\n", args->to_address, args->port, args->verbose);
+
+	send_request(args->packet, args->to_address, args->port, args->verbose);
+}
 
 /**
  * @brief Sends a packet of data and waits for its response
@@ -18,7 +34,15 @@ static Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose);
  */
 Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verbose, char* wait_response_port)
 {
-    send_request(packet, to_address, port, verbose );
+
+	List* mem_pool = LIST_GetInstance();
+	struct SendArgs *args = MEM_Alloc(sizeof(struct SendArgs), mem_pool);
+	args->packet = packet;
+	args->to_address = to_address;
+	args->port = port;
+	args->wait_response_port = wait_response_port;
+
+    THREAD_RunAndForget(thread_send_request, (void*)args);
 
     /* wait for the response */
 
@@ -72,8 +96,11 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
         } else { DBG("not our socket. continuing"); }
     }
     NETCLOSE(s);
+    MEM_DeAllocAll(mem_pool);
+    LIST_FreeInstance(mem_pool);
     return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
+
 
 
 /**
