@@ -67,6 +67,8 @@ static void setBrokerAddress(char* arg);
 static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
+void* thread_server(void* params);
+
 /**
  * @brief Main Server processing routine. called when the server gets a connection from the broker
  * 
@@ -74,7 +76,7 @@ static void setBeVerbose(char* arg);
  * @param peerp the peerp
  * @return void
  */
-static void server( SOCKET s, struct sockaddr_in *peerp );
+static void server(SOCKET s, struct sockaddr_in *peerp);
 
 
 int main( int argc, char **argv )
@@ -170,35 +172,34 @@ int main( int argc, char **argv )
     {
         // wait/block on this listening socket...
         int res = 0;
-        if( !waitIndef )
-            res = select( s+1, &readfds, NULL, NULL, &timeout);
+        if(!waitIndef)
+            res = select(s+1, &readfds, NULL, NULL, &timeout);
         else
-            res = select( s+1, &readfds, NULL, NULL, NULL);
+            res = select(s+1, &readfds, NULL, NULL, NULL);
 
-        if( res == 0 )
+        if(res == 0)
         {
-            LOG( "timeout");
+            LOG("timeout");
             netError(1,errno,"timeout!");
         }
-        else if( res == -1 )
+        else if(res == -1)
         {
             LOG("Select error!");
             netError(1,errno,"select error!!");
         }
         else
         {
-            peerlen = sizeof( peer );
+            peerlen = sizeof(peer);
 
-            if( FD_ISSET(s,&readfds ))
+            if(FD_ISSET(s,&readfds))
             {
-                s1 = accept( s, ( struct sockaddr * )&peer, &peerlen );
-
-                if ( !isvalidsock( s1 ) )
-                    netError( 1, errno, "accept failed" );
-
-                // do network functionality on this socket that now represents a connection with the peer (client) 
-                server( s1, &peer );
-                NETCLOSE( s1 );
+            	if(verbose) { PRINT("++ Connection.\n"); }
+				// Fork of a new thread to deal with this request and go back to listening for next request
+				#ifdef __linux__
+						THREAD_RunAndForget(thread_server, (void*)&s);
+				#else
+						thread_server((void*)&s);
+				#endif
             }
             else
             {
@@ -207,11 +208,37 @@ int main( int argc, char **argv )
             }
         }
 
-    } while ( 1 );
+    } while (1);
 
     LIST_FreeInstance(settings);
     LIB_Uninit();
+#ifdef __linux__
+	pthread_exit(NULL);
+#endif
     EXIT( 0 );
+}
+
+/***
+ * Wrapper function to accept connection and process it - so that it confirms to void* func(void*) prototype so can pass as a thread function
+ *
+ * @param params SOCKET* socket that is ready to read from
+ */
+void* thread_server(void* params)
+{
+	SOCKET* s = (SOCKET*) params;
+	int peerlen;
+
+	struct sockaddr_in peer;
+	peerlen = sizeof(peer);
+
+	SOCKET s1 = accept(*s,(struct sockaddr *)&peer, &peerlen);
+	if (!isvalidsock(s1)) {
+	    netError(1, errno, "accept failed");
+	}
+	// Data arrived,  Process it
+	server(s1, &peer);
+	NETCLOSE( s1 );
+	return (void*)0;
 }
 
 
