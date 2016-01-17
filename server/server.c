@@ -3,7 +3,7 @@
 #include <stulibc.h>
 
 
-char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate","SayDog",NULL};
+char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate","sayDog",NULL};
 char* getServerDate() 
 {
     return  "20 jan 2012";
