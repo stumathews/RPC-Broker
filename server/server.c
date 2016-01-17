@@ -3,15 +3,16 @@
 #include <stulibc.h>
 
 
-char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate",NULL};
+char* services[] = {"getBrokerName","echo","add","sayHello","getServerDate","SayDog",NULL};
 char* getServerDate() 
 {
     return  "20 jan 2012";
 }
 
 char* getBrokerName()
-{
-    char* name = Alloc( sizeof(char) );
+{ 
+    List* mem_pool = LIST_GetInstance();
+    char* name = Alloc( sizeof(char), mem_pool );
     strcpy( name, "broker v0.1");
     return name;
 }
@@ -29,7 +30,8 @@ int add( int one, int two )
 
 char* sayHello(int age, char* name)
 {
-	char* buffer = MEM_Alloc(sizeof(char) * 80 );
+    	List* mem_pool = LIST_GetInstance();
+	char* buffer = MEM_Alloc(sizeof(char) * 80, mem_pool );
 	if( buffer != null ){
 		snprintf(buffer, 80, "Hello %s, you are %d years old", name, age);
 	} else {
@@ -37,4 +39,9 @@ char* sayHello(int age, char* name)
 	}
 
 	return buffer;
+}
+
+char* sayDog()
+{
+	return "dog";
 }

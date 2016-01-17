@@ -16,6 +16,7 @@ extern char broker_port[MAX_PORT_CHARS];
 void unpack_marshal_call_send( char* buffer, int buflen )
 {
 
+    List* mem_pool = LIST_GetInstance();
     msgpack_unpacked unpacked_result;
     msgpack_unpack_return return_status;
     size_t off = 0;
@@ -41,7 +42,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
             msgpack_object_str string = val.via.str;
 
             int str_len = string.size;
-            char* str = Alloc( str_len);
+            char* str = Alloc( str_len,mem_pool);
             operation = str;
             memset( str, '\0', str_len);
             str[str_len] = '\0';
@@ -58,7 +59,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
         {
             msgpack_object_array array = val.via.array;
 
-            params = Alloc( sizeof(void*) * array.size);
+            params = Alloc( sizeof(void*) * array.size,mem_pool);
 
             for( int i = 0; i < array.size;i++)
             {
@@ -70,7 +71,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 if( param_type == MSGPACK_OBJECT_STR ) //param is a char*
                 {
                     int str_len = param.via.str.size;
-                    char* str = Alloc( str_len);
+                    char* str = Alloc( str_len, mem_pool);
 
                     memset( str, '\0', str_len);
                     str[str_len] = '\0';
@@ -81,7 +82,7 @@ void unpack_marshal_call_send( char* buffer, int buflen )
                 else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) //param is an int
                 {
                      int64_t ival = param.via.i64;
-                     int64_t *pival = Alloc( sizeof(int) );
+                     int64_t *pival = Alloc( sizeof(int),mem_pool);
                      *pival = ival; 
 
                     params[i] = pival;

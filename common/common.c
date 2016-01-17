@@ -20,7 +20,7 @@ int send_request(Packet *packet,char* address, char* port, bool verbose)
 	struct sockaddr_in peer;
 	SOCKET s;
 	s = netTcpClient(address,port);
-	PRINT("Send to %s:%s\n", address, port);
+	PRINT("Sending to %s:%s...\n", address, port);
 	return client( s, &peer, packet,verbose );
 }
 
@@ -40,25 +40,20 @@ int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose)
     pkt.buffer = packet->buffer;
 
     // Send size of packet
-    int rc = 0; 
-    if( (rc = send(s, (char*) &pkt.len , sizeof(u_int32_t),0)) < 0 )
+    int rc_n = 0;
+    if( (rc_n = send(s, (char*) &pkt.len , sizeof(u_int32_t),0)) < 0 )
         netError(1, errno, "failed to send size\n");
     pkt.len = ntohl(pkt.len);
-    if( verbose )
-    {
-        PRINT("Sent %d bytes(size of packet)\n",rc);
-        PRINT("send pkt length as %u\n",pkt.len);
-    }
 
     // send packet
-    if( (rc = send(s, pkt.buffer, pkt.len,0)) < 0 )
+    int rc_d = 0;
+    if( (rc_d = send(s, pkt.buffer, pkt.len,0)) < 0 )
         netError(1,errno,"failed to send packed data\n");
-    if( verbose )
-    {
-        PRINT("Sent packet %d bytes(packet buffer)\n",rc);
-        PRINT("buffer packet  length %d\n",pkt.len);
-    }
-    return rc;
+
+    int total_sent_bytes = rc_n+rc_d;
+    PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, rc_n, rc_d);
+
+    return total_sent_bytes;
 }
 
 
@@ -201,14 +196,7 @@ enum RequestType determine_request_type(struct Packet* pkt)
 
         if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_HDR,header_name) == 0 )
         {
-		if( val.via.i64 == SERVICE_REQUEST ) {
-			PRINT("[SERVICE REQUEST]\n");
-		} else if( val.via.i64 == SERVICE_REQUEST_RESPONSE ) {
-			PRINT("[SERVICE_REQUEST_RESPONSE]\n");
-		} else if (val.via.i64 == SERVICE_REGISTRATION ) {
-
-}
-            return val.via.i64;
+        	return val.via.i64;
         }
         else
         {
@@ -277,6 +265,7 @@ int get_header_int_value (Packet* packet, char* look_header_name )
  */
 char* get_header_str_value (Packet* packet, char* look_header_name )
 {
+    List* mem_pool = LIST_GetInstance();
     size_t off = 0;
     int i = 0;
     msgpack_unpacked unpacked_result;
@@ -297,7 +286,7 @@ char* get_header_str_value (Packet* packet, char* look_header_name )
         if( val.type == MSGPACK_OBJECT_STR &&  STR_Equals( look_header_name, header_name ) == true)
         {
                 int str_len = val.via.str.size;
-                str = Alloc( str_len);
+                str = Alloc(str_len, mem_pool);
 
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';
@@ -327,7 +316,7 @@ char* get_header_str_value (Packet* packet, char* look_header_name )
  */
 char* get_op_name( Packet* packet)
 {
-
+    List* mem_pool = LIST_GetInstance();
     msgpack_unpacked unpacked_result;
     msgpack_unpack_return return_status;
     size_t off = 0;
@@ -349,7 +338,7 @@ char* get_op_name( Packet* packet)
         {
             msgpack_object_str string = val.via.str;
             int str_len = string.size;
-            char* str = Alloc(str_len);
+            char* str = Alloc(str_len, mem_pool);
             
             memset( str, '\0', str_len);
             str[str_len] = '\0';

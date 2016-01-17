@@ -60,7 +60,7 @@ ClientReg*   register_client_request( char* op, Location* src, int message_id );
  * @param src the client's address
  * @return void
  */
-void forward_request(Packet* packet, Location* src);
+void forward_request_to_server(Packet* packet, Location* src);
 /**
  * @brief Future acknowledgement of recept of data from the broker
  * 
@@ -83,7 +83,7 @@ void register_service_request(Packet* packet);
  * @return void
  */
 
-void forward_response(Packet* packet);
+void forward_response_to_client(Packet* packet);
 
 
 /**

@@ -29,7 +29,7 @@ int main( int argc, char **argv )
     INIT_LIST_HEAD(&client_request_repository.list);
 
     struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
-    struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosly",false,false,setVerboseFlag);
+    struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosely",false,false,setVerboseFlag);
     struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
     struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
 
@@ -49,9 +49,6 @@ int main( int argc, char **argv )
 			setPortNumber(INI_GetSetting(settings, "networking", "port"));
 			setOurAddress(INI_GetSetting(settings, "networking", "address"));
 
-			if(verbose) {
-				LIST_ForEach(settings, printSetting);
-			}
 		} else 	{
 				ERR_Print("Failed to parse config file", 1);
 		}
@@ -154,48 +151,58 @@ static void main_event_loop()
  */
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
-
+    List* mem_pool = LIST_GetInstance();
     struct Packet packet;
 
     // 1. Read the size of packet.
-    int n_rc = netReadn( s,(char*) &packet.len, sizeof(uint32_t));
+    int n_rc = netReadn(s,(char*) &packet.len, sizeof(uint32_t));
     packet.len = ntohl(packet.len);
 
-    if( n_rc < 1 ) netError(1, errno, "Failed to receiver packet size\n");
-    if( verbose ) PRINT("Received %d bytes and interpreted it as length of %u\n", n_rc,packet.len );
-    
-    packet.buffer = (char*) Alloc( sizeof(char) * packet.len);
+    if(n_rc < 1) {
+    	netError(1, errno, "Failed to receiver packet size\n");
+    }
+    printf("yo1");
+    DBG("Got: %d bytes(packet length).", n_rc);
+    DBG("Packet length of %u\n",packet.len );
+    packet.buffer = (char*) Alloc( sizeof(char) * packet.len, mem_pool);
 
-    // 2. Read the packet data
+    // Read the packet data
     int d_rc  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
-    if( d_rc < 1 )  netError(1, errno,"failed to receive message\n");
-    if(verbose) PRINT("Read %d bytes of data.\n",d_rc);
+    if( d_rc < 1 ) {
+    	netError(1, errno,"failed to receive message\n");
+    }
 
     int request_type = -1; // default -1 represents invalid state
 
-    
-   
+    if(verbose) PRINT("Got %d bytes [%d+%d] : ", d_rc + n_rc, n_rc, d_rc);
     if( (request_type = determine_request_type(&packet)) == SERVICE_REQUEST )
     {
+
+    	if(verbose) printf("SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
         Location *src = get_sender_address( &packet, peerp );
-        forward_request(&packet, src); // to the server
+        forward_request_to_server(&packet, src); // to the server
     } 
     else if ( request_type == SERVICE_REGISTRATION )  
     {
+    	//struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(packet.buffer, packet.len );
+
+    	if(verbose) printf("SERVICE_REGISTRATION\n");//, service_registration->service_name);
         register_service_request(&packet);
     } 
     else if( request_type == SERVICE_REQUEST_RESPONSE )
     {
+    	if(verbose) printf("SERVICE_REQUEST_RESPONSE(%s)\n",get_header_str_value(&packet, OPERATION_HDR));
         Packet* response = &packet;
-        forward_response(response); //to the client
+        forward_response_to_client(response); //to the client
     } 
     else 
     {
-        PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);    
+    	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
     }
 
-    MEM_DeAlloc( packet.buffer, "packet.buffer" );
+    printf("about to dealloc");
+    MEM_DeAlloc( packet.buffer, "packet.buffer", mem_pool );
     
     return;
 }

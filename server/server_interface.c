@@ -80,6 +80,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp );
 int main( int argc, char **argv )
 {
     LIB_Init();
+    PRINT("Server starting...");
 
     struct Argument* portNumber = 		CMD_CreateNewArgument("p","p <number>","Set the port that the server will listen on", true, true, setPortNumber);
     struct Argument* brokerAddressCMD = CMD_CreateNewArgument("ba","ba <address>","Set the address of the broker", true, true, setBrokerAddress);
@@ -154,8 +155,10 @@ int main( int argc, char **argv )
         PRINT("Server listening...\n");
 
     // Register with the broker on startup. Currently dont wit for an ACK
-    if( service_register_with_broker( broker_address, broker_port ))
+    if(service_register_with_broker(broker_address, broker_port)){
+    	PRINT("Sending blind registration request to broker at address '%s:%s'", broker_address, broker_port);
         registered_with_broker = true;
+    }
 
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 

@@ -36,4 +36,6 @@ char* getBrokerName();
 
 char* sayHello(int age, char* name);
 
+char* sayDog();
+
 #endif

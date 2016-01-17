@@ -16,7 +16,8 @@ extern char server_address[MAX_ADDRESS_CHARS];
  */
 void service_register_with_broker( char *broker_address, char* broker_port )
 {
-    ServiceReg *sr = Alloc( sizeof( ServiceReg ) );
+    List* mem_pool = LIST_GetInstance();
+    ServiceReg *sr = Alloc( sizeof( ServiceReg ),mem_pool);
     sr->address = server_address; // TODO: Get our actual IP address
     sr->port = port;
     

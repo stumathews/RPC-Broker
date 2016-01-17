@@ -7,9 +7,10 @@ extern struct ServiceRegistration service_repository;
 
 Location* find_server_for_request(Packet* packet)
 {
+    List* mem_pool = LIST_GetInstance();
     char* op_name = get_op_name( packet );
 
-    Location *dest = Alloc( sizeof(Location) );
+    Location *dest = Alloc( sizeof(Location), mem_pool );
     dest->address = NULL;
     dest->port = NULL;
 
@@ -32,7 +33,7 @@ Location* find_server_for_request(Packet* packet)
             {
                 dest->address = sreg_entry->address;
                 dest->port = sreg_entry->port;
-                if( verbose) { PRINT("FOUND server for required service '%s' at location '%s:%s'\n",op_name, dest->address,dest->port); }
+                DBG("FOUND server for required service '%s' at location '%s:%s'\n",op_name, dest->address,dest->port);
                 return dest;
             }
         }

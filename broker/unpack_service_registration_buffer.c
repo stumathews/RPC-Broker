@@ -7,10 +7,9 @@ extern struct ServiceRegistration service_repository;
 
 struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen)
 {
-    if( verbose)
-        PRINT("Unpacking service registration request...\n");
-
-    struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration) );
+    DBG("Unpacking service registration request...\n");
+    List* mem_pool = LIST_GetInstance();
+    struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration), mem_pool );
     unpacked->num_services = 0;
 
     size_t off = 0;
@@ -33,7 +32,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
         if( val.type == MSGPACK_OBJECT_STR )
         {
             int str_len = val.via.str.size;
-            char* str = Alloc( str_len);
+            char* str = Alloc( str_len,mem_pool);
 
             memset( str, '\0', str_len);
             str[str_len] = '\0';
@@ -57,13 +56,12 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
             if( STR_Equals(SERVICES_COUNT_HDR,header_name) == true)
             {
                 unpacked->num_services = val.via.i64;
-                unpacked->services = Alloc(sizeof(char)*val.via.i64);
+                unpacked->services = Alloc(sizeof(char)*val.via.i64, mem_pool);
             }
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
         {
-            if( verbose) 
-                PRINT("Processing services...\n");
+            DBG("Processing services...\n");
 
             msgpack_object_array array = val.via.array;
 
@@ -71,7 +69,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
             {
                 struct msgpack_object curr = array.ptr[i];
                 int str_len = curr.via.str.size;
-                char* str = Alloc( str_len); 
+                char* str = Alloc( str_len, mem_pool); 
                 
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';

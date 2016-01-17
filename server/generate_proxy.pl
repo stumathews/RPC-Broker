@@ -5,6 +5,7 @@ open STDOUT, '>', "server-proxy.c";
 my $beginning = << "END";
 #include <stulibc.h>
 #include "common.h"
+#include "server_interface.h"
 void proxy_invoke(int message_id, char* operation, char* broker_address, char* broker_port, bool verbose, char** params) {
 
 END
