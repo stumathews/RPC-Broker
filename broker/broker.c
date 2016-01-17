@@ -161,7 +161,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     if(n_rc < 1) {
     	netError(1, errno, "Failed to receiver packet size\n");
     }
-    printf("yo1");
     DBG("Got: %d bytes(packet length).", n_rc);
     DBG("Packet length of %u\n",packet.len );
     packet.buffer = (char*) Alloc( sizeof(char) * packet.len, mem_pool);
@@ -201,8 +200,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
     }
 
-    printf("about to dealloc");
-    MEM_DeAlloc( packet.buffer, "packet.buffer", mem_pool );
-    
+    MEM_DeAllocAll(mem_pool);
     return;
 }
