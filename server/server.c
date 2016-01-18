@@ -41,7 +41,11 @@ char* sayHello(int age, char* name)
 	return buffer;
 }
 
-char* sayDog()
+char* sayDog(char* one, char* two, char* three, char* four)
 {
-	return "dog";
+	char* first_part = STR_Join(one, two);
+	char* second_part = STR_Join(three, four);
+	char* final_part = STR_Join(first_part, second_part);
+
+	return final_part;
 }
