@@ -32,7 +32,7 @@ int main( int argc, char* argv[])
     PRINT( "broker name = %s", getBrokerName());
     PRINT("sum = %d",add(20,199));
     PRINT("sayHello = %s",sayHello(20,"Stuart"));
-    PRINT("sayDog = %s", sayDog());
+    PRINT("sayDog = %s", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
 
     LIB_Uninit();
 }
