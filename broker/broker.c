@@ -12,6 +12,7 @@ bool waitIndef = false;
 
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp );
+void* thread_accept(void* param);
 
 
 /**
@@ -71,6 +72,9 @@ int main( int argc, char **argv )
 
     LIST_FreeInstance(settings);
     LIB_Uninit();
+#ifdef __linux__
+	pthread_exit(NULL);
+#endif
     EXIT( 0 );
 }
 
@@ -83,13 +87,10 @@ int main( int argc, char **argv )
 static void main_event_loop()
 {
     struct sockaddr_in local;
-    struct sockaddr_in peer;
     
     char *hname;
     char *sname;
-    int peerlen;
     
-    SOCKET s1;
     SOCKET s;
     
     fd_set readfds;
@@ -105,7 +106,6 @@ static void main_event_loop()
 
     do
     {
-       if(verbose) { PRINT("** Listening.\n"); }
 
        /* wait/block on this listening socket... */
        int res = 0;
@@ -115,6 +115,8 @@ static void main_event_loop()
        } else {
           res =  select(s+1, &readfds, NULL, NULL, &timeout);
        }
+       
+	if(verbose) { PRINT("-- Listening...\n"); }
 
         if(res == 0) {
             LOG( "broker listen timeout!" );
@@ -124,15 +126,13 @@ static void main_event_loop()
             LOG("Select error!");
             netError(1,errno, "select error!!");
         } else {
-            peerlen = sizeof(peer);
             if(FD_ISSET(s,&readfds)) {
-                s1 = accept(s,(struct sockaddr *)&peer, &peerlen);
-                if (!isvalidsock(s1)) {
-                    netError(1, errno, "accept failed");
-                }
-                // Data arrived,  Process it
-                server(s1, &peer);
-                NETCLOSE( s1 );
+		if(verbose) { PRINT("++ Connection.\n"); }
+#ifdef __linux__
+		THREAD_RunAndForget(thread_accept, (void*)&s);
+#else
+		thread_accept((void*)&s);
+#endif
             } else {
                 DBG("Not our socket. continuing listening");
                 continue;
@@ -141,6 +141,22 @@ static void main_event_loop()
     } while (1);
 }
 
+void* thread_accept(void* params)
+{
+	SOCKET* s = (SOCKET*) params;
+	SOCKET local = *s;
+    	int peerlen;
+
+	struct sockaddr_in peer;
+        peerlen = sizeof(peer);
+	SOCKET s1 = accept(local,(struct sockaddr *)&peer, &peerlen);
+	if (!isvalidsock(s1)) {
+	    netError(1, errno, "accept failed");
+	}
+	// Data arrived,  Process it
+	server(s1, &peer);
+	NETCLOSE( s1 );
+}
 
 /**
  * @brief Waits for connections received from clients and servers.
@@ -179,7 +195,8 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     {
 
     	if(verbose) printf("SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
-        Location *src = get_sender_address( &packet, peerp );
+        Location *src = MEM_Alloc(sizeof(Location), mem_pool);
+		get_sender_address( &packet, peerp, src );
         forward_request_to_server(&packet, src); // to the server
     } 
     else if ( request_type == SERVICE_REGISTRATION )  

@@ -9,7 +9,8 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
 {
     DBG("Unpacking service registration request...\n");
     List* mem_pool = LIST_GetInstance();
-    struct ServiceRegistration* unpacked = Alloc( sizeof( struct ServiceRegistration), mem_pool );
+
+    struct ServiceRegistration* unpacked = Alloc(sizeof(struct ServiceRegistration), mem_pool);
     unpacked->num_services = 0;
 
     size_t off = 0;

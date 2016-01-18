@@ -4,7 +4,7 @@
 extern struct ServiceRegistration service_repository;
 static void perform_diagnostics(struct ServiceRegistration* service_registration,bool verbose_flag);
 
-void register_service_request( Packet* packet)
+void register_service_request(Packet* packet)
 {
     struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(packet->buffer, packet->len );
     

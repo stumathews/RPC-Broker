@@ -37,9 +37,9 @@ Location* find_client_for_response(Packet* packet, Location* dest);
  * 
  * @param packet the raw protocol data
  * @param peerp the peerp
- * @return Location* the address of the sender
+ * @param Location* buffer for the address of the sender
  */
-Location* get_sender_address( Packet* packet, struct sockaddr_in* peerp );
+void get_sender_address( Packet* packet, struct sockaddr_in* peerp, Location* addr);
 
 
 /**

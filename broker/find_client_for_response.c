@@ -30,11 +30,11 @@ Location* find_client_for_response(Packet *packet, Location* dest)
             if(verbose) {
             	DBG("found client at %s:%s\n", dest->address, dest->port);
             }
-            //list_del( &crreg_entry->list);
             return dest;
         }       
 
     }
 
+    MEM_DeAllocAll(mem_pool);
     return dest;
 }
