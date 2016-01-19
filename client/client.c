@@ -11,7 +11,7 @@ char broker_port[MAX_PORT_CHARS] = {0};
 char wait_response_port[MAX_PORT_CHARS] = {0};
 bool wait_response_indef = false;
 char client_address[MAX_ADDRESS_CHARS] = {0};
-bool verbose = false;
+bool verbose;
 
 static void setWaitResponsePort(char* arg);
 static void setBrokerPortNumber(char* arg);
@@ -27,12 +27,12 @@ int main( int argc, char* argv[])
 
     setupCmd(argc, argv);
 
-    PRINT("Got server date reply as %s", getServerDate());
-    PRINT( "reverse echo = %s", echo("Bruce Mathews") );
-    PRINT( "broker name = %s", getBrokerName());
-    PRINT("sum = %d",add(20,199));
-    PRINT("sayHello = %s",sayHello(20,"Stuart"));
-    PRINT("sayDog = %s", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
+    PRINT("Got server date reply as %s\n", getServerDate());
+    PRINT( "reverse echo = %s\n", echo("Bruce Mathews") );
+    PRINT( "broker name = %s\n", getBrokerName());
+    PRINT("sum = %d\n",add(20,199));
+    PRINT("sayHello = %s\n",sayHello(20,"Stuart"));
+    PRINT("sayDog = %s\n", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
 
     LIB_Uninit();
 }
@@ -78,7 +78,11 @@ static void setWaitResponseIndef( char* arg)
 
 static void setVerbose(char* arg)
 {
-    verbose = true;
+    if(STR_Equals( arg, "true") || STR_Equals(arg, "1") || STR_Equals(arg, "True") || STR_Equals(arg, "TRUE")){ 
+	verbose = true;
+    } else { 
+	verbose = false; 
+    }
 }
 
 void setupCmd(int argc, char* argv[])

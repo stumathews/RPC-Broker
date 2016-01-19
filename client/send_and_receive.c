@@ -3,9 +3,8 @@
 #include "common.h"
 
 extern bool wait_response_indef;
-extern bool verbose;
 extern char client_address[MAX_ADDRESS_CHARS];
-static Packet *get_response( SOCKET s, struct sockaddr_in *peerp );
+static Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose);
 
 /**
  * @brief Sends a packet of data and waits for its response
@@ -68,7 +67,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
                 netError(1, errno, "accept failed");
             }
             // do network functionality on this socket that now represents a connection with the peer (client) 
-            result = get_response( s1, &peer );
+            result = get_response( s1, &peer, verbose);
             NETCLOSE( s1 );
         } else { DBG("not our socket. continuing"); }
     }
@@ -84,7 +83,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
  * @param peerp the peer on the other side
  * @return Packet* te response data we read from the socket
  */
-Packet *get_response( SOCKET s, struct sockaddr_in *peerp )
+Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose)
 {
 
     List* mem_pool = LIST_GetInstance();
