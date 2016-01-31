@@ -30,34 +30,34 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
 
         msgpack_object val = extract_header( &obj, header_name);
 
-        if( val.type == MSGPACK_OBJECT_STR )
+        if(val.type == MSGPACK_OBJECT_STR)
         {
             int str_len = val.via.str.size;
-            char* str = Alloc( str_len,mem_pool);
+            char* str = Alloc(str_len,mem_pool);
 
-            memset( str, '\0', str_len);
+            memset(str, '\0', str_len);
             str[str_len] = '\0';
-            strncpy(str, val.via.str.ptr,str_len); 
-    
-            if( STR_Equals( SENDER_ADDRESS_HDR, header_name ) == true)
+            strncpy(str, val.via.str.ptr,str_len);
+
+            if(STR_Equals(SENDER_ADDRESS_HDR, header_name) == true)
             {
                 unpacked->address = str;
             }
-            else if( STR_Equals(REPLY_PORT_HDR,header_name) == true)
+            else if(STR_Equals(REPLY_PORT_HDR,header_name) == true)
             {
                 unpacked->port = str;
             }
-            else if( STR_Equals(SERVICE_NAME_HDR,header_name) == true)
+            else if(STR_Equals(SERVICE_NAME_HDR,header_name) == true)
             {
                 unpacked->service_name = str;
             }
         }
         else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
         {
-            if( STR_Equals(SERVICES_COUNT_HDR,header_name) == true)
+            if( STR_Equals(SERVICES_COUNT_HDR, header_name) == true)
             {
                 unpacked->num_services = val.via.i64;
-                unpacked->services = Alloc(sizeof(char)*val.via.i64, mem_pool);
+                unpacked->services = Alloc((sizeof(char) * val.via.i64) + val.via.i64, mem_pool);
             }
         }
         else if( val.type == MSGPACK_OBJECT_ARRAY )
@@ -70,11 +70,11 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
             {
                 struct msgpack_object curr = array.ptr[i];
                 int str_len = curr.via.str.size;
-                char* str = Alloc( str_len, mem_pool); 
-                
+                char* str = Alloc( str_len, mem_pool);
+
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';
-                strncpy(str, curr.via.str.ptr,str_len); 
+                strncpy(str, curr.via.str.ptr,str_len);
 
                 unpacked->services[i] = str;
 
