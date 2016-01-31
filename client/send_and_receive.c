@@ -35,14 +35,13 @@ void* thread_send_request(void* param)
 Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verbose, char* wait_response_port)
 {
 
-	List* mem_pool = LIST_GetInstance();
-	struct SendArgs *args = MEM_Alloc(sizeof(struct SendArgs), mem_pool);
-	args->packet = packet;
-	args->to_address = to_address;
-	args->port = port;
-	args->wait_response_port = wait_response_port;
+	struct SendArgs args = {
+			.packet = packet,
+			.to_address = to_address,
+			.port = port,
+			.wait_response_port = wait_response_port };
 
-    THREAD_RunAndForget(thread_send_request, (void*)args);
+    THREAD_RunAndForget(thread_send_request, (void*)&args);
 
     /* wait for the response */
 
@@ -96,8 +95,6 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
         } else { DBG("not our socket. continuing"); }
     }
     NETCLOSE(s);
-    MEM_DeAllocAll(mem_pool);
-    LIST_FreeInstance(mem_pool);
     return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
 
