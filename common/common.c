@@ -190,17 +190,17 @@ enum RequestType determine_request_type(struct Packet* pkt)
         msgpack_object obj = result.data;
 
         char header_name[20]; // assume that the protocol states that the header_name can not be longer than 20 characters
-        memset( header_name, '\0', 20);
+        memset(header_name, '\0', 20);
 
         msgpack_object val = extract_header( &obj, header_name );
 
-        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_HDR,header_name) == 0 )
+        if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER && strcmp(REQUEST_TYPE_HDR, header_name) == 0 )
         {
         	return val.via.i64;
         }
         else
         {
-            PRINT("Expecting '%s' - got header name as '%s' and value as '%d'\n.",REQUEST_TYPE_HDR, header_name, val.via.i64);
+            PRINT("Expecting '%s' - got header name as '%s' and value as '%d'\n.", REQUEST_TYPE_HDR, header_name, val.via.i64);
             exit(1);
         }
         
@@ -265,7 +265,6 @@ int get_header_int_value (Packet* packet, char* look_header_name )
  */
 char* get_header_str_value (Packet* packet, char* look_header_name )
 {
-    List* mem_pool = LIST_GetInstance();
     size_t off = 0;
     int i = 0;
     msgpack_unpacked unpacked_result;
@@ -286,7 +285,7 @@ char* get_header_str_value (Packet* packet, char* look_header_name )
         if( val.type == MSGPACK_OBJECT_STR &&  STR_Equals( look_header_name, header_name ) == true)
         {
                 int str_len = val.via.str.size;
-                str = Alloc(str_len, mem_pool);
+                str = malloc(str_len);
 
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';

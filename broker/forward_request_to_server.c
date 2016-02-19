@@ -7,11 +7,10 @@ extern struct ServiceRequestRegistration client_request_repository;
 
 void forward_request_to_server(Packet* packet, Location* src)
 {
-    List* mem_pool = LIST_GetInstance();
     Location *dest = find_server_for_request(packet);
     
-    char* requested_operation = Alloc(sizeof(char), mem_pool);
-    int*  message_id = Alloc(sizeof(int),mem_pool);
+    char* requested_operation = malloc(sizeof(char));
+    int*  message_id = malloc(sizeof(int));
     
 
     *message_id = get_header_int_value( packet, MESSAGE_ID_HDR);
@@ -28,5 +27,5 @@ void forward_request_to_server(Packet* packet, Location* src)
     if(verbose) 
         PRINT("About to forward request to %s:%s\n", dest->address, dest->port);
 
-    send_request( packet, dest->address, dest->port, verbose);
+    send_request(packet, dest->address, dest->port, verbose);
 }

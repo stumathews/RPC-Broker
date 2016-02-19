@@ -6,7 +6,7 @@ static void perform_diagnostics(struct ServiceRegistration* service_registration
 
 void register_service_request(Packet* packet)
 {
-    struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(packet->buffer, packet->len );
+    struct ServiceRegistration *service_registration =  unpack_service_registration_buffer(packet->buffer, packet->len);
     
     list_add( &(service_registration->list),&(service_repository.list)); 
 

@@ -7,10 +7,9 @@ extern bool verbose;
 struct ClientRequestRegistration *register_client_request( char* op, Location* src, int message_id )
 {
 
-    List* mem_pool = LIST_GetInstance();
     if(verbose) { PRINT("Registering client service request, '%s:%s'(%s)\n", src->address, src->port,  op); }
 
-    ClientReg* client_request_registration = Alloc( sizeof( struct ClientRequestRegistration), mem_pool );
+    ClientReg* client_request_registration = malloc( sizeof( struct ClientRequestRegistration) );
     client_request_registration->address = src->address;
     client_request_registration->port = src->port;
     client_request_registration->operation = op;

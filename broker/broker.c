@@ -176,7 +176,6 @@ void* thread_server(void* params)
  */
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
-    List* mem_pool = LIST_GetInstance();
     struct Packet packet;
 
     int packet_size = netReadn(s,(char*) &packet.len, sizeof(uint32_t));
@@ -189,7 +188,7 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     DBG("Got: %d bytes(packet length).", packet_size);
     DBG("Packet length of %u\n",packet.len );
 
-    packet.buffer = (char*) Alloc( sizeof(char) * packet.len, mem_pool);
+    packet.buffer = (char*) malloc( sizeof(char) * packet.len);
     int data_size  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
 
     if( data_size < 1 ) {
@@ -202,11 +201,14 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 
     if((request_type = determine_request_type(&packet)) == SERVICE_REQUEST)
     {
-    	if(verbose) printf("SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+    	char* operation = get_header_str_value(&packet, OPERATION_HDR);
+    	if(verbose) printf("SERVICE_REQUEST(%s)\n", operation);
 
-        Location *src = MEM_Alloc(sizeof(Location), mem_pool);
-		get_sender_address( &packet, peerp, src );
+        Location *src = malloc(sizeof(Location));
+		get_sender_address(&packet, peerp, src);
         forward_request_to_server(&packet, src); // to the server
+
+        free(operation);
     } 
     else if (request_type == SERVICE_REGISTRATION)
     {
@@ -225,6 +227,6 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
     	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
     }
 
-    MEM_DeAllocAll(mem_pool);
+    free(packet.buffer);
     return;
 }
