@@ -195,11 +195,7 @@ int main( int argc, char **argv )
             {
             	if(verbose) { PRINT("++ Connection.\n"); }
 				// Fork of a new thread to deal with this request and go back to listening for next request
-				#ifdef __linux__
-						THREAD_RunAndForget(thread_server, (void*)&s);
-				#else
-						thread_server((void*)&s);
-				#endif
+				THREAD_RunAndForget(thread_server, (void*)&s);
             }
             else
             {

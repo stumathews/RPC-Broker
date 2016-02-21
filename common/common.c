@@ -15,7 +15,7 @@
  */
 int send_request(Packet *packet,char* address, char* port, bool verbose)
 {
-	unpack_data(packet, 1 );
+	unpack_data(packet, 1);
 
 	struct sockaddr_in peer;
 	SOCKET s;
@@ -280,9 +280,9 @@ char* get_header_str_value (Packet* packet, char* look_header_name )
         char header_name[MAX_HEADER_NAME_SIZE];
         memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
 
-        msgpack_object val = extract_header( &obj, header_name);
+        msgpack_object val = extract_header(&obj, header_name);
 
-        if( val.type == MSGPACK_OBJECT_STR &&  STR_Equals( look_header_name, header_name ) == true)
+        if( val.type == MSGPACK_OBJECT_STR &&  STR_Equals(look_header_name, header_name) == true)
         {
                 int str_len = val.via.str.size;
                 str = malloc(str_len);
