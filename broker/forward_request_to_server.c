@@ -11,7 +11,6 @@ void forward_request_to_server(Packet* packet, Location* src)
     
     char* requested_operation = malloc(sizeof(char));
     int*  message_id = malloc(sizeof(int));
-    
 
     *message_id = get_header_int_value( packet, MESSAGE_ID_HDR);
     requested_operation = get_header_str_value(packet, OPERATION_HDR); 
