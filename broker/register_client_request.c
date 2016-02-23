@@ -4,10 +4,10 @@
 extern struct ClientRequestRegistration client_request_repository;
 extern bool verbose;
 
-struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id)
+struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct BrokerConfig *brokerConfig)
 {
 
-    if(verbose) { PRINT("Registering client service request, '%s:%s'(%s)\n", src->address, src->port,  op); }
+    if(brokerConfig->verbose) { PRINT("Registering client service request, '%s:%s'(%s)\n", src->address, src->port,  op); }
 
     ClientReg* client_request_registration = malloc(sizeof(struct ClientRequestRegistration));
     client_request_registration->address = src->address;

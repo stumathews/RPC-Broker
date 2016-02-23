@@ -5,7 +5,7 @@ extern char port[MAX_PORT_CHARS];
 extern bool verbose;
 extern struct ServiceRegistration service_repository;
 
-struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen)
+struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen, struct BrokerConfig* brokerConfig)
 {
     DBG("Unpacking service registration request...\n");
     List* mem_pool = LIST_GetInstance();
@@ -78,7 +78,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
 
                 unpacked->services[i] = str;
 
-                if(verbose)
+                if(brokerConfig->verbose)
                     PRINT("Found service: '%s'\n",str);
             }
 

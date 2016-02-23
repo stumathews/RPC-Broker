@@ -5,7 +5,7 @@ extern bool verbose;
 extern struct ServiceRegistration service_repository;
 extern struct ServiceRequestRegistration client_request_repository;
 
-void forward_request_to_server(Packet* packet, Location* src)
+void forward_request_to_server(Packet* packet, Location* src, struct BrokerConfig *brokerConfig)
 {
     Location *dest = find_server_for_request(packet);
     
@@ -15,7 +15,7 @@ void forward_request_to_server(Packet* packet, Location* src)
     *message_id = get_header_int_value( packet, MESSAGE_ID_HDR);
     requested_operation = get_header_str_value(packet, OPERATION_HDR); 
 
-    ClientReg *crreg = register_client_request(requested_operation , src, *message_id );
+    ClientReg *crreg = register_client_request(requested_operation , src, *message_id, brokerConfig );
 
     if( dest->address == NULL ||  dest->port == NULL ) 
     {
@@ -23,8 +23,8 @@ void forward_request_to_server(Packet* packet, Location* src)
         return;
     }
     
-    if(verbose) 
+    if(brokerConfig->verbose)
         PRINT("About to forward request to %s:%s\n", dest->address, dest->port);
 
-    send_request(packet, dest->address, dest->port, verbose);
+    send_request(packet, dest->address, dest->port, brokerConfig->verbose);
 }
