@@ -54,6 +54,23 @@ typedef struct ClientRequestRegistration
     struct list_head list;
 } ClientReg;
 
+struct BrokerDetails {
+	char port[MAX_PORT_CHARS];
+	char broker_address[MAX_ADDRESS_CHARS];;
+};
+
+struct BrokerConfig {
+	bool verbose;
+	bool waitIndef;
+};
+
+struct BrokerServerArgs
+{
+	struct BrokerConfig* brokerConfig;
+	struct BrokerDetails* brokerDetails;
+	SOCKET *socket;
+
+};
 
 enum RequestType determine_request_type(struct Packet* pkt);
 int send_request(Packet* packet,char* address, char* port, bool verbose);
