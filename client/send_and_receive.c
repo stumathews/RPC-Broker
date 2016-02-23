@@ -41,6 +41,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
 			.port = port,
 			.wait_response_port = wait_response_port };
 
+	// Send the data on its own thread and then wait for the response...
     THREAD_RunAndForget(thread_send_request, (void*)&args);
 
     /* wait for the response */
@@ -56,7 +57,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
     FD_ZERO( &readfds);
     const int on = 1;
     Packet *result;
-    struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
+    struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
     NETINIT();
 
