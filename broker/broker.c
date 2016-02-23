@@ -7,17 +7,44 @@
 struct ServiceRegistration service_repository;
 struct ClientRequestRegistration client_request_repository;
 
-char port[MAX_PORT_CHARS] = {0};
-char broker_address[MAX_ADDRESS_CHARS] = {0};
-
 static const char* CONFIG_FILENAME = "config.ini";
-bool verbose = false;
-bool waitIndef = false;
-
 static void main_event_loop();
-static void server( SOCKET s, struct sockaddr_in *peerp );
+static void server( SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails );
 void* thread_server(void* param);
 
+void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings) {
+	// if successful parse
+	char* arg = INI_GetSetting(settings, "options", "verbose");
+	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
+		brokerConfig->verbose = true;
+	} else {
+		brokerConfig->verbose = false;
+	}
+}
+
+void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
+{
+	char* result = INI_GetSetting(settings, "options", "wait");
+
+	if(STR_EqualsIgnoreCase(result, "true") || STR_Equals(result, "1")){
+		brokerConfig->waitIndef = true;
+	} else {
+		brokerConfig->waitIndef = false;
+	}
+}
+
+void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
+{
+
+	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
+	printf("broker port is : %s", brokerDetails->port);
+}
+
+void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings)
+{
+	strncpy(brokerDetails->broker_address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
+	printf("broker address is : %s", brokerDetails->broker_address);
+}
 
 /**
  * @brief see broker_support.c for additional functions used in the broker code
@@ -26,52 +53,56 @@ void* thread_server(void* param);
  * @param argv args
  * @return int
  */
-int main( int argc, char **argv )
+int main(int argc, char **argv)
 {
     LIB_Init();
 
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
 
+    struct BrokerConfig brokerConfig = {0};
+    struct BrokerDetails brokerDetails = {0};
+
+    /*
     struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
     struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosely",false,false,setVerboseFlag);
     struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
     struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
-
+*/
     List* settings = {0};
-
+/*
     CMD_AddArgument(cmdWaitIndef);
     CMD_AddArgument(cmdPort);
     CMD_AddArgument(cmdVerbose);
     CMD_AddArgument(cmdMyAddress);
-
+*/
     if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
     	DBG("Using config file located in '%s'", CONFIG_FILENAME);
     	settings = LIST_GetInstance();
     	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
-			setWaitIndefinitelyFlag(INI_GetSetting(settings, "options", "wait"));
-			setVerboseFlag(INI_GetSetting(settings, "options", "verbose"));
-			setPortNumber(INI_GetSetting(settings, "networking", "port"));
-			setOurAddress(INI_GetSetting(settings, "networking", "address"));
+			GetVerboseConfigSetting(&brokerConfig, settings);
+			GetWaitIndefConfigSetting(&brokerConfig, settings);
+			GetBrokerAddressConfigSetting(&brokerDetails, settings);
+			GetBrokerPortConfigSettings(&brokerDetails, settings);
 		} else 	{
 				ERR_Print("Failed to parse config file", 1);
 		}
-    }
+    }/*
     else if(argc > 1) {
     	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
 			PRINT("CMD line parsing failed.");
 			return 1;  // Note CMD_Parse will emit error messages as appropriate
 		}
-    } else {
+    }*/ else {
       CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
       exit(0);
     }
 
-    if(verbose) { PRINT("Broker starting.\n"); }
+    if(brokerConfig.verbose) { PRINT("Broker starting.\n"); }
 
     NETINIT();
     
-    main_event_loop();
+    main_event_loop(&brokerConfig, &brokerDetails);
 
     LIST_FreeInstance(settings);
     LIB_Uninit();
@@ -88,7 +119,7 @@ int main( int argc, char **argv )
  * 
  * @return void
  */
-static void main_event_loop()
+static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails)
 {
     struct sockaddr_in local;
     
@@ -103,7 +134,7 @@ static void main_event_loop()
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
     // NB: Getting a socket is always non-blocking
-    s = SetupTCPServerSocket(broker_address, port);
+    s = SetupTCPServerSocket(brokerDetails->broker_address, brokerDetails->port);
 
     FD_SET(s, &readfds);
 
@@ -112,13 +143,13 @@ static void main_event_loop()
        /* wait/block on this listening socket... */
        int res = 0;
 
-       if(waitIndef) {
+       if(brokerConfig->waitIndef) {
           res =  select(s+1, &readfds, NULL, NULL, NULL);
        } else {
           res =  select(s+1, &readfds, NULL, NULL, &timeout);
        }
        
-	if(verbose) { PRINT("-- Listening...\n"); }
+	if(brokerConfig->verbose) { PRINT("-- Listening...\n"); }
 
         if(res == 0) {
             LOG( "broker listen timeout!" );
@@ -129,12 +160,21 @@ static void main_event_loop()
             netError(1,errno, "select error!!");
         } else {
             if(FD_ISSET(s,&readfds)) {
-            	if(verbose) { PRINT("++ Connection.\n"); }
+            	if(brokerConfig->verbose) { PRINT("++ Connection.\n"); }
+            	struct BrokerServerArgs args = {0};
+            		args.brokerConfig = brokerConfig;
+            		args.brokerDetails = brokerDetails;
+            		args.socket = &s;
+
             		// Fork of a new thread to deal with this request and go back to listening for next request
 					#ifdef __linux__
-							THREAD_RunAndForget(thread_server, (void*)&s);
+							THREAD_RunAndForget(thread_server, (void*)&args);
 					#else
-							thread_server((void*)&s);
+							// Right now starting this broker as a thread causes problems.
+							// In most cases this is probaly because its sharing state and I'm not doing
+							// anything particualr to prevent it.
+							thread_server((void*)&args);
+							//THREAD_RunAndForget(thread_server, (void*)&s);
 					#endif
             } else {
                 DBG("Not our socket. continuing listening");
@@ -151,7 +191,8 @@ static void main_event_loop()
  */
 void* thread_server(void* params)
 {
-	SOCKET* s = (SOCKET*) params;
+	struct BrokerServerArgs *args = (struct BrokerServerArgs*)params;
+	SOCKET* s = (SOCKET*) args->socket;
 	int peerlen;
 
 	struct sockaddr_in peer;
@@ -162,7 +203,7 @@ void* thread_server(void* params)
 	    netError(1, errno, "accept failed");
 	}
 	// Data arrived,  Process it
-	server(s1, &peer);
+	server(s1, &peer, args->brokerConfig, args->brokerDetails);
 	NETCLOSE( s1 );
 	return (void*)0;
 }
@@ -174,7 +215,7 @@ void* thread_server(void* params)
  * @param peerp the peerlen
  * @return void
  */
-static void server( SOCKET s, struct sockaddr_in *peerp )
+static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails )
 {
     struct Packet packet;
 
@@ -197,30 +238,30 @@ static void server( SOCKET s, struct sockaddr_in *peerp )
 
     int request_type = -1; // default -1 represents invalid state
 
-    if(verbose) PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size, data_size);
+    if(brokerConfig->verbose) PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size, data_size);
 
     if((request_type = determine_request_type(&packet)) == SERVICE_REQUEST)
     {
     	char* operation = get_header_str_value(&packet, OPERATION_HDR);
-    	if(verbose) printf("SERVICE_REQUEST(%s)\n", operation);
+    	if(brokerConfig->verbose) printf("SERVICE_REQUEST(%s)\n", operation);
 
         Location *src = malloc(sizeof(Location));
 		get_sender_address(&packet, peerp, src);
-        forward_request_to_server(&packet, src); // to the server
+        forward_request_to_server(&packet, src, brokerConfig); // to the server
 
         free(operation);
     } 
     else if (request_type == SERVICE_REGISTRATION)
     {
-    	if(verbose) printf("SERVICE_REGISTRATION\n");
-        register_service_request(&packet);
+    	if(brokerConfig->verbose) printf("SERVICE_REGISTRATION\n");
+        register_service_request(&packet, brokerConfig);
     } 
     else if(request_type == SERVICE_REQUEST_RESPONSE)
     {
-    	if(verbose) printf("SERVICE_REQUEST_RESPONSE(%s)\n",get_header_str_value(&packet, OPERATION_HDR));
+    	if(brokerConfig->verbose) printf("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
 
         Packet* response = &packet;
-        forward_response_to_client(response);
+        forward_response_to_client(response, brokerConfig);
     } 
     else 
     {
