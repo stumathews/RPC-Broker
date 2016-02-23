@@ -10,7 +10,7 @@
  * @param buflen The size of the raw data
  * @return ServiceRegistration*
  */
-struct ServiceRegistration* unpack_service_registration_buffer(char* buffer,int buflen);
+struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen, struct BrokerConfig* brokerConfig);
 
 
 /**
@@ -29,7 +29,7 @@ Location* find_server_for_request(Packet* packet);
  * @param dest client to send the reponse to
  * @return Location* the client who will get the response
  */
-Location* find_client_for_response(Packet* packet, Location* dest);
+Location* find_client_for_response(Packet *packet, Location* dest, struct BrokerConfig *brokerConfig);
 
 
 /**
@@ -50,7 +50,7 @@ void get_sender_address( Packet* packet, struct sockaddr_in* peerp, Location* ad
  * @param message_id the message id associated with the request
  * @return ClientReg* 
  */
-ClientReg*   register_client_request( char* op, Location* src, int message_id );
+struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct BrokerConfig *brokerConfig);
 
 
 /**
@@ -60,7 +60,7 @@ ClientReg*   register_client_request( char* op, Location* src, int message_id );
  * @param src the client's address
  * @return void
  */
-void forward_request_to_server(Packet* packet, Location* src);
+void forward_request_to_server(Packet* packet, Location* src, struct BrokerConfig *brokerConfig);
 /**
  * @brief Future acknowledgement of recept of data from the broker
  * 
@@ -75,7 +75,7 @@ void acknowledgement();
  * @param packet the clients revice request data
  * @return void
  */
-void register_service_request(Packet* packet);
+void register_service_request(Packet* packet, struct BrokerConfig *brokerConfig);
 /**
  * @brief Forwards a packet on
  * 
@@ -83,7 +83,7 @@ void register_service_request(Packet* packet);
  * @return void
  */
 
-void forward_response_to_client(Packet* packet);
+void forward_response_to_client(Packet* response, struct BrokerConfig *brokerConfig);
 
 
 /**
