@@ -251,20 +251,18 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
 
         free(operation);
     } 
-    else if (request_type == SERVICE_REGISTRATION)
-    {
-    	if(brokerConfig->verbose) printf("SERVICE_REGISTRATION\n");
+    else if (request_type == SERVICE_REGISTRATION) {
+    	if(brokerConfig->verbose) {
+    		printf("SERVICE_REGISTRATION\n");
+    	}
         register_service_request(&packet, brokerConfig);
-    } 
-    else if(request_type == SERVICE_REQUEST_RESPONSE)
-    {
-    	if(brokerConfig->verbose) printf("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
-
+    } else if(request_type == SERVICE_REQUEST_RESPONSE) {
+    	if(brokerConfig->verbose) {
+    		printf("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+    	}
         Packet* response = &packet;
         forward_response_to_client(response, brokerConfig);
-    } 
-    else 
-    {
+    } else {
     	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
     }
 

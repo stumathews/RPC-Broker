@@ -38,29 +38,24 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
             str[str_len] = '\0';
             strncpy(str, val.via.str.ptr, str_len);
 
-            if(STR_Equals(SENDER_ADDRESS_HDR, header_name) == true)
-            {
+            if(STR_Equals(SENDER_ADDRESS_HDR, header_name) == true) {
                 unpacked->address = str;
             }
-            else if(STR_Equals(REPLY_PORT_HDR,header_name) == true)
-            {
+            else if(STR_Equals(REPLY_PORT_HDR,header_name) == true) {
                 unpacked->port = str;
             }
-            else if(STR_Equals(SERVICE_NAME_HDR,header_name) == true)
-            {
+            else if(STR_Equals(SERVICE_NAME_HDR,header_name) == true) {
                 unpacked->service_name = str;
             }
         }
         else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
         {
-            if( STR_Equals(SERVICES_COUNT_HDR, header_name) == true)
-            {
+            if( STR_Equals(SERVICES_COUNT_HDR, header_name) == true) {
                 unpacked->num_services = val.via.i64;
                 unpacked->services = malloc((sizeof(char) * (val.via.i64) + val.via.i64));
             }
         }
-        else if( val.type == MSGPACK_OBJECT_ARRAY )
-        {
+        else if(val.type == MSGPACK_OBJECT_ARRAY) {
             PRINT("Processing services %d services...\n", val.via.array.size);
 
             msgpack_object_array array = val.via.array;
@@ -77,8 +72,9 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
 
                 unpacked->services[i] = str;
 
-                if(brokerConfig->verbose)
+                if(brokerConfig->verbose) {
                     PRINT("Found service: '%s'\n",str);
+                }
             }
 
         } //array processing end
