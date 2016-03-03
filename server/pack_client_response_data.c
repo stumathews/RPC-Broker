@@ -11,10 +11,9 @@
  * @param  the respone message parameters
  * @return Packet the resulting protocol message
  */
-Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...)
+Packet pack_client_response_data(msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...)
 {
     msgpack_sbuffer_init(sbuf);
-    
     msgpack_packer pk;
     msgpack_packer_init(&pk, sbuf, msgpack_sbuffer_write);
     
@@ -31,17 +30,8 @@ Packet pack_client_response_data( msgpack_sbuffer* sbuf, char* op, int message_i
     va_start(ap,(const char*)fmt);
     char *p, *sval;
     int ival;
-    int numargs = 0;
-
-    for( p = fmt;*p;p++)
-    {
-        if(*p != '%') {
-            continue;
-        }
-        numargs++;
-    }
     
-    for( p = fmt;*p;p++)
+    for(p = fmt; *p; p++)
     {
         if(*p != '%') {
             putchar(*p);
