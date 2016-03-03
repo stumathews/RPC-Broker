@@ -9,58 +9,18 @@
 #include "server_interface.h"
 
 #define CONFIG_FILENAME "config.ini"
-/**
- * @brief the server port 
- * 
- */
 char port[MAX_PORT_CHARS] = {0};
-/**
- * @brief the brokers port
- * 
- */
 char broker_port[MAX_PORT_CHARS] = {0};
-/**
- * @brief the brokers address
- * 
- */
 char broker_address[MAX_ADDRESS_CHARS] = {0};
-/**
- * @brief the servers address
- * 
- */
 char server_address[MAX_ADDRESS_CHARS] = {0};
-/**
- * @brief wait forever for data on socket?
- * 
- */
 static bool waitIndef = false;
-/**
- * @brief Should we say everything we do 
- * 
- */
 bool verbose = false;
-/**
- * @brief Is registered with broker
- * 
- */
 static bool registered_with_broker = false;
-/**
- * @brief Register with the broker_
- * 
- * @param broker_address the broker address to contact for registration
- * @param broker_port the broker port
- * @return bool
- */
-bool service_register_with_broker( char *broker_address, char* broker_port );
-/**
- * @brief Unpack service request, execute operation adn send the response back to the broker
- * 
- * @param buffer the client's request
- * @param buflen the length of the request
- * @return void
- */
-void unpack_marshal_call_send( char* buffer, int buflen);
 
+/* Function prototypes */
+
+bool service_register_with_broker( char *broker_address, char* broker_port );
+void unpack_marshal_call_send( char* buffer, int buflen);
 static void setBrokerPort( char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -68,16 +28,13 @@ static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
 void* thread_server(void* params);
-
-/**
- * @brief Main Server processing routine. called when the server gets a connection from the broker
- * 
- * @param s the socket
- * @param peerp the peerp
- * @return void
- */
 static void server(SOCKET s, struct sockaddr_in *peerp);
 
+void PrintConfigDiagnostics(_Bool verbose, List* settings) {
+	if (verbose) {
+		LIST_ForEach(settings, printSetting);
+	}
+}
 
 int main( int argc, char **argv )
 {
@@ -110,43 +67,35 @@ int main( int argc, char **argv )
     const int on = 1;
     List* settings = (void*)null;
 
-    struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
+    struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
     if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1))
 	{
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
-		if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
-		{
+		if(INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
+			// Get general config options
 			setWaitIndef(INI_GetSetting(settings, "options", "wait"));
 			setBeVerbose(INI_GetSetting(settings, "options", "verbose"));
+			// Get networking configuration options
 			setPortNumber(INI_GetSetting(settings, "networking", "port"));
 			setOurAddress(INI_GetSetting(settings, "networking", "address"));
-
+			// Get broker's connection details
 			setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
 			setBrokerPort(INI_GetSetting(settings, "broker", "port"));
 
-			if(verbose)
-			{
-				LIST_ForEach(settings, printSetting);
-			}
+			PrintConfigDiagnostics(verbose, settings);
 		}
-		else
-		{
+		else {
 			ERR_Print("Failed to parse config file", 1);
 		}
-	}
-    else if( argc > 1 )
-    {
-        enum ParseResult result = CMD_Parse(argc,argv,true);
-        if( result != PARSE_SUCCESS )
-        {
+	} else if(argc > 1) {
+        enum ParseResult result = CMD_Parse(argc, argv, true);
+        if(result != PARSE_SUCCESS) {
             PRINT("There was a problem parsing: %d \n", result);
             return 1;
         }
-    }
-    else
-    {
+    } else {
         CMD_ShowUsages("server", "stumathews@gmail.com", "the server component");
         exit(0);
     }
@@ -156,9 +105,9 @@ int main( int argc, char **argv )
     if( verbose ) 
         PRINT("Server listening...\n");
 
-    // Register with the broker on startup. Currently dont wit for an ACK
+    // Register with the broker on startup. Currently dont wait for an ACK
     if(service_register_with_broker(broker_address, broker_port)){
-    	PRINT("Sending blind registration request to broker at address '%s:%s'", broker_address, broker_port);
+    	PRINT("Sending registration request to broker at address '%s:%s'", broker_address, broker_port);
         registered_with_broker = true;
     }
 
@@ -168,8 +117,7 @@ int main( int argc, char **argv )
 
     FD_SET(s, &readfds);
     if(verbose) PRINT("About wait for read on port %s...\n", port);
-    do
-    {
+    do {
         // wait/block on this listening socket...
         int res = 0;
         if(!waitIndef)
@@ -177,33 +125,26 @@ int main( int argc, char **argv )
         else
             res = select(s+1, &readfds, NULL, NULL, NULL);
 
-        if(res == 0)
-        {
+        if(res == 0) {
             LOG("timeout");
             netError(1,errno,"timeout!");
         }
-        else if(res == -1)
-        {
+        else if(res == -1) {
             LOG("Select error!");
             netError(1,errno,"select error!!");
-        }
-        else
-        {
+        } else {
             peerlen = sizeof(peer);
-
-            if(FD_ISSET(s,&readfds))
-            {
-            	if(verbose) { PRINT("++ Connection.\n"); }
+            if(FD_ISSET(s,&readfds)) {
+            	if(verbose) {
+            		PRINT("++ Connection.\n");
+            	}
 				// Fork of a new thread to deal with this request and go back to listening for next request
 				THREAD_RunAndForget(thread_server, (void*)&s);
-            }
-            else
-            {
+            } else {
                 DBG("not our socket. continuing");
                 continue;
             }
         }
-
     } while (1);
 
     LIST_FreeInstance(settings);
@@ -237,33 +178,32 @@ void* thread_server(void* params)
 	return (void*)0;
 }
 
-
 static void server( SOCKET s, struct sockaddr_in *peerp )
 {
-
     // Wait for connections from the broker.
     Packet pkt;
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
 
-    if( verbose)
+    if(verbose) {
         PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
+    }
 
-    if( n_rc < 1 )
+    if(n_rc < 1) {
         netError(1, errno,"failed to receiver packet size\n");
+    }
     
     char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
     int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
 
-    if( d_rc < 1 )
+    if(d_rc < 1) {
         netError(1, errno,"failed to receive message\n");
+    }
     
-    if(verbose)
-    {
+    if(verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
     unpack_marshal_call_send( dbuf, pkt.len);
-
 }
 // ===============================
 // Command line handling routines

@@ -35,7 +35,6 @@ void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings
 
 void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
 {
-
 	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
 	printf("broker port is : %s", brokerDetails->port);
 }
@@ -98,7 +97,9 @@ int main(int argc, char **argv)
       exit(0);
     }
 
-    if(brokerConfig.verbose) { PRINT("Broker starting.\n"); }
+    if(brokerConfig.verbose) {
+    	PRINT("Broker starting.\n");
+    }
 
     NETINIT();
     
@@ -149,7 +150,9 @@ static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDeta
           res =  select(s+1, &readfds, NULL, NULL, &timeout);
        }
        
-	if(brokerConfig->verbose) { PRINT("-- Listening...\n"); }
+       if(brokerConfig->verbose) {
+    	   PRINT("-- Listening...\n");
+	   }
 
         if(res == 0) {
             LOG( "broker listen timeout!" );
@@ -160,7 +163,9 @@ static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDeta
             netError(1,errno, "select error!!");
         } else {
             if(FD_ISSET(s,&readfds)) {
-            	if(brokerConfig->verbose) { PRINT("++ Connection.\n"); }
+            	if(brokerConfig->verbose) {
+            		PRINT("++ Connection.\n");
+            	}
             	struct BrokerServerArgs args = {0};
             		args.brokerConfig = brokerConfig;
             		args.brokerDetails = brokerDetails;
@@ -204,12 +209,12 @@ void* thread_server(void* params)
 	}
 	// Data arrived,  Process it
 	server(s1, &peer, args->brokerConfig, args->brokerDetails);
-	NETCLOSE( s1 );
+	NETCLOSE(s1);
 	return (void*)0;
 }
 
 /**
- * @brief Waits for connections received from clients and servers.
+ * @brief Processes the connection data
  * 
  * @param s The socket
  * @param peerp the peerlen
@@ -219,7 +224,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
 {
     struct Packet packet;
 
-    int packet_size = netReadn(s,(char*) &packet.len, sizeof(uint32_t));
+    int packet_size = netReadn(s,(char*)&packet.len, sizeof(uint32_t));
     packet.len = ntohl(packet.len);
 
     if(packet_size < 1) {
@@ -230,24 +235,28 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
     DBG("Packet length of %u\n",packet.len );
 
     packet.buffer = (char*) malloc( sizeof(char) * packet.len);
-    int data_size  = netReadn( s, packet.buffer, sizeof( char) * packet.len);
+    int data_size  = netReadn(s, packet.buffer, sizeof(char) * packet.len);
 
-    if( data_size < 1 ) {
+    if(data_size < 1) {
     	netError(1, errno,"failed to receive message\n");
     }
 
     int request_type = -1; // default -1 represents invalid state
 
-    if(brokerConfig->verbose) PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size, data_size);
+    if(brokerConfig->verbose) {
+    	PRINT("Got %d bytes [%d+%d] : " ,data_size + packet_size, packet_size, data_size);
+    }
 
-    if((request_type = determine_request_type(&packet)) == SERVICE_REQUEST)
-    {
+    if((request_type = determine_request_type(&packet)) == SERVICE_REQUEST)  {
     	char* operation = get_header_str_value(&packet, OPERATION_HDR);
-    	if(brokerConfig->verbose) printf("SERVICE_REQUEST(%s)\n", operation);
+
+    	if(brokerConfig->verbose) {
+    		printf("SERVICE_REQUEST(%s)\n", operation);
+    	}
 
         Location *src = malloc(sizeof(Location));
 		get_sender_address(&packet, peerp, src);
-        forward_request_to_server(&packet, src, brokerConfig); // to the server
+        forward_request_to_server(&packet, src, brokerConfig);
 
         free(operation);
     } 

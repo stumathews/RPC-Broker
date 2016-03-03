@@ -12,5 +12,4 @@ void forward_response_to_client(Packet* response, struct BrokerConfig *brokerCon
     free(client->port);
     free(client->address);
     free(client);
-
 }
