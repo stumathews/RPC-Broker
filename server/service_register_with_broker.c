@@ -16,8 +16,7 @@ extern char server_address[MAX_ADDRESS_CHARS];
  */
 void service_register_with_broker( char *broker_address, char* broker_port )
 {
-    List* mem_pool = LIST_GetInstance();
-    ServiceReg *sr = Alloc( sizeof( ServiceReg ),mem_pool);
+    ServiceReg *sr = malloc(sizeof(ServiceReg));
     sr->address = server_address; // TODO: Get our actual IP address
     sr->port = port;
     
@@ -35,10 +34,11 @@ void service_register_with_broker( char *broker_address, char* broker_port )
     extern char* services[];
     char* service = services[0];
     int i = 0;
-    while( services[i] != NULL )
+    while(services[i] != NULL)
     {
-        if(verbose)
+        if(verbose) {
             PRINT("Service %s.\n", services[i]);
+        }
         i++;
     }
     pack_map_int(SERVICES_COUNT_HDR,i,&pk);
@@ -47,16 +47,18 @@ void service_register_with_broker( char *broker_address, char* broker_port )
     msgpack_pack_str_body(&pk, SERVICES_HDR, 8);
     msgpack_pack_array(&pk, i);
 
-    if( verbose )
+    if(verbose) {
         PRINT("num services %d\n",i);
+    }
 
     // pack the services into the protocol message
-    while( i >= 0 )
+    while(i >= 0)
     {
-        if( !STR_IsNullOrEmpty(services[i] ))
+        if(!STR_IsNullOrEmpty(services[i]))
         {
-            if(verbose)
+            if(verbose) {
                 PRINT("service packed is %s\n", services[i]);
+            }
             msgpack_pack_str(&pk, strlen(services[i]));
             msgpack_pack_str_body(&pk, services[i], strlen(services[i]));
         }
@@ -64,6 +66,6 @@ void service_register_with_broker( char *broker_address, char* broker_port )
     }
     // send registration message to broker
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size;
-    send_request( &pkt, broker_address, broker_port,verbose);
+    send_request(&pkt, broker_address, broker_port,verbose);
     msgpack_sbuffer_destroy(&sbuf);
 }

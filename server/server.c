@@ -198,24 +198,24 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
 static void setBrokerPort( char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( broker_port, arg, strlen(arg));
+    strncpy(broker_port, arg, strlen(arg));
 }
 
 static void setPortNumber(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy( port, arg, strlen(arg));
+    strncpy(port, arg, strlen(arg));
 }
 
 static void setBrokerAddress(char* arg)
 {
-    CHECK_STRING( arg, IS_NOT_EMPTY );
-    strncpy( broker_address, arg, strlen(arg) );
+    CHECK_STRING(arg, IS_NOT_EMPTY );
+    strncpy(broker_address, arg, strlen(arg) );
 }
 static void setOurAddress(char* arg)
 {
     CHECK_STRING( arg, IS_NOT_EMPTY );
-    strncpy( server_address, arg, strlen(arg) );
+    strncpy(server_address, arg, strlen(arg) );
 }
 
 static void setWaitIndef(char* arg)
@@ -225,11 +225,10 @@ static void setWaitIndef(char* arg)
 
 static void setBeVerbose(char* arg)
 {
-    if( STR_Equals(arg,"true") || STR_Equals(arg,"1")) {
-	verbose = true;
+    if(STR_Equals(arg,"true") || STR_Equals(arg,"1")) {
+    	verbose = true;
     } else {
-
-	verbose = false;
+    	verbose = false;
     }
 }
 
