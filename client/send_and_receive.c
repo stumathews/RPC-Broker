@@ -14,9 +14,15 @@ struct SendArgs
 	char* wait_response_port;
 };
 
-void* thread_send_request(void* param)
+
+
+#ifdef __linux__
+void* thread_send_request(void* params)
+#else
+unsigned long thread_send_request(void* params)
+#endif
 {
-	struct SendArgs *args  = (struct SendArgs*)param;
+	struct SendArgs *args  = (struct SendArgs*)params;
 	printf("args->to_address = %s, args->port = %s, args->verbose = %s\n", args->to_address, args->port, args->verbose);
 
 	send_request(args->packet, args->to_address, args->port, args->verbose);

@@ -19,15 +19,21 @@ static bool registered_with_broker = false;
 
 /* Function prototypes */
 
-bool service_register_with_broker( char *broker_address, char* broker_port );
-void unpack_marshal_call_send( char* buffer, int buflen);
-static void setBrokerPort( char* arg);
+bool service_register_with_broker(char *broker_address, char* broker_port);
+void unpack_marshal_call_send(char* buffer, int buflen);
+static void setBrokerPort(char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
 static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
+
+#ifdef __linux__
 void* thread_server(void* params);
+#else
+unsigned long thread_server(void* params);
+#endif
+
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
 
 void PrintConfigDiagnostics(_Bool verbose, List* settings) {
@@ -154,20 +160,32 @@ int main( int argc, char **argv )
  *
  * @param params SOCKET* socket that is ready to read from
  */
+
+void CheckValidSocket(SOCKET s1) {
+	if (!isvalidsock(s1)) {
+		netError(1, errno, "accept failed");
+	}
+}
+
+#ifdef __linux__
 void* thread_server(void* params)
+#else
+unsigned long thread_server(void* params)
+#endif
 {
 	int peerlen;
 	struct sockaddr_in peer;
 	peerlen = sizeof(peer);
 	SOCKET* s = (SOCKET*) params;
 	SOCKET s1 = accept(*s,(struct sockaddr *)&peer, &peerlen);
-	if (!isvalidsock(s1)) {
-	    netError(1, errno, "accept failed");
-	}
-	// Data arrived,  Process it
+	CheckValidSocket(s1);
 	ReadAndProcessDataOnSocket(s1, &peer);
 	NETCLOSE( s1 );
+#ifdef __linux__
 	return (void*)0;
+#else
+	return 0;
+#endif
 }
 
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )

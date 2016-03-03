@@ -10,7 +10,12 @@ struct ClientRequestRegistration client_request_repository;
 static const char* CONFIG_FILENAME = "config.ini";
 static void main_event_loop();
 static void server( SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails );
-void* thread_server(void* param);
+
+#ifdef __linux__
+void* thread_server(void* params);
+#else
+unsigned long thread_server(void* params);
+#endif
 
 void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings) {
 	// if successful parse
@@ -194,7 +199,12 @@ static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDeta
  *
  * @param params SOCKET* socket that is ready to read from
  */
+
+#ifdef __linux__
 void* thread_server(void* params)
+#else
+unsigned long thread_server(void* params)
+#endif
 {
 	struct BrokerServerArgs *args = (struct BrokerServerArgs*)params;
 	SOCKET* s = (SOCKET*) args->socket;
