@@ -28,7 +28,7 @@ static void setOurAddress(char* arg);
 static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
 void* thread_server(void* params);
-static void server(SOCKET s, struct sockaddr_in *peerp);
+static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
 
 void PrintConfigDiagnostics(_Bool verbose, List* settings) {
 	if (verbose) {
@@ -66,11 +66,9 @@ int main( int argc, char **argv )
     FD_ZERO( &readfds);
     const int on = 1;
     List* settings = (void*)null;
-
     struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
-    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1))
-	{
+    if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
 		if(INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
@@ -114,16 +112,15 @@ int main( int argc, char **argv )
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
     s = netTcpServer(broker_address,port);
-
     FD_SET(s, &readfds);
-    if(verbose) PRINT("About wait for read on port %s...\n", port);
     do {
         // wait/block on this listening socket...
         int res = 0;
-        if(!waitIndef)
+        if(!waitIndef) {
             res = select(s+1, &readfds, NULL, NULL, &timeout);
-        else
+        } else {
             res = select(s+1, &readfds, NULL, NULL, NULL);
+        }
 
         if(res == 0) {
             LOG("timeout");
@@ -135,9 +132,6 @@ int main( int argc, char **argv )
         } else {
             peerlen = sizeof(peer);
             if(FD_ISSET(s,&readfds)) {
-            	if(verbose) {
-            		PRINT("++ Connection.\n");
-            	}
 				// Fork of a new thread to deal with this request and go back to listening for next request
 				THREAD_RunAndForget(thread_server, (void*)&s);
             } else {
@@ -162,44 +156,37 @@ int main( int argc, char **argv )
  */
 void* thread_server(void* params)
 {
-	SOCKET* s = (SOCKET*) params;
 	int peerlen;
-
 	struct sockaddr_in peer;
 	peerlen = sizeof(peer);
-
+	SOCKET* s = (SOCKET*) params;
 	SOCKET s1 = accept(*s,(struct sockaddr *)&peer, &peerlen);
 	if (!isvalidsock(s1)) {
 	    netError(1, errno, "accept failed");
 	}
 	// Data arrived,  Process it
-	server(s1, &peer);
+	ReadAndProcessDataOnSocket(s1, &peer);
 	NETCLOSE( s1 );
 	return (void*)0;
 }
 
-static void server( SOCKET s, struct sockaddr_in *peerp )
+static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
 {
-    // Wait for connections from the broker.
     Packet pkt;
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
+    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
+    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
 
     if(verbose) {
         PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
     }
-
     if(n_rc < 1) {
         netError(1, errno,"failed to receiver packet size\n");
     }
-    
-    char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
-
     if(d_rc < 1) {
         netError(1, errno,"failed to receive message\n");
     }
-    
     if(verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
