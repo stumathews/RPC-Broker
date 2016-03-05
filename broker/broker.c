@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 #ifdef __linux__
 	pthread_exit(NULL);
 #endif
-    EXIT( 0 );
+    EXIT(0);
 }
 
 
@@ -168,9 +168,6 @@ static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDeta
             netError(1,errno, "select error!!");
         } else {
             if(FD_ISSET(s,&readfds)) {
-            	if(brokerConfig->verbose) {
-            		PRINT("++ Connection.\n");
-            	}
             	struct BrokerServerArgs args = {0};
             		args.brokerConfig = brokerConfig;
             		args.brokerDetails = brokerDetails;
