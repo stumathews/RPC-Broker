@@ -136,6 +136,7 @@ void setupCmd(int argc, char* argv[])
         enum ParseResult result = CMD_Parse(argc,argv,true);
         if( result != PARSE_SUCCESS )
         {
+        	printf("something went wrong while parsing the cmdline arguments\n");
             exit(1);
         }
     }
