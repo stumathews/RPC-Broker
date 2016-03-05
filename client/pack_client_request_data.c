@@ -1,5 +1,7 @@
 #include <msgpack.h>
 #include "common.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 extern char wait_response_port[MAX_PORT_CHARS];
 extern char client_address[MAX_ADDRESS_CHARS];
@@ -33,7 +35,7 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     
     va_list ap;
     va_start(ap,(const char*)fmt);
-    char *p, *sval;
+    char *p;
     int ival;
     int numargs = 0;
 
@@ -47,6 +49,7 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
     
     msgpack_pack_array(&pk, numargs);
 
+	char *sval = NULL;
     for( p = fmt;*p;p++)
     {
         if(*p != '%') {
@@ -59,11 +62,13 @@ char* pack_client_request_data( msgpack_sbuffer* sbuf, char* op,char* fmt, ...)
                 msgpack_pack_int(&pk, ival);
                 break;
             case 's':
-                sval =  va_arg(ap, char *);
+                sval = va_arg(ap, char*);
                 int sval_len = strlen(sval);
                 msgpack_pack_str(&pk,sval_len);
                 msgpack_pack_str_body(&pk, sval, sval_len);
+                sval = NULL;
                 break;
         }
     }
+    va_end(ap);
 }
