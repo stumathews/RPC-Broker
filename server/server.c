@@ -31,7 +31,7 @@ static void setBeVerbose(char* arg);
 #ifdef __linux__
 void* thread_server(void* params);
 #else
-unsigned long thread_server(void* params);
+unsigned __stdcall thread_server(void* params);
 #endif
 
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
@@ -170,7 +170,7 @@ void CheckValidSocket(SOCKET s1) {
 #ifdef __linux__
 void* thread_server(void* params)
 #else
-unsigned long thread_server(void* params)
+unsigned __stdcall thread_server(void* params)
 #endif
 {
 	int peerlen;
