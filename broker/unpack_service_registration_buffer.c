@@ -5,9 +5,9 @@ extern char port[MAX_PORT_CHARS];
 extern bool verbose;
 extern struct ServiceRegistration service_repository;
 
-struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen, struct BrokerConfig* brokerConfig)
+struct ServiceRegistration* unpack_service_registration_buffer(const char* buffer, int buflen, struct BrokerConfig* brokerConfig)
 {
-    DBG("Unpacking service registration request...\n");
+    printf("Unpacking service registration request...\n");
 
     struct ServiceRegistration* unpacked = malloc(sizeof(struct ServiceRegistration));
     unpacked->num_services = 0;
@@ -52,7 +52,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
         {
             if( STR_Equals(SERVICES_COUNT_HDR, header_name) == true) {
                 unpacked->num_services = val.via.i64;
-                unpacked->services = malloc((sizeof(char) * (val.via.i64) + val.via.i64));
+                unpacked->services = malloc((sizeof(char*) * (val.via.i64) + val.via.i64));
             }
         }
         else if(val.type == MSGPACK_OBJECT_ARRAY) {
@@ -71,6 +71,8 @@ struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int
                 strncpy(str, curr.via.str.ptr, str_len);
 
                 unpacked->services[i] = str;
+		printf("test is '%s'\n", unpacked->services[i]);
+
 
                 if(brokerConfig->verbose) {
                     PRINT("Found service: '%s'\n",str);
