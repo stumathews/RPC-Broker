@@ -19,7 +19,7 @@ struct SendArgs
 #ifdef __linux__
 void* thread_send_request(void* params)
 #else
-unsigned long thread_send_request(void* params)
+unsigned __stdcall thread_send_request(void* params)
 #endif
 {
 	struct SendArgs *args  = (struct SendArgs*)params;
@@ -48,6 +48,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
 			.wait_response_port = wait_response_port };
 
 	// Send the data on its own thread and then wait for the response...
+
     THREAD_RunAndForget(thread_send_request, (void*)&args);
 
     /* wait for the response */

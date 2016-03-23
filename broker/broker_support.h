@@ -10,7 +10,7 @@
  * @param buflen The size of the raw data
  * @return ServiceRegistration*
  */
-struct ServiceRegistration* unpack_service_registration_buffer(char* buffer, int buflen, struct BrokerConfig* brokerConfig);
+struct ServiceRegistration* unpack_service_registration_buffer(const char* buffer, int buflen, struct BrokerConfig* brokerConfig);
 
 
 /**
