@@ -265,7 +265,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
 		get_sender_address(&packet, peerp, src);
         forward_request_to_server(&packet, src, brokerConfig);
 
-        free(operation);
+        //free(operation);
     } 
     else if (request_type == SERVICE_REGISTRATION) {
     	if(brokerConfig->verbose) {
