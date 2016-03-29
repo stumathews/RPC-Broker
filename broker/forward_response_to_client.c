@@ -9,7 +9,7 @@ void forward_response_to_client(Packet* response, struct BrokerConfig *brokerCon
     find_client_for_response(response, client, brokerConfig);
     send_request(response, client->address, client->port, false);
 
-    //free(client->port);
-    //free(client->address);
-    //free(client);
+    free(client->port);
+    free(client->address);
+    free(client);
 }
