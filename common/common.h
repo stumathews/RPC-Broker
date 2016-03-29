@@ -71,7 +71,7 @@ struct BrokerServerArgs
 	SOCKET *socket;
 
 };
-
+void copyString(int str_len, const msgpack_object_str* from, char* to);
 enum RequestType determine_request_type(struct Packet* pkt);
 int send_request(Packet* packet,char* address, char* port, bool verbose);
 int client(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);

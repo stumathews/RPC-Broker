@@ -3,6 +3,11 @@
 #include <msgpack.h>
 
 
+void copyString(int str_len, const msgpack_object_str* from, char* to) {
+	memset(to, '\0', str_len);
+	to[str_len] = '\0';
+	strncpy(to, from->ptr, str_len);
+}
 
 /**
  * @brief Send request
@@ -144,8 +149,7 @@ msgpack_object extract_header( msgpack_object* obj, char* header_buffer )
     if( obj->type == MSGPACK_OBJECT_MAP )
     {            
         int count = obj->via.map.size; // How many items in this map? 
-        if( count != 1 )
-        {
+        if(count != 1) {
             PRINT("Expected count of items in map to be 1. Not the case: %d\n", count);
             exit(1);
         }
