@@ -59,8 +59,9 @@ void unpack_marshal_call_send(char* buffer, int buflen)
                 params[i] = NULL;
                 if(param_type == MSGPACK_OBJECT_STR) {
                 	//param is a char*
-                    char* str = malloc(sizeof(char) * param.via.str.size + 1);
-                    memset(str, '\0', param.via.str.size + 1);
+		    int alloc_size = param.via.str.size +1;
+                    char* str = malloc(sizeof(char) * alloc_size );
+                    memset(str, '\0', alloc_size);
                     strncpy(str, param.via.str.ptr, param.via.str.size);
                     params[i] = str;
                 } else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
