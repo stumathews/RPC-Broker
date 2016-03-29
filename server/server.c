@@ -20,7 +20,7 @@ static bool registered_with_broker = false;
 /* Function prototypes */
 
 bool service_register_with_broker(char *broker_address, char* broker_port);
-void unpack_marshal_call_send(char* buffer, int buflen);
+void unpack_marshal_call_send(char* buffer, int buflen, bool verbose);
 static void setBrokerPort(char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -194,7 +194,7 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     int n_rc = netReadn( s,(char*) &pkt.len, sizeof(uint32_t));
     pkt.len = ntohl(pkt.len);
     char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
-    int d_rc  = netReadn( s, dbuf, sizeof( char) * pkt.len);
+    int d_rc  = netReadn(s, dbuf, sizeof( char) * pkt.len);
 
     if(verbose) {
         PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
@@ -208,7 +208,7 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     if(verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
-    unpack_marshal_call_send( dbuf, pkt.len);
+    unpack_marshal_call_send(dbuf, pkt.len, verbose);
 }
 // ===============================
 // Command line handling routines
