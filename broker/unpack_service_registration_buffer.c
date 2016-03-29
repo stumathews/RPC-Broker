@@ -32,7 +32,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* buffe
         if(val.type == MSGPACK_OBJECT_STR)
         {
             int str_len = val.via.str.size;
-            char* str = malloc(sizeof(char) * str_len);
+            char* str = (char*) malloc(sizeof(char) * (size_t)str_len);
 
             memset(str, '\0', str_len);
             str[str_len] = '\0';
@@ -64,18 +64,24 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* buffe
             {
                 struct msgpack_object curr = array.ptr[i];
                 int str_len = curr.via.str.size;
-                char* str = malloc(sizeof(char) * str_len);
+                char* str = (char*) malloc((size_t)str_len+1);
+                if(!str){
+                	printf("failed to malloc!\n");
+                	printf("curr.via.str.size %u \n",(int)curr.via.str.size);
+                	perror("");
+                	return 0;
+
+                }
 
                 memset( str, '\0', str_len);
                 str[str_len] = '\0';
                 strncpy(str, curr.via.str.ptr, str_len);
-
                 unpacked->services[i] = str;
-		printf("test is '%s'\n", unpacked->services[i]);
 
 
                 if(brokerConfig->verbose) {
-                    PRINT("Found service: '%s'\n",str);
+
+                    PRINT("Found service: '%s'\n", str);
                 }
             }
 
