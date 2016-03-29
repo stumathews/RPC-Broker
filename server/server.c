@@ -208,9 +208,13 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     if(verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
-    BrokerDetails brokerDetails = (BrokerDetails){.port = port[0], .broker_address = broker_address[0]};
-    BrokerConfig brokerConfig = (BrokerConfig){.waitIndef = waitIndef, .verbose = verbose};
-    unpack_marshal_call_send(dbuf, pkt.len, brokerDetails, brokerConfig);
+
+    unpack_marshal_call_send(dbuf, pkt.len, (BrokerDetails){
+    											.port = port[0],
+												.broker_address = broker_address[0]},
+											(BrokerConfig){
+												.waitIndef = waitIndef,
+												.verbose = verbose});
 }
 // ===============================
 // Command line handling routines
