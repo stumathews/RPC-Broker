@@ -43,7 +43,7 @@ void unpack_marshal_call_send(char* buffer, int buflen)
 
         // Extract the operation name to call.
         if(STR_Equals( "op", header_name) && val.type == MSGPACK_OBJECT_STR) {
-            char* str = malloc(sizeof(char) * val.via.str.size);
+            char* str = (char*) malloc(sizeof(char) * (size_t)val.via.str.size +1);
             copyString(val.via.str.size, &val.via.str, str);
             operation = str;
         } else if(STR_Equals(MESSAGE_ID_HDR, header_name) && val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
