@@ -28,8 +28,8 @@ int main( int argc, char* argv[])
     setupCmd(argc, argv);
 
     printf("Got server date reply as %s\n", getServerDate());
-    printf( "reverse echo = %s\n", echo("Bruce Mathews") );
-    printf( "broker name = %s\n", getBrokerName());
+    printf("reverse echo = %s\n", echo("Bruce Mathews") );
+    printf("broker name = %s\n", getBrokerName());
     printf("sum = %d\n",add(20,199));
     printf("sayHello = %s\n",sayHello(20,"Stuart"));
     printf("sayDog = %s\n", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
