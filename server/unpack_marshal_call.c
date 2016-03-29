@@ -61,8 +61,7 @@ void unpack_marshal_call_send(char* buffer, int buflen)
                 	//param is a char*
 		    int alloc_size = param.via.str.size +1;
                     char* str = malloc(sizeof(char) * alloc_size );
-                    memset(str, '\0', alloc_size);
-                    strncpy(str, param.via.str.ptr, param.via.str.size);
+                    copyString(val.via.str.size, &val.via.str, str);
                     params[i] = str;
                 } else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
                 	//param is an int
