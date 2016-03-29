@@ -54,15 +54,15 @@ typedef struct ClientRequestRegistration
     struct list_head list;
 } ClientReg;
 
-struct BrokerDetails {
+typedef struct BrokerDetails {
 	char port[MAX_PORT_CHARS];
-	char broker_address[MAX_ADDRESS_CHARS];;
-};
+	char broker_address[MAX_ADDRESS_CHARS];
+} BrokerDetails;
 
-struct BrokerConfig {
+typedef struct BrokerConfig {
 	bool verbose;
 	bool waitIndef;
-};
+}BrokerConfig;
 
 struct BrokerServerArgs
 {

@@ -20,7 +20,7 @@ static bool registered_with_broker = false;
 /* Function prototypes */
 
 bool service_register_with_broker(char *broker_address, char* broker_port);
-void unpack_marshal_call_send(char* buffer, int buflen, bool verbose);
+void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDetails, BrokerConfig brokerConfig);
 static void setBrokerPort(char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -208,7 +208,9 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     if(verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
-    unpack_marshal_call_send(dbuf, pkt.len, verbose);
+    BrokerDetails brokerDetails = (BrokerDetails){.port = port[0], .broker_address = broker_address[0]};
+    BrokerConfig brokerConfig = (BrokerConfig){.waitIndef = waitIndef, .verbose = verbose};
+    unpack_marshal_call_send(dbuf, pkt.len, brokerDetails, brokerConfig);
 }
 // ===============================
 // Command line handling routines
