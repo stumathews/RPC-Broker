@@ -218,7 +218,12 @@ unsigned long thread_server(void* params)
 
 	server(s1, &peer, args->brokerConfig, args->brokerDetails);
 	NETCLOSE(s1);
+
+#ifdef __linux__
 	return (void*)0;
+#else
+	return 0;
+#endif
 }
 
 /**
