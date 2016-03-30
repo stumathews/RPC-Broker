@@ -1,44 +1,11 @@
-/* server-proxy.c
- * Acts as the main service and calls the server functions.
- * 
- * Responsibility: Abstract communication with broker away from server functions.
- * 
- * */
 #include <stulibc.h>
 #include "common.h"
 #include "server_interface.h"
+#include "server.h"
 
-#define CONFIG_FILENAME "config.ini"
-static Details brokerDetails = {};
-static Details serverDetails = {};
-static Config serverConfig = {};
 
-static bool registered_with_broker = false;
 
-/* Function prototypes */
 
-bool service_register_with_broker(Details brokerDetails, Details serverDetails,Config brokerConfig);
-void unpack_marshal_call_send(char* buffer, int buflen, Details brokerDetails, Config brokerConfig);
-static void setBrokerPort(char* arg);
-static void setPortNumber(char* arg);
-static void setBrokerAddress(char* arg);
-static void setOurAddress(char* arg);
-static void setWaitIndef(char* arg);
-static void setBeVerbose(char* arg);
-
-#ifdef __linux__
-void* thread_server(void* params);
-#else
-unsigned __stdcall thread_server(void* params);
-#endif
-
-static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
-
-void PrintConfigDiagnostics(_Bool verbose, List* settings) {
-	if (verbose) {
-		LIST_ForEach(settings, printSetting);
-	}
-}
 
 int main( int argc, char **argv )
 {
