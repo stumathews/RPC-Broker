@@ -3,10 +3,6 @@
 #include "server_interface.h"
 #include "server.h"
 
-
-
-
-
 int main( int argc, char **argv )
 {
     LIB_Init();
@@ -35,8 +31,8 @@ int main( int argc, char **argv )
     SOCKET s;
     fd_set readfds;
     FD_ZERO( &readfds);
-    const int on = 1;
-    List* settings = (void*)null;
+
+    List* settings = {};
     struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
     if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
