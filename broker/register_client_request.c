@@ -7,9 +7,13 @@ extern bool verbose;
 struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct BrokerConfig *brokerConfig)
 {
 
-    if(brokerConfig->verbose) { PRINT("Registering client service request, '%s:%s'(%s)\n", src->address, src->port,  op); }
+    if(brokerConfig->verbose) {
+    	PRINT("Registering client service request, '%s:%s'(%s)\n", src->address, src->port,  op);
+    }
 
-    ClientReg* client_request_registration = malloc(sizeof(struct ClientRequestRegistration));
+    ClientReg* client_request_registration;
+
+    client_request_registration = malloc(sizeof(struct ClientRequestRegistration));
     client_request_registration->address = src->address;
     client_request_registration->port = src->port;
     client_request_registration->operation = op;

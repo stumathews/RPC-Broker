@@ -105,8 +105,6 @@ int main(int argc, char **argv)
     if(brokerConfig.verbose) {
     	PRINT("Broker starting.\n");
     }
-
-    NETINIT();
     
     main_event_loop(&brokerConfig, &brokerDetails);
 

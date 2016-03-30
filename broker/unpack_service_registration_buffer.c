@@ -25,8 +25,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* paylo
         obj = unpacked_result.data;
         val = extract_header( &obj, header_name);
 
-        if(val.type == MSGPACK_OBJECT_STR)
-        {
+        if(val.type == MSGPACK_OBJECT_STR) {
             int str_len;
             char* str;
 
@@ -45,8 +44,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* paylo
                 unpacked->service_name = str;
             }
         }
-        else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER)
-        {
+        else if(val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
             if(STR_Equals(SERVICES_COUNT_HDR, header_name) == true) {
                 unpacked->num_services = val.via.i64;
                 unpacked->services = malloc((sizeof(char*) * (val.via.i64) + val.via.i64));
@@ -57,8 +55,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* paylo
 
             msgpack_object_array array = val.via.array;
 
-            for( int i = 0; i < array.size; i++)
-            {
+            for( int i = 0; i < array.size; i++)  {
                 struct msgpack_object curr;
                 int str_len;
                 char* str;
