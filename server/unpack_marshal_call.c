@@ -51,7 +51,7 @@ void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDeta
                 if(param_type == MSGPACK_OBJECT_STR) {
                 	int alloc_size = param.via.str.size+1;
                     char* ptrStr = malloc(sizeof(char) * alloc_size);
-                    copyString(val.via.str.size, &val.via.str, ptrStr);
+                    copyString(param.via.str.size, &param.via.str, ptrStr);
                     params[i] = ptrStr;
                 } else if(param_type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
                     int64_t *pival = malloc(sizeof(int));
