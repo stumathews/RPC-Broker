@@ -9,9 +9,9 @@
 #include "server_interface.h"
 
 #define CONFIG_FILENAME "config.ini"
-Details brokerDetails = {};
-Details serverDetails = {};
-Config serverConfig = {};
+static Details brokerDetails = {};
+static Details serverDetails = {};
+static Config serverConfig = {};
 
 static bool registered_with_broker = false;
 
