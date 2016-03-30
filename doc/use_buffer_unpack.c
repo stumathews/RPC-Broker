@@ -53,7 +53,7 @@ void unpack(char const* buf, size_t len) {
     while (ret == MSGPACK_UNPACK_SUCCESS) 
     {
         /* Use obj. */
-        printf("Object no %d:\n", ++i);
+        PRINT("Object no %d:\n", ++i);
         
         // We have the object
         msgpack_object obj = result.data;
@@ -62,29 +62,29 @@ void unpack(char const* buf, size_t len) {
         if( obj.type == MSGPACK_OBJECT_ARRAY )
         {
             //decode the array
-            printf("Array Detected. Size of the array is: %d\n",obj.via.array.size );
+            PRINT("Array Detected. Size of the array is: %d\n",obj.via.array.size );
             
             // array is in formt [int, boolean, string], iterate over it
             for( int i = 0; i < obj.via.array.size; i++)
             {
-                printf("Element %d type is: %d\n", i, obj.via.array.ptr[i].type);
+                PRINT("Element %d type is: %d\n", i, obj.via.array.ptr[i].type);
             }
         }
         else if( obj.type == MSGPACK_OBJECT_MAP )
         {
             //decode the map
-            printf("Map Detected. Size of the map is: %d\n", obj.via.map.size );
+            PRINT("Map Detected. Size of the map is: %d\n", obj.via.map.size );
             
             for( int i = 0; i < obj.via.map.size;i++)
             {
-                printf("Element %d type is: %d\n",i, obj.via.map.ptr[i].val.type);
+                PRINT("Element %d type is: %d\n",i, obj.via.map.ptr[i].val.type);
             }
         }
 
         /* Use obj. */
-        printf("Preview: ");
+        PRINT("Preview: ");
         msgpack_object_print(stdout, obj);
-        printf("\n\n");
+        PRINT("\n\n");
         /* If you want to allocate something on the zone, you can use zone. */
         /* msgpack_zone* zone = result.zone; */
         /* The lifetime of the obj and the zone,  */
@@ -94,10 +94,10 @@ void unpack(char const* buf, size_t len) {
     msgpack_unpacked_destroy(&result);
 
     if (ret == MSGPACK_UNPACK_CONTINUE) {
-        printf("All msgpack_object in the buffer is consumed.\n");
+        PRINT("All msgpack_object in the buffer is consumed.\n");
     }
     else if (ret == MSGPACK_UNPACK_PARSE_ERROR) {
-        printf("The data in the buf is invalid format.\n");
+        PRINT("The data in the buf is invalid format.\n");
     }
 }
 

@@ -211,7 +211,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
     	char* operation = get_header_str_value(&packet, OPERATION_HDR);
 
     	if(brokerConfig->verbose) {
-    		printf("SERVICE_REQUEST(%s)\n", operation);
+    		PRINT("SERVICE_REQUEST(%s)\n", operation);
     	}
 
         Location *src = malloc(sizeof(Location));
@@ -222,12 +222,12 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
     } 
     else if (request_type == SERVICE_REGISTRATION) {
     	if(brokerConfig->verbose) {
-    		printf("SERVICE_REGISTRATION\n");
+    		PRINT("SERVICE_REGISTRATION\n");
     	}
         register_service_request(&packet, brokerConfig);
     } else if(request_type == SERVICE_REQUEST_RESPONSE) {
     	if(brokerConfig->verbose) {
-    		printf("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+    		PRINT("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
     	}
         Packet* response = &packet;
         forward_response_to_client(response, brokerConfig);
@@ -239,19 +239,20 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
     return;
 }
 
-void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings) {
-	// if successful parse
+void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
+{
 	char* arg = INI_GetSetting(settings, "options", "verbose");
 	setVerboseFlag(arg);
 }
+
 void setVerboseFlag(char *verbose)
 {
 	char* arg = verbose;
-		if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-			brokerConfig.verbose = true;
-		} else {
-			brokerConfig.verbose = false;
-		}
+	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
+		brokerConfig.verbose = true;
+	} else {
+		brokerConfig.verbose = false;
+	}
 }
 
 void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
@@ -262,23 +263,23 @@ void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings
 
 void setWaitIndefinitelyFlag(char *arg)
 {
-	if(STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")){
+	if(STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
 			brokerConfig.waitIndef = true;
-		} else {
-			brokerConfig.waitIndef = false;
-		}
+	} else {
+		brokerConfig.waitIndef = false;
+	}
 }
 
 void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
 {
 	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
-	printf("broker port is : %s", brokerDetails->port);
+	PRINT("broker port is : %s", brokerDetails->port);
 }
 
 void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings)
 {
 	strncpy(brokerDetails->broker_address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
-	printf("broker address is : %s", brokerDetails->broker_address);
+	PRINT("broker address is : %s", brokerDetails->broker_address);
 }
 
 void setPortNumber(char *arg)

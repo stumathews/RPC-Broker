@@ -23,7 +23,7 @@ void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDeta
     void** params = 0;
     int message_id;
     
-    printf("broker address is %s, broker port is %s verbose is %d\n", brokerDetails.broker_address, brokerDetails.port, brokerConfig.verbose);
+    PRINT("broker address is %s, broker port is %s verbose is %d\n", brokerDetails.broker_address, brokerDetails.port, brokerConfig.verbose);
 
     msgpack_unpacked_init(&unpacked_result);
 

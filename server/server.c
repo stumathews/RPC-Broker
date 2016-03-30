@@ -108,7 +108,7 @@ int main( int argc, char **argv )
         PRINT("Server listening...\n");
 
     // Register with the broker on startup.
-    printf("broker address is %s, broker port is %s \n", brokerDetails.broker_address, brokerDetails.port);
+    PRINT("broker address is %s, broker port is %s \n", brokerDetails.broker_address, brokerDetails.port);
     if(service_register_with_broker(brokerDetails, brokerConfig)){
     	PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.broker_address, brokerDetails.port);
         registered_with_broker = true;

@@ -27,13 +27,13 @@ int main( int argc, char* argv[])
 
     setupCmd(argc, argv);
 
-    printf("Got server date reply as %s\n", getServerDate());
-    printf("reverse echo = %s\n", echo("Bruce Mathews") );
-    printf("broker name = %s\n", getBrokerName());
-    printf("sum = %d\n",add(20,199));
-    printf("sayHello = %s\n",sayHello(20,"Stuart"));
-    printf("sayDog = %s\n", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
-    printf("diffirence(200,578 = %d", diffirence(200, 578));
+    PRINT("Got server date reply as %s\n", getServerDate());
+    PRINT("reverse echo = %s\n", echo("Bruce Mathews") );
+    PRINT("broker name = %s\n", getBrokerName());
+    PRINT("sum = %d\n",add(20,199));
+    PRINT("sayHello = %s\n",sayHello(20,"Stuart"));
+    PRINT("sayDog = %s\n", sayDog("labrador_", "alsatian_", "bulldog_","spaniel"));
+    PRINT("diffirence(200,578 = %d", diffirence(200, 578));
 
     LIB_Uninit();
 #ifdef __linux__
@@ -136,7 +136,7 @@ void setupCmd(int argc, char* argv[])
         enum ParseResult result = CMD_Parse(argc,argv,true);
         if( result != PARSE_SUCCESS )
         {
-        	printf("something went wrong while parsing the cmdline arguments\n");
+        	PRINT("something went wrong while parsing the cmdline arguments\n");
             exit(1);
         }
     }

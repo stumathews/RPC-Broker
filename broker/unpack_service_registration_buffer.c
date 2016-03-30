@@ -3,7 +3,7 @@
 
 struct ServiceRegistration* unpack_service_registration_buffer(const char* payload, int langth, struct BrokerConfig* brokerConfig)
 {
-    printf("Unpacking service registration request...\n");
+    PRINT("Unpacking service registration request...\n");
 
     size_t off = 0;
     int i = 0;
@@ -65,8 +65,8 @@ struct ServiceRegistration* unpack_service_registration_buffer(const char* paylo
                 str = (char*) malloc((size_t)str_len+1);
 
                 if(!str) {
-                	printf("failed to malloc!\n");
-                	printf("curr.via.str.size %u \n",(int)curr.via.str.size);
+                	PRINT("failed to malloc!\n");
+                	PRINT("curr.via.str.size %u \n",(int)curr.via.str.size);
                 	perror("");
                 	return 0;
                 }

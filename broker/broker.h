@@ -23,7 +23,7 @@ unsigned long thread_server(void* params);
 #endif
 
 static void main_event_loop();
-static void server( SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails );
+static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails);
 void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings);
 void setVerboseFlag(char *verbose);
 void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings);
