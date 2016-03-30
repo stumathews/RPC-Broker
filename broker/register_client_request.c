@@ -4,7 +4,7 @@
 extern struct ClientRequestRegistration client_request_repository;
 extern bool verbose;
 
-struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct BrokerConfig *brokerConfig)
+struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct Config *brokerConfig)
 {
 
     if(brokerConfig->verbose) {

@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-struct ServiceRegistration* unpack_service_registration_buffer(const char* payload, int langth, struct BrokerConfig* brokerConfig)
+struct ServiceRegistration* unpack_service_registration_buffer(const char* payload, int langth, struct Config* brokerConfig)
 {
     PRINT("Unpacking service registration request...\n");
 

@@ -2,7 +2,7 @@
 #include "broker_support.h"
 #include <unistd.h>
 
-void forward_response_to_client(Packet* response, struct BrokerConfig *brokerConfig)
+void forward_response_to_client(Packet* response, struct Config *brokerConfig)
 {
     Location* client = malloc(sizeof(Location));
 

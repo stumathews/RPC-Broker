@@ -9,16 +9,16 @@
 #include "server_interface.h"
 
 #define CONFIG_FILENAME "config.ini"
-BrokerDetails brokerDetails = {};
-BrokerConfig brokerConfig = {};
-char port[MAX_PORT_CHARS] = {0};
-char server_address[MAX_ADDRESS_CHARS] = {0};
+Details brokerDetails = {};
+Details serverDetails = {};
+Config serverConfig = {};
+
 static bool registered_with_broker = false;
 
 /* Function prototypes */
 
-bool service_register_with_broker(BrokerDetails brokerDetails, BrokerConfig brokerConfig);
-void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDetails, BrokerConfig brokerConfig);
+bool service_register_with_broker(Details brokerDetails, Details serverDetails,Config brokerConfig);
+void unpack_marshal_call_send(char* buffer, int buflen, Details brokerDetails, Config brokerConfig);
 static void setBrokerPort(char* arg);
 static void setPortNumber(char* arg);
 static void setBrokerAddress(char* arg);
@@ -86,7 +86,7 @@ int main( int argc, char **argv )
 			setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
 			setBrokerPort(INI_GetSetting(settings, "broker", "port"));
 
-			PrintConfigDiagnostics(brokerConfig.verbose, settings);
+			PrintConfigDiagnostics(serverConfig.verbose, settings);
 		}
 		else {
 			ERR_Print("Failed to parse config file", 1);
@@ -104,24 +104,24 @@ int main( int argc, char **argv )
 
     NETINIT();
     
-    if(brokerConfig.verbose )
+    if(serverConfig.verbose )
         PRINT("Server listening...\n");
 
     // Register with the broker on startup.
-    PRINT("broker address is %s, broker port is %s \n", brokerDetails.broker_address, brokerDetails.port);
-    if(service_register_with_broker(brokerDetails, brokerConfig)){
-    	PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.broker_address, brokerDetails.port);
+    PRINT("broker address is %s, broker port is %s \n", brokerDetails.address, brokerDetails.port);
+    if(service_register_with_broker(brokerDetails, serverDetails, serverConfig)){
+    	PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.address, brokerDetails.port);
         registered_with_broker = true;
     }
 
     // get a socket, bound to this address thats configured to listen.
     // NB: This is always ever non-blocking 
-    s = netTcpServer(server_address,port);
+    s = netTcpServer(serverDetails.address,serverDetails.port);
     FD_SET(s, &readfds);
     do {
         // wait/block on this listening socket...
         int res = 0;
-        if(!brokerConfig.waitIndef) {
+        if(!serverConfig.waitIndef) {
             res = select(s+1, &readfds, NULL, NULL, &timeout);
         } else {
             res = select(s+1, &readfds, NULL, NULL, NULL);
@@ -195,7 +195,7 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     char* dbuf = (char*) malloc( sizeof(char) * pkt.len);
     int d_rc  = netReadn(s, dbuf, sizeof( char) * pkt.len);
 
-    if(brokerConfig.verbose) {
+    if(serverConfig.verbose) {
         PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,pkt.len );
     }
     if(n_rc < 1) {
@@ -204,12 +204,12 @@ static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp )
     if(d_rc < 1) {
         netError(1, errno,"failed to receive message\n");
     }
-    if(brokerConfig.verbose) {
+    if(serverConfig.verbose) {
         PRINT("read %d bytes of data\n",d_rc);
     }
 
 
-    unpack_marshal_call_send(dbuf, pkt.len, brokerDetails, brokerConfig );
+    unpack_marshal_call_send(dbuf, pkt.len, brokerDetails, serverConfig );
 }
 // ===============================
 // Command line handling routines
@@ -222,32 +222,32 @@ static void setBrokerPort( char* arg)
 
 static void setPortNumber(char* arg)
 {
-    CHECK_STRING(arg, IS_NOT_EMPTY);
-    strncpy(port, arg, strlen(arg));
+	CHECK_STRING(arg, IS_NOT_EMPTY);
+	strncpy(serverDetails.port, arg, strlen(arg));
 }
 
 static void setBrokerAddress(char* arg)
 {
     CHECK_STRING(arg, IS_NOT_EMPTY );
-    strncpy(brokerDetails.broker_address, arg, strlen(arg) );
+    strncpy(brokerDetails.address, arg, strlen(arg) );
 }
 static void setOurAddress(char* arg)
 {
-    CHECK_STRING( arg, IS_NOT_EMPTY );
-    strncpy(server_address, arg, strlen(arg) );
+    CHECK_STRING(arg, IS_NOT_EMPTY );
+    strncpy(serverDetails.address, arg, strlen(arg) );
 }
 
 static void setWaitIndef(char* arg)
 {
-    brokerConfig.waitIndef = true;
+    serverConfig.waitIndef = true;
 }
 
 static void setBeVerbose(char* arg)
 {
     if(STR_Equals(arg,"true") || STR_Equals(arg,"1")) {
-    	brokerConfig.verbose = true;
+    	serverConfig.verbose = true;
     } else {
-    	brokerConfig.verbose = false;
+    	serverConfig.verbose = false;
     }
 }
 

@@ -3,7 +3,7 @@
 
 extern struct ClientRequestRegistration client_request_repository;
 
-Location* find_client_for_response(Packet *packet, Location* dest, struct BrokerConfig *brokerConfig)
+Location* find_client_for_response(Packet *packet, Location* dest, struct Config *brokerConfig)
 {
     struct list_head *pos, *q;
     char* requested_operation;

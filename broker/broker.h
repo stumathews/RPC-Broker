@@ -23,13 +23,13 @@ unsigned long thread_server(void* params);
 #endif
 
 static void main_event_loop();
-static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails);
-void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings);
+static void server(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails);
+void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);
 void setVerboseFlag(char *verbose);
-void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings);
+void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings);
 void setWaitIndefinitelyFlag(char *arg);
-void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings);
-void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings);
+void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings);
+void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings);
 void setPortNumber(char *arg);
 
 #endif /* BROKER_BROKER_H_ */

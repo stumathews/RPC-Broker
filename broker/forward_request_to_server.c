@@ -5,7 +5,7 @@ extern bool verbose;
 extern struct ServiceRegistration service_repository;
 extern struct ServiceRequestRegistration client_request_repository;
 
-void forward_request_to_server(Packet* packet, Location* src, struct BrokerConfig *brokerConfig)
+void forward_request_to_server(Packet* packet, Location* src, struct Config *brokerConfig)
 {
 	ClientReg *crreg;
     Location *dest;

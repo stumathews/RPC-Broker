@@ -12,11 +12,11 @@ extern char port[MAX_PORT_CHARS];
  * @param broker_port the broker port
  * @return void
  */
-void service_register_with_broker(BrokerDetails brokerDetails, BrokerConfig brokerConfig )
+void service_register_with_broker(Details brokerDetails, Details serverDetails, Config brokerConfig )
 {
     ServiceReg *sr = malloc(sizeof(ServiceReg));
-    sr->address = server_address; // TODO: Get our actual IP address
-    sr->port = port;
+    sr->address = serverDetails.address; // TODO: Get our actual IP address
+    sr->port = serverDetails.port;
     
     msgpack_sbuffer sbuf;
     msgpack_sbuffer_init(&sbuf);
@@ -64,6 +64,6 @@ void service_register_with_broker(BrokerDetails brokerDetails, BrokerConfig brok
     }
     // send registration message to broker
     Packet pkt; pkt.buffer = sbuf.data; pkt.len = sbuf.size;
-    send_request(&pkt, brokerDetails.broker_address, brokerDetails.port,brokerConfig.verbose);
+    send_request(&pkt, brokerDetails.address, brokerDetails.port,brokerConfig.verbose);
     msgpack_sbuffer_destroy(&sbuf);
 }
