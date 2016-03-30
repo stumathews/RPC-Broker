@@ -23,6 +23,8 @@ void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDeta
     void** params = 0;
     int message_id;
     
+    printf("broker address is %s, broker port is %s verbose is %d\n", brokerDetails.broker_address, brokerDetails.port, brokerConfig.verbose);
+
     msgpack_unpacked_init(&unpacked_result);
 
     while ((return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off)) == MSGPACK_UNPACK_SUCCESS)
@@ -58,7 +60,7 @@ void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDeta
                 }
             }
             // Now arrange for the service call to be invoked and marshal the parmeters into the function call
-            call_marshelResponse_send(message_id, ptrOperation, broker_address, broker_port, brokerConfig.verbose,(char**)params);
+            call_marshelResponse_send(message_id, ptrOperation, brokerDetails.broker_address, brokerDetails.port, brokerConfig.verbose,(char**)params);
         }
     } // finished unpacking.
     if (return_status == MSGPACK_UNPACK_PARSE_ERROR) {

@@ -24,8 +24,9 @@ int send_request(Packet *packet,char* address, char* port, bool verbose)
 
 	struct sockaddr_in peer;
 	SOCKET s;
-	s = netTcpClient(address,port);
 	PRINT("Sending to %s:%s...\n", address, port);
+
+	s = netTcpClient(address,port);
 	return client( s, &peer, packet,verbose );
 }
 
