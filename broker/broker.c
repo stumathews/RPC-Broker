@@ -3,8 +3,8 @@
 #include "../config.h"
 #include "broker.h"
 
-static struct BrokerConfig brokerConfig = {0};
-static struct BrokerDetails brokerDetails = {0};
+static struct Config brokerConfig = {0};
+static struct Details brokerDetails = {0};
 
 /**
  * @brief see broker_support.c for additional functions used in the broker code
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
  * 
  * @return void
  */
-static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails)
+static void main_event_loop(struct Config *brokerConfig, struct Details *brokerDetails)
 {
     struct sockaddr_in local;
     
@@ -87,7 +87,7 @@ static void main_event_loop(struct BrokerConfig *brokerConfig, struct BrokerDeta
     struct timeval timeout = {.tv_sec = 60, .tv_usec=0}; 
 
     // NB: Getting a socket is always non-blocking
-    s = SetupTCPServerSocket(brokerDetails->broker_address, brokerDetails->port);
+    s = SetupTCPServerSocket(brokerDetails->address, brokerDetails->port);
 
     FD_SET(s, &readfds);
 
@@ -180,7 +180,7 @@ unsigned long thread_server(void* params)
  * @param peerp the peerlen
  * @return void
  */
-static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails )
+static void server(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails )
 {
     struct Packet packet;
 
@@ -239,7 +239,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
     return;
 }
 
-void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
+void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings)
 {
 	char* arg = INI_GetSetting(settings, "options", "verbose");
 	setVerboseFlag(arg);
@@ -255,7 +255,7 @@ void setVerboseFlag(char *verbose)
 	}
 }
 
-void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
+void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings)
 {
 	char* result = INI_GetSetting(settings, "options", "wait");
 	setWaitIndefinitelyFlag(result);
@@ -270,19 +270,19 @@ void setWaitIndefinitelyFlag(char *arg)
 	}
 }
 
-void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
+void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings)
 {
 	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
 	PRINT("broker port is : %s", brokerDetails->port);
 }
 
-void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings)
+void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings)
 {
-	strncpy(brokerDetails->broker_address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
-	PRINT("broker address is : %s", brokerDetails->broker_address);
+	strncpy(brokerDetails->address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
+	PRINT("broker address is : %s", brokerDetails->address);
 }
 
 void setPortNumber(char *arg)
 {
-	strncpy(brokerDetails.broker_address, arg, MAX_ADDRESS_CHARS);
+	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
 }
