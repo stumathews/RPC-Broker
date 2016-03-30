@@ -1,54 +1,10 @@
 #include <stulibc.h>
 #include "broker_support.h"
 #include "../config.h"
+#include "broker.h"
 
-#define SetupTCPServerSocket(our_address, port) netTcpServer((our_address), (port))
-
-struct ServiceRegistration service_repository;
-struct ClientRequestRegistration client_request_repository;
-
-static const char* CONFIG_FILENAME = "config.ini";
-static void main_event_loop();
-static void server( SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *brokerConfig, struct BrokerDetails *brokerDetails );
-
-#ifdef __linux__
-void* thread_server(void* params);
-#else
-unsigned long thread_server(void* params);
-#endif
-
-void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings) {
-	// if successful parse
-	char* arg = INI_GetSetting(settings, "options", "verbose");
-	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig->verbose = true;
-	} else {
-		brokerConfig->verbose = false;
-	}
-}
-
-void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
-{
-	char* result = INI_GetSetting(settings, "options", "wait");
-
-	if(STR_EqualsIgnoreCase(result, "true") || STR_Equals(result, "1")){
-		brokerConfig->waitIndef = true;
-	} else {
-		brokerConfig->waitIndef = false;
-	}
-}
-
-void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
-{
-	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
-	printf("broker port is : %s", brokerDetails->port);
-}
-
-void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings)
-{
-	strncpy(brokerDetails->broker_address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
-	printf("broker address is : %s", brokerDetails->broker_address);
-}
+static struct BrokerConfig brokerConfig = {0};
+static struct BrokerDetails brokerDetails = {0};
 
 /**
  * @brief see broker_support.c for additional functions used in the broker code
@@ -63,41 +19,34 @@ int main(int argc, char **argv)
 
     INIT_LIST_HEAD(&service_repository.list);
     INIT_LIST_HEAD(&client_request_repository.list);
-
-    struct BrokerConfig brokerConfig = {0};
-    struct BrokerDetails brokerDetails = {0};
-
-    /*
-    struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
-    struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosely",false,false,setVerboseFlag);
-    struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
-    struct Argument* cmdMyAddress = CMD_CreateNewArgument("a","a <address>","Set our address",true, true, setOurAddress);
-*/
     List* settings = {0};
-/*
+
+    struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
+    struct Argument* cmdVerbose = CMD_CreateNewArgument("v","","Prints all messages verbosely",false,false, setVerboseFlag);
+    struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w","","Wait indefinitely for new connections, else 60 secs and then dies",false,false,setWaitIndefinitelyFlag);
+
     CMD_AddArgument(cmdWaitIndef);
     CMD_AddArgument(cmdPort);
     CMD_AddArgument(cmdVerbose);
-    CMD_AddArgument(cmdMyAddress);
-*/
+
     if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
     	DBG("Using config file located in '%s'", CONFIG_FILENAME);
     	settings = LIST_GetInstance();
-    	if(INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
+    	if(INI_IniParse(CONFIG_FILENAME, settings) == INI_PARSE_SUCCESS) {
 			GetVerboseConfigSetting(&brokerConfig, settings);
 			GetWaitIndefConfigSetting(&brokerConfig, settings);
 			GetBrokerAddressConfigSetting(&brokerDetails, settings);
 			GetBrokerPortConfigSettings(&brokerDetails, settings);
-		} else 	{
-				ERR_Print("Failed to parse config file", 1);
+		} else {
+			ERR_Print("Failed to parse config file", 1);
 		}
-    }/*
+    }
     else if(argc > 1) {
     	if((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
 			PRINT("CMD line parsing failed.");
 			return 1;  // Note CMD_Parse will emit error messages as appropriate
 		}
-    }*/ else {
+    } else {
       CMD_ShowUsages("broker","stumathews@gmail.com","a broker component");
       exit(0);
     }
@@ -288,4 +237,51 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct BrokerConfig *bro
 
     free(packet.buffer);
     return;
+}
+
+void GetVerboseConfigSetting(struct BrokerConfig *brokerConfig, List* settings) {
+	// if successful parse
+	char* arg = INI_GetSetting(settings, "options", "verbose");
+	setVerboseFlag(arg);
+}
+void setVerboseFlag(char *verbose)
+{
+	char* arg = verbose;
+		if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
+			brokerConfig.verbose = true;
+		} else {
+			brokerConfig.verbose = false;
+		}
+}
+
+void GetWaitIndefConfigSetting(struct BrokerConfig *brokerConfig, List* settings)
+{
+	char* result = INI_GetSetting(settings, "options", "wait");
+	setWaitIndefinitelyFlag(result);
+}
+
+void setWaitIndefinitelyFlag(char *arg)
+{
+	if(STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")){
+			brokerConfig.waitIndef = true;
+		} else {
+			brokerConfig.waitIndef = false;
+		}
+}
+
+void GetBrokerAddressConfigSetting(struct BrokerDetails* brokerDetails, List* settings)
+{
+	strncpy(brokerDetails->port,INI_GetSetting(settings, "networking", "port"),MAX_PORT_CHARS);
+	printf("broker port is : %s", brokerDetails->port);
+}
+
+void GetBrokerPortConfigSettings(struct BrokerDetails* brokerDetails, List* settings)
+{
+	strncpy(brokerDetails->broker_address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
+	printf("broker address is : %s", brokerDetails->broker_address);
+}
+
+void setPortNumber(char *arg)
+{
+	strncpy(brokerDetails.broker_address, arg, MAX_ADDRESS_CHARS);
 }
