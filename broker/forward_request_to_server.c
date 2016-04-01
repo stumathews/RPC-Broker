@@ -25,7 +25,7 @@ void forward_request_to_server(Packet* packet, Location* src, struct Config *bro
     }
     
     if(brokerConfig->verbose) {
-        PRINT("About to forward request to %s:%s\n", dest->address, dest->port);
+        PRINT(">>> About to forward message to %s:%s\n",dest->address, dest->port);
     }
 
     send_request(packet, dest->address, dest->port, brokerConfig->verbose);

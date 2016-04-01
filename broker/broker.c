@@ -211,7 +211,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerCon
     	char* operation = get_header_str_value(&packet, OPERATION_HDR);
 
     	if(brokerConfig->verbose) {
-    		PRINT("SERVICE_REQUEST(%s)\n", operation);
+    		PRINT("<<< SERVICE_REQUEST(%s)\n", operation);
     	}
 
         Location *src = malloc(sizeof(Location));
@@ -222,12 +222,12 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerCon
     } 
     else if (request_type == SERVICE_REGISTRATION) {
     	if(brokerConfig->verbose) {
-    		PRINT("SERVICE_REGISTRATION\n");
+    		PRINT("<< SERVICE_REGISTRATION\n");
     	}
         register_service_request(&packet, brokerConfig);
     } else if(request_type == SERVICE_REQUEST_RESPONSE) {
     	if(brokerConfig->verbose) {
-    		PRINT("SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+    		PRINT("<< SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
     	}
         Packet* response = &packet;
         forward_response_to_client(response, brokerConfig);
