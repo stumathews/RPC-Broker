@@ -9,7 +9,6 @@
 #define BROKER_BROKER_H_
 
 #define SetupTCPServerSocket(our_address, port) netTcpServer((our_address), (port))
-#define INI_PARSE_SUCCESS 0
 #define MAX_FILENAME_LENGTH 255
 
 struct ServiceRegistration service_repository;
