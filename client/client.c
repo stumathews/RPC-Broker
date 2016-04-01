@@ -82,10 +82,10 @@ static void setWaitResponseIndef( char* arg)
 
 static void setVerbose(char* arg)
 {
-    if(STR_Equals( arg, "true") || STR_Equals(arg, "1") || STR_Equals(arg, "True") || STR_Equals(arg, "TRUE")){ 
-	verbose = true;
+    if(STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")){
+    	verbose = true;
     } else { 
-	verbose = false; 
+    	verbose = false;
     }
 }
 
@@ -110,24 +110,20 @@ void setupCmd(int argc, char* argv[])
 	{
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
-		if(INI_IniParse(CONFIG_FILENAME, settings) == 0) // if successful parse
-		{
+		if(INI_IniParse(CONFIG_FILENAME, settings) == INI_PARSE_SUCCESS) {
 
 			setWaitResponsePort(INI_GetSetting(settings, "wait", "port"));
 			setWaitResponseIndef(INI_GetSetting(settings, "wait", "indef"));
 			setVerbose(INI_GetSetting(settings, "options", "verbose"));
 			setOurAddress(INI_GetSetting(settings, "networking", "address"));
-
 			setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
 			setBrokerPortNumber(INI_GetSetting(settings, "broker", "port"));
 
-			if(verbose)
-			{
+			if(verbose)	{
 				LIST_ForEach(settings, printSetting);
 			}
 		}
-		else
-		{
+		else {
 			ERR_Print("Failed to parse config file", 1);
 		}
 	}
