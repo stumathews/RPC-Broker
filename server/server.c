@@ -32,7 +32,7 @@ int main( int argc, char **argv )
     fd_set readfds;
     FD_ZERO( &readfds);
 
-    List* settings = {};
+    List* settings = (void*)0;
     struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
     if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
