@@ -7,6 +7,8 @@
 #include <stulibc.h>
 #include "protocol.h"
 
+#define INI_PARSE_SUCCESS 0
+
 /**
  * @brief A packet consisting of the length of it and then the trailing data
  * 
