@@ -1,8 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern struct ClientRequestRegistration client_request_repository;
-extern bool verbose;
+extern struct List client_request_repository;
 
 struct ClientRequestRegistration *register_client_request(char* op, Location* src, int message_id, struct BrokerConfig *brokerConfig)
 {
@@ -19,7 +18,7 @@ struct ClientRequestRegistration *register_client_request(char* op, Location* sr
     client_request_registration->operation = op;
     client_request_registration->message_id = message_id;
 
-    list_add(&(client_request_registration->list),&(client_request_repository.list));
+    LIST_Add(&client_request_repository,client_request_registration);
 
     return client_request_registration;
 }

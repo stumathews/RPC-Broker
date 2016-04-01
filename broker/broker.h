@@ -12,8 +12,9 @@
 #define INI_PARSE_SUCCESS 0
 #define MAX_FILENAME_LENGTH 255
 
-struct ServiceRegistration service_repository;
-struct ClientRequestRegistration client_request_repository;
+//struct ServiceRegistration service_repository;
+List service_repository;
+List client_request_repository;
 static const char* CONFIG_FILENAME = "config.ini";
 
 #ifdef __linux__

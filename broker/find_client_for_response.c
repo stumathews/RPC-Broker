@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern struct ClientRequestRegistration client_request_repository;
+extern List client_request_repository;
 
 Location* find_client_for_response(Packet *packet, Location* dest, struct BrokerConfig *brokerConfig)
 {
@@ -10,15 +10,17 @@ Location* find_client_for_response(Packet *packet, Location* dest, struct Broker
     int*  message_id;
     ClientReg *crreg_entry;
 
-    if(list_empty( &client_request_repository.list)) {
+    if(client_request_repository.size == 0) {
         PRINT("No client requests registered in broker\n");
     }
 
     requested_operation = malloc(sizeof(char));
     message_id = malloc( sizeof(int));
 
-    list_for_each(pos, &client_request_repository.list) {
-        crreg_entry  = list_entry( pos, struct ClientRequestRegistration, list);
+    for(int j = 0; j < client_request_repository.size; j++) {
+    	Node* node = LIST_Get(&client_request_repository, j);
+        crreg_entry  = node->data;
+        printf("address:%s\n",crreg_entry->address);
         *message_id = get_header_int_value( packet, MESSAGE_ID_HDR);
         requested_operation = get_header_str_value(packet, OPERATION_HDR);
         if(*message_id == crreg_entry->message_id && STR_Equals(requested_operation, crreg_entry->operation)) {
@@ -27,7 +29,8 @@ Location* find_client_for_response(Packet *packet, Location* dest, struct Broker
             if(brokerConfig->verbose) {
             	DBG("found client at %s:%s\n", dest->address, dest->port);
             }
-            list_del(&crreg_entry->list);
+            // TODO: This doesn't work and it should --> LIST_DeleteNode(&client_request_repository, node);
+            //LIST_DeleteNode(&client_request_repository, node);
             return dest;
         }
     }

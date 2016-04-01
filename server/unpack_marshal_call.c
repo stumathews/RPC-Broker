@@ -2,9 +2,6 @@
 #include "common.h"
 #include "server_interface.h"
 
-
-extern char broker_address[MAX_ADDRESS_CHARS];
-extern char broker_port[MAX_PORT_CHARS];
 void call_marshelResponse_send(int message_id, char* operation, char* broker_address, char* broker_port, bool verbose, char** params);
 
 /**
@@ -27,8 +24,7 @@ void unpack_marshal_call_send(char* buffer, int buflen, BrokerDetails brokerDeta
 
     msgpack_unpacked_init(&unpacked_result);
 
-    while ((return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off)) == MSGPACK_UNPACK_SUCCESS)
-    {
+    while ((return_status = msgpack_unpack_next(&unpacked_result, buffer, buflen, &off)) == MSGPACK_UNPACK_SUCCESS) {
     	char header_name[MAX_HEADER_NAME_SIZE];
     	char* ptrOperation;
 
