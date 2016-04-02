@@ -12,7 +12,7 @@ void forward_response_to_client(Packet* response, struct Config *brokerConfig)
     }
     send_request(response, client->address, client->port, false);
 
-    free(client->port);
-    free(client->address);
-    free(client);
+    //free(client->port);
+    //free(client->address);
+    //free(client);
 }

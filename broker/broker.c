@@ -17,8 +17,8 @@ int main(int argc, char **argv)
 {
     LIB_Init();
 
-    INIT_LIST_HEAD(&service_repository.list);
-    INIT_LIST_HEAD(&client_request_repository.list);
+    LIST_Init(&service_repository);
+
     List* settings = {0};
 
     struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on",true, true, setPortNumber);
@@ -65,7 +65,6 @@ int main(int argc, char **argv)
 #endif
     EXIT(0);
 }
-
 
 /**
  * @brief Setup networking port and continually waits for network service registrations from services,  and service requests from clients.
@@ -143,7 +142,6 @@ static void main_event_loop(struct Config *brokerConfig, struct Details *brokerD
  *
  * @param params SOCKET* socket that is ready to read from
  */
-
 #ifdef __linux__
 void* thread_server(void* params)
 #else
@@ -151,21 +149,16 @@ unsigned long thread_server(void* params)
 #endif
 {
 	struct BrokerServerArgs *args = (struct BrokerServerArgs*)params;
-	SOCKET* s = (SOCKET*) args->socket;
+	SOCKET* s = (SOCKET*)args->socket;
 	int peerlen;
-
 	struct sockaddr_in peer;
 	peerlen = sizeof(peer);
-
 	SOCKET s1 = accept(*s,(struct sockaddr *)&peer, &peerlen);
 	if (!isvalidsock(s1)) {
 	    netError(1, errno, "accept failed");
 	}
-	// Data arrived,  Process it
-
 	server(s1, &peer, args->brokerConfig, args->brokerDetails);
 	NETCLOSE(s1);
-
 #ifdef __linux__
 	return (void*)0;
 #else
@@ -218,7 +211,7 @@ static void server(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerCon
 		get_sender_address(&packet, peerp, src);
         forward_request_to_server(&packet, src, brokerConfig);
 
-        free(operation);
+        //free(operation);
     } 
     else if (request_type == SERVICE_REGISTRATION) {
     	if(brokerConfig->verbose) {

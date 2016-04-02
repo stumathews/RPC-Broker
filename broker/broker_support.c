@@ -11,8 +11,25 @@ extern struct ServiceRegistration service_repository;
  * @brief List of clients that have pending requests
  * 
  */
-extern struct ClientRequestRegistration client_request_repository;
+extern List client_request_repository;
 
+void printServiceRegistration(Node* LinkedListNode){
+	struct ServiceRegistration* sreg_entry = (struct ServiceRegistration*) LinkedListNode->data;
+	        if( sreg_entry  == NULL )
+	        {
+	            PRINT("Found a NULL(empty) service registration entry in service repository list. Not good. Exiting!\n");
+	            return;
+	        }
+
+	        PRINT("Service Registration:\n"
+	                "Service name:%s\n"
+	                "Address: %s\n"
+	                "Port: %s\n"
+	                "Number ofservices %d",sreg_entry->service_name,
+	                                       sreg_entry->address,
+	                                       sreg_entry->port,
+	                                       sreg_entry->num_services);
+}
 /**
  * @brief Prints the contents of the services registered with this broker
  * 
@@ -23,24 +40,7 @@ void print_service_repository()
     PRINT("Service registrations:\n");
 
     struct list_head *pos;
-    list_for_each( pos, &service_repository.list)
-    {
-        struct ServiceRegistration* sreg_entry = list_entry( pos, struct ServiceRegistration, list );
-        if( sreg_entry  == NULL )
-        {
-            PRINT("Found a NULL(empty) service registration entry in service repository list. Not good. Exiting!\n");
-            return;
-        }
-
-        PRINT("Service Registration:\n"
-                "Service name:%s\n"
-                "Address: %s\n"
-                "Port: %s\n"
-                "Number ofservices %d",sreg_entry->service_name,
-                                       sreg_entry->address,
-                                       sreg_entry->port,
-                                       sreg_entry->num_services);
-    }
+    LIST_ForEach(&service_repository, printServiceRegistration);
 }
 
 /**
@@ -53,9 +53,9 @@ void print_client_request_repository()
     PRINT("Client request registrations:\n");
 
     struct list_head *pos;
-    list_for_each( pos, &client_request_repository.list)
+    for( int j = 0; j < client_request_repository.size;j++)
     {
-        struct ClientRequestRegistration* crreg_entry = list_entry( pos, struct ClientRequestRegistration, list );
+        struct ClientRequestRegistration* crreg_entry = LIST_Get(&client_request_repository,j)->data;
         if( crreg_entry  == NULL )
         {
             PRINT("Found a NULLi(empty) client request registration entry in client request repository list. Not good. Exiting!\n");
