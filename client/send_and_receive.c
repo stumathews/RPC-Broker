@@ -117,9 +117,7 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
  */
 Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose)
 {
-
-    List* mem_pool = LIST_GetInstance();
-    Packet *packet = Alloc( sizeof(Packet), mem_pool);
+    Packet *packet = malloc(sizeof(Packet));
     
     int n_rc = netReadn( s,(char*) &packet->len, sizeof(uint32_t));
     packet->len = ntohl(packet->len);
@@ -130,7 +128,7 @@ Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose)
     if( n_rc < 1 )
         netError(1, errno,"failed to receiver packet size\n");
     
-    packet->buffer = (char*) Alloc( sizeof(char) * packet->len, mem_pool);
+    packet->buffer = (char*) malloc( sizeof(char) * packet->len);
     int d_rc  = netReadn( s, packet->buffer, sizeof( char) * packet->len);
 
     if( d_rc < 1 )

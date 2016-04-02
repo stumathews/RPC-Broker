@@ -342,7 +342,7 @@ char* get_op_name( Packet* packet)
         {
             msgpack_object_str string = val.via.str;
             int str_len = string.size;
-            char* str = Alloc(str_len, mem_pool);
+            char* str = malloc(str_len);
             
             memset( str, '\0', str_len);
             str[str_len] = '\0';
