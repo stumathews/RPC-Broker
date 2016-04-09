@@ -8,7 +8,7 @@ static struct Details brokerDetails = { 0 };
 
 /**
  * @brief see broker_support.c for additional functions used in the broker code
- * 
+ *
  * @param argc Number of args
  * @param argv args
  * @return int
@@ -16,7 +16,7 @@ static struct Details brokerDetails = { 0 };
 int main(int argc, char **argv) {
 	LIB_Init();
 
-	LIST_Init(&service_repository);
+	LIST_Init (&service_repository);
 
 	List* settings = { 0 };
 
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 
 /**
  * @brief Setup networking port and continually waits for network service registrations from services,  and service requests from clients.
- * 
+ *
  * @return void
  */
 static void main_event_loop(struct Config *brokerConfig,
@@ -86,56 +86,57 @@ static void main_event_loop(struct Config *brokerConfig,
 	fd_set readfds;
 	FD_ZERO(&readfds);
 	const int on = 1;
-	struct timeval timeout = { .tv_sec = 60, .tv_usec = 0 };
+struct timeval timeout = {.tv_sec = 60, .tv_usec = 0}
+;
 
-	// NB: Getting a socket is always non-blocking
-	s = SetupTCPServerSocket(brokerDetails->address, brokerDetails->port);
+// NB: Getting a socket is always non-blocking
+s = SetupTCPServerSocket(brokerDetails->address, brokerDetails->port);
 
-	FD_SET(s, &readfds);
+FD_SET(s, &readfds);
 
-	do {
-		/* wait/block on this listening socket... */
-		int res = 0;
+do {
+	/* wait/block on this listening socket... */
+	int res = 0;
 
-		if (brokerConfig->waitIndef) {
-			res = select(s + 1, &readfds, NULL, NULL, NULL);
-		} else {
-			res = select(s + 1, &readfds, NULL, NULL, &timeout);
-		}
+	if (brokerConfig->waitIndef) {
+		res = select(s + 1, &readfds, NULL, NULL, NULL);
+	} else {
+		res = select(s + 1, &readfds, NULL, NULL, &timeout);
+	}
 
-		if (brokerConfig->verbose) {
-			PRINT("-- Listening...\n");
-		}
+	if (brokerConfig->verbose) {
+		PRINT("-- Listening...\n");
+	}
 
-		if (res == 0) {
-			LOG("broker listen timeout!");
-			netError(1, errno, "timeout!");
-		} else if (res == -1) {
-			LOG("Select error!");
-			netError(1, errno, "select error!!");
-		} else {
-			if (FD_ISSET(s, &readfds)) {
-				struct BrokerServerArgs args = { 0 };
-				args.brokerConfig = brokerConfig;
-				args.brokerDetails = brokerDetails;
-				args.socket = &s;
+	if (res == 0) {
+		LOG("broker listen timeout!");
+		netError(1, errno, "timeout!");
+	} else if (res == -1) {
+		LOG("Select error!");
+		netError(1, errno, "select error!!");
+	} else {
+		if (FD_ISSET(s, &readfds)) {
+			struct BrokerServerArgs args = {0};
+			args.brokerConfig = brokerConfig;
+			args.brokerDetails = brokerDetails;
+			args.socket = &s;
 
-				// Fork of a new thread to deal with this request and go back to listening for next request
+			// Fork of a new thread to deal with this request and go back to listening for next request
 #ifdef __linux__
-				THREAD_RunAndForget(thread_server, (void*)&args);
+			THREAD_RunAndForget(thread_server, (void*)&args);
 #else
-				// Right now starting this broker as a thread causes problems.
-				// In most cases this is probaly because its sharing state and I'm not doing
-				// anything particualr to prevent it.
-				thread_server((void*) &args);
-				//THREAD_RunAndForget(thread_server, (void*)&s);
+			// Right now starting this broker as a thread causes problems.
+			// In most cases this is probaly because its sharing state and I'm not doing
+			// anything particualr to prevent it.
+			thread_server((void*) &args);
+			//THREAD_RunAndForget(thread_server, (void*)&s);
 #endif
-			} else {
-				DBG("Not our socket. continuing listening");
-				continue;
-			}
+		} else {
+			DBG("Not our socket. continuing listening");
+			continue;
 		}
-	} while (1);
+	}
+}while (1);
 }
 
 /***
@@ -148,133 +149,128 @@ void* thread_server(void* params)
 #else
 unsigned long thread_server(void* params)
 #endif
-{
-	struct BrokerServerArgs *args = (struct BrokerServerArgs*) params;
-	SOCKET* s = (SOCKET*) args->socket;
-	int peerlen;
-	struct sockaddr_in peer;
-	peerlen = sizeof(peer);
-	SOCKET s1 = accept(*s, (struct sockaddr *) &peer, &peerlen);
-	if (!isvalidsock(s1)) {
-		netError(1, errno, "accept failed");
-	}
-	server(s1, &peer, args->brokerConfig, args->brokerDetails);
-	NETCLOSE(s1);
+	{
+struct BrokerServerArgs *args = (struct BrokerServerArgs*) params;
+SOCKET* s = (SOCKET*) args->socket;
+int peerlen;
+struct sockaddr_in peer;
+peerlen = sizeof(peer);
+SOCKET s1 = accept(*s, (struct sockaddr *) &peer, &peerlen);
+if (!isvalidsock(s1)) {
+	netError(1, errno, "accept failed");
+}
+server(s1, &peer, args->brokerConfig, args->brokerDetails);
+NETCLOSE(s1);
 #ifdef __linux__
-	return (void*)0;
+return (void*)0;
 #else
-	return 0;
+return 0;
 #endif
 }
 
 /**
  * @brief Processes the connection data
- * 
+ *
  * @param s The socket
  * @param peerp the peerlen
  * @return void
  */
 static void server(SOCKET s, struct sockaddr_in *peerp,
-		struct Config *brokerConfig, struct Details *brokerDetails) {
-	struct Packet packet;
+	struct Config *brokerConfig, struct Details *brokerDetails) {
+struct Packet packet;
 
-	int packet_size = netReadn(s, (char*) &packet.len, sizeof(uint32_t));
-	packet.len = ntohl(packet.len);
+int packet_size = netReadn(s, (char*) &packet.len, sizeof(uint32_t));
+packet.len = ntohl(packet.len);
 
-	if (packet_size < 1) {
-		netError(1, errno, "Failed to receiver packet size\n");
-	}
+if (packet_size < 1) {
+	netError(1, errno, "Failed to receiver packet size\n");
+}
 
-	DBG("Got: %d bytes(packet length).", packet_size);
-	DBG("Packet length of %u\n", packet.len);
+DBG("Got: %d bytes(packet length).", packet_size);
+DBG("Packet length of %u\n", packet.len);
 
-	packet.buffer = (char*) malloc(sizeof(char) * packet.len);
-	int data_size = netReadn(s, packet.buffer, sizeof(char) * packet.len);
+packet.buffer = (char*) malloc(sizeof(char) * packet.len);
+int data_size = netReadn(s, packet.buffer, sizeof(char) * packet.len);
 
-	if (data_size < 1) {
-		netError(1, errno, "failed to receive message\n");
-	}
+if (data_size < 1) {
+	netError(1, errno, "failed to receive message\n");
+}
 
-	int request_type = -1; // default -1 represents invalid state
+int request_type = -1; // default -1 represents invalid state
 
+if (brokerConfig->verbose) {
+	PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size,
+			data_size);
+}
+
+if ((request_type = determine_request_type(&packet)) == SERVICE_REQUEST) {
+	char* operation = get_header_str_value(&packet, OPERATION_HDR);
+	PRINT("<<< SERVICE_REQUEST(%s)\n", operation);
+	Location *src = malloc(sizeof(Location));
+	get_sender_address(&packet, peerp, src);
+	forward_request_to_server(&packet, src, brokerConfig);
+
+	//free(operation);
+} else if (request_type == SERVICE_REGISTRATION) {
 	if (brokerConfig->verbose) {
-		PRINT("Got %d bytes [%d+%d] : ", data_size + packet_size, packet_size,
-				data_size);
+		PRINT("<< SERVICE_REGISTRATION\n");
 	}
+	register_service_request(&packet, brokerConfig);
+} else if (request_type == SERVICE_REQUEST_RESPONSE) {
+	PRINT("<< SERVICE_REQUEST_RESPONSE(%s)\n",
+			get_header_str_value(&packet, OPERATION_HDR));
 
-	if ((request_type = determine_request_type(&packet)) == SERVICE_REQUEST) {
-		char* operation = get_header_str_value(&packet, OPERATION_HDR);
+	Packet* response = &packet;
+	forward_response_to_client(response, brokerConfig);
+} else {
+	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
+}
 
-		if (brokerConfig->verbose) {
-			PRINT("<<< SERVICE_REQUEST(%s)\n", operation);
-		}
-
-		Location *src = malloc(sizeof(Location));
-		get_sender_address(&packet, peerp, src);
-		forward_request_to_server(&packet, src, brokerConfig);
-
-		//free(operation);
-	} else if (request_type == SERVICE_REGISTRATION) {
-		if (brokerConfig->verbose) {
-			PRINT("<< SERVICE_REGISTRATION\n");
-		}
-		register_service_request(&packet, brokerConfig);
-	} else if (request_type == SERVICE_REQUEST_RESPONSE) {
-		if (brokerConfig->verbose) {
-			PRINT("<< SERVICE_REQUEST_RESPONSE(%s)\n",
-					get_header_str_value(&packet, OPERATION_HDR));
-		}
-		Packet* response = &packet;
-		forward_response_to_client(response, brokerConfig);
-	} else {
-		PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
-	}
-
-	free(packet.buffer);
-	return;
+free(packet.buffer);
+return;
 }
 
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings) {
-	char* arg = INI_GetSetting(settings, "options", "verbose");
-	setVerboseFlag(arg);
+char* arg = INI_GetSetting(settings, "options", "verbose");
+setVerboseFlag(arg);
 }
 
 void setVerboseFlag(char *verbose) {
-	char* arg = verbose;
-	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig.verbose = true;
-	} else {
-		brokerConfig.verbose = false;
-	}
+char* arg = verbose;
+if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
+	brokerConfig.verbose = true;
+} else {
+	brokerConfig.verbose = false;
+}
 }
 
 void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings) {
-	char* result = INI_GetSetting(settings, "options", "wait");
-	setWaitIndefinitelyFlag(result);
+char* result = INI_GetSetting(settings, "options", "wait");
+setWaitIndefinitelyFlag(result);
 }
 
 void setWaitIndefinitelyFlag(char *arg) {
-	if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig.waitIndef = true;
-	} else {
-		brokerConfig.waitIndef = false;
-	}
+if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
+	brokerConfig.waitIndef = true;
+} else {
+	brokerConfig.waitIndef = false;
+}
 }
 
 void GetBrokerAddressConfigSetting(struct Details* brokerDetails,
-		List* settings) {
-	strncpy(brokerDetails->port, INI_GetSetting(settings, "networking", "port"),
-			MAX_PORT_CHARS);
-	PRINT("broker port is : %s", brokerDetails->port);
+	List* settings) {
+strncpy(brokerDetails->port, INI_GetSetting(settings, "networking", "port"),
+		MAX_PORT_CHARS);
+PRINT("broker port is : %s", brokerDetails->port);
 }
 
-void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings) {
-	strncpy(brokerDetails->address,
-			INI_GetSetting(settings, "networking", "address"),
-			MAX_ADDRESS_CHARS);
-	PRINT("broker address is : %s", brokerDetails->address);
+void GetBrokerPortConfigSettings(struct Details* brokerDetails,
+	List* settings) {
+strncpy(brokerDetails->address,
+		INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
+PRINT("broker address is : %s", brokerDetails->address);
 }
 
 void setPortNumber(char *arg) {
-	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
+strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
 }

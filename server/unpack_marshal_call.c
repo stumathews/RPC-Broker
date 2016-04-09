@@ -7,7 +7,7 @@ void call_marshelResponse_send(int message_id, char* operation,
 
 /**
  * @brief Unpackets service request, extracts parameters and calls server functions and sends back the response to the broker
- * 
+ *
  * @param buffer the service request from the client/broker
  * @param buflen the length of the data
  * @return void
@@ -21,8 +21,10 @@ void unpack_marshal_call_send(char* buffer, int buflen, Details brokerDetails,
 	void** params = 0;
 	int message_id;
 
-	PRINT("broker address is %s, broker port is %s verbose is %d\n",
-			brokerDetails.address, brokerDetails.port, brokerConfig.verbose);
+	if (brokerConfig.verbose)
+		PRINT("broker address is %s, broker port is %s verbose is %d\n",
+				brokerDetails.address, brokerDetails.port,
+				brokerConfig.verbose);
 
 	msgpack_unpacked_init(&unpacked_result);
 

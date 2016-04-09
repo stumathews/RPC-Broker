@@ -10,7 +10,7 @@ void copyString(int str_len, const msgpack_object_str* from, char* to) {
 
 /**
  * @brief Send request
- * 
+ *
  * @param packet data to send
  * @param address address to send data to
  * @param port port to connect to on address
@@ -22,7 +22,8 @@ int send_request(Packet *packet, char* address, char* port, bool verbose) {
 
 	struct sockaddr_in peer;
 	SOCKET s;
-	PRINT("Sending to %s:%s...\n", address, port);
+	if (verbose)
+		PRINT("Sending to %s:%s...\n", address, port);
 
 	s = netTcpClient(address, port);
 	return client(s, &peer, packet, verbose);
@@ -30,9 +31,9 @@ int send_request(Packet *packet, char* address, char* port, bool verbose) {
 
 /**
  * @brief Send request to listening broker socket
- * 
+ *
  * @param s socket
- * @param peerp peerp 
+ * @param peerp peerp
  * @param packet packet to send
  * @param verbose true if verbose messages ar eallowed
  * @return int number of bytes sent
@@ -54,14 +55,15 @@ int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose) {
 		netError(1, errno, "failed to send packed data\n");
 
 	int total_sent_bytes = rc_n + rc_d;
-	PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, rc_n, rc_d);
+	if (verbose)
+		PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, rc_n, rc_d);
 
 	return total_sent_bytes;
 }
 
 /**
  * @brief Packs a int header
- * 
+ *
  * @param key header name
  * @param ival value
  * @param pk msgpack_packer
@@ -78,7 +80,7 @@ void pack_map_int(char* key, int ival, msgpack_packer* pk) {
 /**
  * @brief Packs a key/value pair like this: {"key"=>"valuet"}
  where key is a string and value if an char
- * 
+ *
  * @param key header name
  * @param value header value
  * @param pk msgpack_packer address
@@ -95,7 +97,7 @@ void pack_map_str(char* key, char* value, msgpack_packer* pk) {
 
 /**
  * @brief Displays the contents of the protocol messages
- * 
+ *
  * @param packet the protocol messages
  * @param verbose true if should verbose log messages in this function
  * @return void
@@ -117,7 +119,8 @@ void unpack_data(Packet* packet, bool verbose) {
 	// Go and get the rest of all was good
 	while (ret == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj = result.data;
-		msgpack_object_print(stdout, obj);
+		if (verbose)
+			msgpack_object_print(stdout, obj);
 
 		if (obj.type != MSGPACK_OBJECT_NIL) {
 			printf("\n");
@@ -134,7 +137,7 @@ void unpack_data(Packet* packet, bool verbose) {
 
 /**
  * @brief Gets the msgpack object for the named header
- * 
+ *
  * @param obj the source to extract from
  * @param header_buffer the header name to look
  * @return msgpack_object the result
@@ -143,7 +146,7 @@ msgpack_object extract_header(msgpack_object* obj, char* header_buffer) {
 	// msgpack_object.type (msgpack_object_type)
 	// msgpack_object.via (msgpack_object_union)
 	if (obj->type == MSGPACK_OBJECT_MAP) {
-		int count = obj->via.map.size; // How many items in this map? 
+		int count = obj->via.map.size; // How many items in this map?
 		if (count != 1) {
 			PRINT("Expected count of items in map to be 1. Not the case: %d\n",
 					count);
@@ -169,7 +172,7 @@ msgpack_object extract_header(msgpack_object* obj, char* header_buffer) {
 
 /**
  * @brief Determines the request-type header type
- * 
+ *
  * @param pkt the protocl message
  * @return RequestType the determined request type
  */
@@ -208,7 +211,7 @@ enum RequestType determine_request_type(struct Packet* pkt) {
 
 /**
  * @brief Gets the integer value of a header
- * 
+ *
  * @param packet protocol message
  * @param look_header_name header name to look for
  * @return int result
@@ -251,7 +254,7 @@ int get_header_int_value(Packet* packet, char* look_header_name) {
 
 /**
  * @brief Gets the string value associated with the named header
- * 
+ *
  * @param packet protocol message
  * @param look_header_name header name to look for
  * @return char* the result value
@@ -274,8 +277,8 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 
 		msgpack_object val = extract_header(&obj, header_name);
 
-		if (val.type
-				== MSGPACK_OBJECT_STR&& STR_Equals(look_header_name, header_name) == true) {
+		if (val.type == MSGPACK_OBJECT_STR
+				&& STR_Equals(look_header_name, header_name) == true) {
 			int str_len = val.via.str.size;
 			str = malloc(str_len);
 
@@ -299,7 +302,7 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 }
 /**
  * @brief Find the operation name in the protocol message
- * 
+ *
  * @param packet the protocol message
  * @return char* the operation found
  */

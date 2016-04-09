@@ -20,8 +20,6 @@ unsigned __stdcall thread_send_request(void* params)
 #endif
 		{
 	struct SendArgs *args = (struct SendArgs*) params;
-	PRINT("args->to_address = %s, args->port = %s, args->verbose = %s\n",
-			args->to_address, args->port, args->verbose);
 
 	send_request(args->packet, args->to_address, args->port, args->verbose);
 }
@@ -95,17 +93,18 @@ return result;
 Packet *send_and_receive(Packet* packet, char* to_address, char* port,
 	bool verbose, char* wait_response_port) {
 
-struct SendArgs args = {.packet = packet, .to_address = to_address, .port =
-port, .wait_response_port = wait_response_port}
+struct SendArgs args = {
+.packet = packet,
+.to_address = to_address,
+.port =port,
+.wait_response_port = wait_response_port
+}
 ;
-
- // Send the data on its own thread and then wait for the response...
 
 THREAD_RunAndForget(thread_send_request, (void*) &args);
 
-Packet* result = waitForResponse(verbose, client_address, wait_response_indef,
-	wait_response_port);
-return result; // dangling pointer - stack frame finishes and could invalidate this address
+return waitForResponse(verbose, client_address, wait_response_indef,
+	wait_response_port); // dangling pointer - stack frame finishes and could invalidate this address
 }
 
 /**

@@ -9,7 +9,7 @@
 extern struct ServiceRegistration service_repository;
 /**
  * @brief List of clients that have pending requests
- * 
+ *
  */
 extern List client_request_repository;
 
@@ -29,7 +29,7 @@ void printServiceRegistration(Node* LinkedListNode) {
 }
 /**
  * @brief Prints the contents of the services registered with this broker
- * 
+ *
  * @return void
  */
 void print_service_repository() {
@@ -41,7 +41,7 @@ void print_service_repository() {
 
 /**
  * @brief Prints the list of clients with requests sent to the broker. Currently not purged of old, already serviced requests
- * 
+ *
  * @return void
  */
 void print_client_request_repository() {
@@ -53,7 +53,7 @@ void print_client_request_repository() {
 				&client_request_repository, j)->data;
 		if (crreg_entry == NULL) {
 			PRINT(
-					"Found a NULLi(empty) client request registration entry in client request repository list. Not good. Exiting!\n");
+					"Found a NULL(empty) client request registration entry in client request repository list. Not good. Exiting!\n");
 			return;
 		}
 
@@ -67,7 +67,7 @@ void print_client_request_repository() {
 
 /**
  * @brief Future call to acknowledge recept of message from client or server
- * 
+ *
  * @return void
  */
 void acknowledgement() {

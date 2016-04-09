@@ -8,7 +8,7 @@ void forward_request_to_server(Packet* packet, Location* src,
 	char* requested_operation;
 	int* message_id;
 
-	dest = find_server_for_request(packet);
+	dest = find_server_for_request(packet, brokerConfig);
 	requested_operation = malloc(sizeof(char));
 	message_id = malloc(sizeof(int));
 	*message_id = get_header_int_value(packet, MESSAGE_ID_HDR);
