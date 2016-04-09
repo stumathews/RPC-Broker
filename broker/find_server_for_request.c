@@ -3,42 +3,41 @@
 
 extern List service_repository;
 
-Location* find_server_for_request(Packet* packet)
-{
+Location* find_server_for_request(Packet* packet) {
 	ServiceReg *sreg_entry;
 	struct list_head *pos, *q;
-    char* op_name;
-    Location *dest;
+	char* op_name;
+	Location *dest;
 
-    op_name = get_op_name(packet);
-    dest = malloc(sizeof(Location));
-    dest->address = NULL;
-    dest->port = NULL;
+	op_name = get_op_name(packet);
+	dest = malloc(sizeof(Location));
+	dest->address = NULL;
+	dest->port = NULL;
 
+	if (service_repository.size == 0) {
+		PRINT("No services registered in broker.\n");
+		return dest;;
+	}
+	printf("start\n");
+	for (int j = 0; j < service_repository.size; j++) {
+		printf("in\n");
+		sreg_entry = (ServiceReg *) LIST_Get(&service_repository, j)->data;
 
-    if(service_repository.size == 0) {
-        PRINT("No services registered in broker.\n");
-        return dest;;
-    }
-    printf("start\n");
-    for(int j = 0;j < service_repository.size; j++)
-    {
-    	printf("in\n");
-		sreg_entry= (ServiceReg *) LIST_Get(&service_repository,j)->data;
-
-		        for(int i = 0 ; i < sreg_entry->num_services;i++) {
-		        	printf("service each in %s\n",op_name);
-		        	printf("compare with %s\n",sreg_entry->services[i]);
-		            if(STR_Equals(op_name, sreg_entry->services[i])) {
-		            	printf("in found\n");
-		                dest->address = sreg_entry->address;
-		                dest->port = sreg_entry->port;
-		                DBG("FOUND server for required service '%s' at location '%s:%s'\n", op_name, dest->address,dest->port);
-		                return dest;
-		            }
-		        }
-    }
-    free(op_name);
-    return dest;
+		for (int i = 0; i < sreg_entry->num_services; i++) {
+			printf("service each in %s\n", op_name);
+			printf("compare with %s\n", sreg_entry->services[i]);
+			if (STR_Equals(op_name, sreg_entry->services[i])) {
+				printf("in found\n");
+				dest->address = sreg_entry->address;
+				dest->port = sreg_entry->port;
+				DBG(
+						"FOUND server for required service '%s' at location '%s:%s'\n",
+						op_name, dest->address, dest->port);
+				return dest;
+			}
+		}
+	}
+	free(op_name);
+	return dest;
 }
 

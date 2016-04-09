@@ -5,54 +5,54 @@
  The format of the dayload/data contains multiple headers packed one after the other.
  The order and headers determine the type of message.
 
-headers 
-    Can be any string with an associated value.
-    header name must be at most 20 characters (char[20])
-    the associated value can be either an *integer* or a *string*
-    Example two headers are "name" and "age" :  
-        { "name" : "Stuart" }
-        { "age" : 27 }
+ headers 
+ Can be any string with an associated value.
+ header name must be at most 20 characters (char[20])
+ the associated value can be either an *integer* or a *string*
+ Example two headers are "name" and "age" :  
+ { "name" : "Stuart" }
+ { "age" : 27 }
 
 
-Types of protocol messages:
----------------------------
+ Types of protocol messages:
+ ---------------------------
 
-** ServiceRegistration **
+ ** ServiceRegistration **
 
-    Sent by the service to advertise its services by name and register with the broker. 
+ Sent by the service to advertise its services by name and register with the broker. 
 
-    { "request-type" : SERVICE_REGISTRATION }
-    { "sender-address" : "127.0.0.1" }
-    { "reply-port" : 8090 }
-    { "services-count" : 3 }
-    { "services" : ["service1", "getServerDate", "service3", ..] }
-    { "service-name" : "ServiceId" }
+ { "request-type" : SERVICE_REGISTRATION }
+ { "sender-address" : "127.0.0.1" }
+ { "reply-port" : 8090 }
+ { "services-count" : 3 }
+ { "services" : ["service1", "getServerDate", "service3", ..] }
+ { "service-name" : "ServiceId" }
 
-** ServiceRequest **
-    
-    Sent by the client to request a service, processed by the broker and sent to approproate server to handle
+ ** ServiceRequest **
+ 
+ Sent by the client to request a service, processed by the broker and sent to approproate server to handle
 
-   { "request-type" : SERVICE_REQUEST }
-   { "message-id": 3456789 }
-   { "sender-address" : "127.0.0.1" }
-   { "reply-port": 8090 }
-   { "op"=>"getServerDate" }
-   { "params" => [ buffer, length, ... ] }
+ { "request-type" : SERVICE_REQUEST }
+ { "message-id": 3456789 }
+ { "sender-address" : "127.0.0.1" }
+ { "reply-port": 8090 }
+ { "op"=>"getServerDate" }
+ { "params" => [ buffer, length, ... ] }
 
-** ServiceRequestResponse **
-    
-    Sent by the service in response to a client's ServiceRequest. This is sent to the broker, who sends it to the requesting client.    
+ ** ServiceRequestResponse **
+ 
+ Sent by the service in response to a client's ServiceRequest. This is sent to the broker, who sends it to the requesting client.    
 
-    { type:SERVICE_REQUEST_RESPONSE }
-    { message-id: 3456789 }
-    { "op" => "getServerDate" }
-    { "reply" => [data1, data2], ... }
+ { type:SERVICE_REQUEST_RESPONSE }
+ { message-id: 3456789 }
+ { "op" => "getServerDate" }
+ { "reply" => [data1, data2], ... }
 
-*/
+ */
 
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
-    
+
 #define MESSAGE_ID_HDR "message-id"
 #define OPERATION_HDR "op"
 #define REPLY_PORT_HDR "reply-port"
@@ -67,15 +67,12 @@ Types of protocol messages:
 #define MAX_PORT_CHARS 20
 #define MAX_ADDRESS_CHARS 29
 
-
 /**
  * @brief The types of protocol messages that exist in the specification
  * 
  */
 enum RequestType {
-	SERVICE_REQUEST, 
-	SERVICE_REQUEST_RESPONSE,
-	SERVICE_REGISTRATION
+	SERVICE_REQUEST, SERVICE_REQUEST_RESPONSE, SERVICE_REGISTRATION
 };
 
 #endif

@@ -1,4 +1,3 @@
-
 // Defines the operations that the client can call and that the server knows how to service.
 // This is used by both the client and server.
 
@@ -19,7 +18,7 @@ char* getServerDate();
  * @param two number two
  * @return int sum of the two numbers
  */
-int add( int one, int two );
+int add(int one, int two);
 /**
  * @brief Returns the same output as the input
  * 

@@ -4,9 +4,8 @@
 
 extern bool wait_response_indef;
 extern char client_address[MAX_ADDRESS_CHARS];
-static Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose);
-struct SendArgs
-{
+static Packet *get_response(SOCKET s, struct sockaddr_in *peerp, bool verbose);
+struct SendArgs {
 	Packet* packet;
 	char* to_address;
 	char* port;
@@ -14,16 +13,15 @@ struct SendArgs
 	char* wait_response_port;
 };
 
-
-
 #ifdef __linux__
 void* thread_send_request(void* params)
 #else
 unsigned __stdcall thread_send_request(void* params)
 #endif
 {
-	struct SendArgs *args  = (struct SendArgs*)params;
-	PRINT("args->to_address = %s, args->port = %s, args->verbose = %s\n", args->to_address, args->port, args->verbose);
+	struct SendArgs *args = (struct SendArgs*) params;
+	PRINT("args->to_address = %s, args->port = %s, args->verbose = %s\n",
+			args->to_address, args->port, args->verbose);
 
 	send_request(args->packet, args->to_address, args->port, args->verbose);
 }
@@ -38,75 +36,74 @@ unsigned __stdcall thread_send_request(void* params)
  * @param wait_response_port the port that we'll listen locally on for responses(we send this port to recipient)
  * @return Packet* the response from the receipient
  */
-Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verbose, char* wait_response_port)
-{
+Packet *send_and_receive(Packet* packet, char* to_address, char* port,
+		bool verbose, char* wait_response_port) {
 
-	struct SendArgs args = {
-			.packet = packet,
-			.to_address = to_address,
-			.port = port,
-			.wait_response_port = wait_response_port };
+	struct SendArgs args = { .packet = packet, .to_address = to_address, .port =
+			port, .wait_response_port = wait_response_port };
 
 	// Send the data on its own thread and then wait for the response...
 
-    THREAD_RunAndForget(thread_send_request, (void*)&args);
+	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
-    /* wait for the response */
+	/* wait for the response */
 
-    struct sockaddr_in local;
-    struct sockaddr_in peer;
-    char *hname;
-    char *sname;
-    int peerlen;
-    SOCKET s1;
-    SOCKET s;
-    fd_set readfds;
-    FD_ZERO( &readfds);
-    const int on = 1;
-    Packet *result;
-    struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
+	struct sockaddr_in local;
+	struct sockaddr_in peer;
+	char *hname;
+	char *sname;
+	int peerlen;
+	SOCKET s1;
+	SOCKET s;
+	fd_set readfds;
+	FD_ZERO(&readfds);
+	const int on = 1;
+	Packet *result;
+	struct timeval timeout = { .tv_sec = 60, .tv_usec = 0 };
 
-    NETINIT();
+	NETINIT();
 
-    if(verbose) {
-        PRINT("client waiting for response...\n");
-    }
-    s = netTcpServer(client_address ,wait_response_port);
+	if (verbose) {
+		PRINT("client waiting for response...\n");
+	}
+	s = netTcpServer(client_address, wait_response_port);
 
-    FD_SET(s, &readfds);
-    if(verbose) { PRINT("About wait for read on port %s...\n", wait_response_port); }
+	FD_SET(s, &readfds);
+	if (verbose) {
+		PRINT("About wait for read on port %s...\n", wait_response_port);
+	}
 
-    // wait/block on this listening socket...
-    int res = 0;
-    if(!wait_response_indef) {
-        res = select( s+1, &readfds, NULL, NULL, &timeout);
-    } else {
-        res = select( s+1, &readfds, NULL, NULL, NULL);
-    }
-    if(res == 0) {
-        LOG("timeout");
-        netError(1,errno,"timeout!");
-    } else if(res == -1) {
-        LOG("Select error!");
-        netError(1,errno,"select error!!");
-    } else {
-        peerlen = sizeof(peer);
-        if(FD_ISSET(s,&readfds)) {
-            s1 = accept( s, ( struct sockaddr * )&peer, &peerlen );
+	// wait/block on this listening socket...
+	int res = 0;
+	if (!wait_response_indef) {
+		res = select(s + 1, &readfds, NULL, NULL, &timeout);
+	} else {
+		res = select(s + 1, &readfds, NULL, NULL, NULL);
+	}
+	if (res == 0) {
+		LOG("timeout");
+		netError(1, errno, "timeout!");
+	} else if (res == -1) {
+		LOG("Select error!");
+		netError(1, errno, "select error!!");
+	} else {
+		peerlen = sizeof(peer);
+		if (FD_ISSET(s, &readfds)) {
+			s1 = accept(s, (struct sockaddr *) &peer, &peerlen);
 
-            if (!isvalidsock(s1)) {
-                netError(1, errno, "accept failed");
-            }
-            // do network functionality on this socket that now represents a connection with the peer (client) 
-            result = get_response( s1, &peer, verbose);
-            NETCLOSE( s1 );
-        } else { DBG("not our socket. continuing"); }
-    }
-    NETCLOSE(s);
-    return result; // dangling pointer - stack frame finishes and could invalidate this address
+			if (!isvalidsock(s1)) {
+				netError(1, errno, "accept failed");
+			}
+			// do network functionality on this socket that now represents a connection with the peer (client) 
+			result = get_response(s1, &peer, verbose);
+			NETCLOSE(s1);
+		} else {
+			DBG("not our socket. continuing");
+		}
+	}
+	NETCLOSE(s);
+	return result; // dangling pointer - stack frame finishes and could invalidate this address
 }
-
-
 
 /**
  * @brief Read data from socket, and return it
@@ -115,26 +112,28 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
  * @param peerp the peer on the other side
  * @return Packet* te response data we read from the socket
  */
-Packet *get_response( SOCKET s, struct sockaddr_in *peerp, bool verbose)
-{
-    Packet *packet = malloc(sizeof(Packet));
-    
-    int n_rc = netReadn( s,(char*) &packet->len, sizeof(uint32_t));
-    packet->len = ntohl(packet->len);
+Packet *get_response(SOCKET s, struct sockaddr_in *peerp, bool verbose) {
+	Packet *packet = malloc(sizeof(Packet));
 
-    if( verbose)
-        PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,packet->len );
+	int n_rc = netReadn(s, (char*) &packet->len, sizeof(uint32_t));
+	packet->len = ntohl(packet->len);
 
-    if( n_rc < 1 )
-        netError(1, errno,"failed to receiver packet size\n");
-    
-    packet->buffer = (char*) malloc( sizeof(char) * packet->len);
-    int d_rc  = netReadn( s, packet->buffer, sizeof( char) * packet->len);
+	if (verbose)
+		PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,
+				packet->len);
 
-    if( d_rc < 1 )
-        netError(1, errno,"failed to receive message\n");
-    
-    if(verbose) { PRINT("read %d bytes of data\n",d_rc); }
+	if (n_rc < 1)
+		netError(1, errno, "failed to receiver packet size\n");
 
-    return packet; // dangling pointer - add might be deallocated when stack frame finishes
+	packet->buffer = (char*) malloc(sizeof(char) * packet->len);
+	int d_rc = netReadn(s, packet->buffer, sizeof(char) * packet->len);
+
+	if (d_rc < 1)
+		netError(1, errno, "failed to receive message\n");
+
+	if (verbose) {
+		PRINT("read %d bytes of data\n", d_rc);
+	}
+
+	return packet; // dangling pointer - add might be deallocated when stack frame finishes
 }
