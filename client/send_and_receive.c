@@ -5,24 +5,6 @@
 extern bool wait_response_indef;
 extern char client_address[MAX_ADDRESS_CHARS];
 static Packet *get_response(SOCKET s, struct sockaddr_in *peerp, bool verbose);
-struct SendArgs {
-	Packet* packet;
-	char* to_address;
-	char* port;
-	bool verbose;
-	char* wait_response_port;
-};
-
-#ifdef __linux__
-void* thread_send_request(void* params)
-#else
-unsigned __stdcall thread_send_request(void* params)
-#endif
-		{
-	struct SendArgs *args = (struct SendArgs*) params;
-
-	send_request(args->packet, args->to_address, args->port, args->verbose);
-}
 
 Packet* waitForResponse(_Bool verbose, char client_address[MAX_ADDRESS_CHARS],
 		_Bool wait_response_indef, char* wait_response_port) {

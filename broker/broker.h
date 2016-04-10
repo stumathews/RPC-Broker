@@ -22,7 +22,7 @@ void* thread_server(void* params);
 unsigned long thread_server(void* params);
 #endif
 
-static void main_event_loop();
+static void wait_for_connections();
 static void server(SOCKET s, struct sockaddr_in *peerp,
 		struct Config *brokerConfig, struct Details *brokerDetails);
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);

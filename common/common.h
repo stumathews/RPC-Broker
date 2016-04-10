@@ -68,6 +68,21 @@ struct BrokerServerArgs {
 	SOCKET *socket;
 
 };
+
+struct SendArgs {
+	Packet* packet;
+	char* to_address;
+	char* port;
+	bool verbose;
+	char* wait_response_port;
+};
+
+#ifdef __linux__
+void* thread_send_request(void* params);
+#else
+unsigned __stdcall thread_send_request(void* params);
+#endif
+
 void copyString(int str_len, const msgpack_object_str* from, char* to);
 enum RequestType determine_request_type(struct Packet* pkt);
 int send_request(Packet* packet, char* address, char* port, bool verbose);
@@ -84,6 +99,7 @@ char* get_op_name(Packet* packet);
 msgpack_object extract_header(msgpack_object* obj, char* header_buffer);
 struct Packet *send_and_receive(Packet* packet, char* address, char* port,
 		bool verbose, char* wait_response_port);
+void async_send(Packet* packet, char* to_address, char* port, bool verbose);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
 #endif

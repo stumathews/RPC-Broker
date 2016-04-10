@@ -6,7 +6,7 @@ extern char server_address[MAX_ADDRESS_CHARS];
 extern char port[MAX_PORT_CHARS];
 
 /**
- * @brief Craft a service registration message and send it of fto the broker.
+ * @brief Craft a service registration message and send it to the broker.
  * 
  * @param broker_address the broker address
  * @param broker_port the broker port
@@ -30,7 +30,6 @@ void service_register_with_broker(Details brokerDetails, Details serverDetails,
 
 	// pull in the services defined in the server code: server.c
 	extern char* services[];
-	char* service = services[0];
 	int i = 0;
 	while (services[i] != NULL) {
 		if (brokerConfig.verbose) {
@@ -66,4 +65,5 @@ void service_register_with_broker(Details brokerDetails, Details serverDetails,
 	send_request(&pkt, brokerDetails.address, brokerDetails.port,
 			brokerConfig.verbose);
 	msgpack_sbuffer_destroy(&sbuf);
+
 }

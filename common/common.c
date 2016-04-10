@@ -8,6 +8,20 @@ void copyString(int str_len, const msgpack_object_str* from, char* to) {
 	strncpy(to, from->ptr, str_len);
 }
 
+#ifdef __linux__
+void* thread_send_request(void* params)
+#else
+unsigned __stdcall thread_send_request(void* params)
+#endif
+		{
+	struct SendArgs *args = (struct SendArgs*) params;
+	if (args->verbose)
+		PRINT("In thread, sending...\n");
+	send_request(args->packet, args->to_address, args->port, args->verbose);
+	if (args->verbose)
+		PRINT("In thread, sent.\n");
+}
+
 /**
  * @brief Send request
  *
@@ -18,7 +32,7 @@ void copyString(int str_len, const msgpack_object_str* from, char* to) {
  * @return int number of bytes sent
  */
 int send_request(Packet *packet, char* address, char* port, bool verbose) {
-	unpack_data(packet, 1);
+	unpack_data(packet, verbose);
 
 	struct sockaddr_in peer;
 	SOCKET s;
@@ -359,5 +373,27 @@ void printSetting(Node* LinkedListNode) {
 	List* settings = header->value;
 	settings->fnPrint = printKeyValuePair;
 	LIST_Print(settings);
+
+}
+
+/**
+ * @brief Sends a packet of data 
+ *
+ * @param packet the data to send
+ * @param address the address to send the data to
+ * @param port the port to connect to on the address
+ * @param verbose true if this function should log verbose messages
+ */
+void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
+
+	struct SendArgs *args = malloc(sizeof(struct SendArgs));
+	args->packet = packet;
+	args->to_address = to_address, args->port = port, args->wait_response_port =
+			NULL;
+
+	if (verbose)
+		PRINT("About to send request in its own thread...\n");
+
+	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
 }

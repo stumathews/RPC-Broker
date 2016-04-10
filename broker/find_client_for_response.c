@@ -30,7 +30,6 @@ Location* find_client_for_response(Packet *packet, Location* dest,
 			if (brokerConfig->verbose) {
 				DBG("found client at %s:%s\n", dest->address, dest->port);
 			}
-			// TODO: This doesn't work and it should --> LIST_DeleteNode(&client_request_repository, node);
 			LIST_DeleteNode(&client_request_repository, node);
 			return dest;
 		}

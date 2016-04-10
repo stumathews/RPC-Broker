@@ -6,20 +6,11 @@
 static struct Config brokerConfig = { 0 };
 static struct Details brokerDetails = { 0 };
 
-/**
- * @brief see broker_support.c for additional functions used in the broker code
- *
- * @param argc Number of args
- * @param argv args
- * @return int
- */
 int main(int argc, char **argv) {
 	LIB_Init();
-
 	LIST_Init (&service_repository);
-
 	List* settings = { 0 };
-
+	
 	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>",
 			"Set the port that the broker will listen on", true, true,
 			setPortNumber);
@@ -28,11 +19,11 @@ int main(int argc, char **argv) {
 	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "",
 			"Wait indefinitely for new connections, else 60 secs and then dies",
 			false, false, setWaitIndefinitelyFlag);
-
+	
 	CMD_AddArgument(cmdWaitIndef);
 	CMD_AddArgument(cmdPort);
 	CMD_AddArgument(cmdVerbose);
-
+	
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
@@ -58,7 +49,7 @@ int main(int argc, char **argv) {
 		PRINT("Broker starting.\n");
 	}
 
-	main_event_loop(&brokerConfig, &brokerDetails);
+	wait_for_connections(&brokerConfig, &brokerDetails);
 
 	LIST_FreeInstance(settings);
 	LIB_Uninit();
@@ -74,69 +65,49 @@ int main(int argc, char **argv) {
  *
  * @return void
  */
-static void main_event_loop(struct Config *brokerConfig,
-		struct Details *brokerDetails) {
-	struct sockaddr_in local;
-
-	char *hname;
-	char *sname;
-
-	SOCKET s;
-
-	fd_set readfds;
-	FD_ZERO(&readfds);
+static void wait_for_connections(struct Config *brokerConfig, struct Details *brokerDetails) 
+{		
+	fd_set read_file_descriptors = {0};	
 	const int on = 1;
-struct timeval timeout = {.tv_sec = 60, .tv_usec = 0}
-;
-
-// NB: Getting a socket is always non-blocking
-s = SetupTCPServerSocket(brokerDetails->address, brokerDetails->port);
-
-FD_SET(s, &readfds);
-
-do {
-	/* wait/block on this listening socket... */
-	int res = 0;
-
-	if (brokerConfig->waitIndef) {
-		res = select(s + 1, &readfds, NULL, NULL, NULL);
-	} else {
-		res = select(s + 1, &readfds, NULL, NULL, &timeout);
-	}
-
-	if (brokerConfig->verbose) {
-		PRINT("-- Listening...\n");
-	}
-
-	if (res == 0) {
-		LOG("broker listen timeout!");
-		netError(1, errno, "timeout!");
-	} else if (res == -1) {
-		LOG("Select error!");
-		netError(1, errno, "select error!!");
-	} else {
-		if (FD_ISSET(s, &readfds)) {
-			struct BrokerServerArgs args = {0};
-			args.brokerConfig = brokerConfig;
-			args.brokerDetails = brokerDetails;
-			args.socket = &s;
-
-			// Fork of a new thread to deal with this request and go back to listening for next request
-#ifdef __linux__
-			THREAD_RunAndForget(thread_server, (void*)&args);
-#else
-			// Right now starting this broker as a thread causes problems.
-			// In most cases this is probaly because its sharing state and I'm not doing
-			// anything particualr to prevent it.
-			thread_server((void*) &args);
-			//THREAD_RunAndForget(thread_server, (void*)&s);
-#endif
+	int select_result = 0;
+	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
+	SOCKET listening_socket = SetupTCPServerSocket(brokerDetails->address, brokerDetails->port);
+	FD_ZERO(&read_file_descriptors);
+	FD_SET(listening_socket, &read_file_descriptors);
+	do {		
+		if (brokerConfig->waitIndef) {
+			select_result = select(listening_socket + 1, &read_file_descriptors, NULL, NULL, NULL);
 		} else {
-			DBG("Not our socket. continuing listening");
-			continue;
+			select_result = select(listening_socket + 1, &read_file_descriptors, NULL, NULL, &timeout);
 		}
-	}
-}while (1);
+	
+		if (brokerConfig->verbose) {
+			PRINT("-- Listening...\n");
+		}
+	
+		if (select_result == 0) {
+			PRINT("broker listen timeout!");
+			netError(1, errno, "timeout!");
+		} else if (select_result == -1) {
+			PRINT("Select error!");
+			netError(1, errno, "select error!!");
+		} else {
+			if (FD_ISSET(listening_socket, &read_file_descriptors)) {
+				struct BrokerServerArgs *brokerServerThreadArgs = malloc(sizeof(struct BrokerServerArgs));
+				brokerServerThreadArgs->brokerConfig = brokerConfig;
+				brokerServerThreadArgs->brokerDetails = brokerDetails;
+				brokerServerThreadArgs->socket = &listening_socket;
+				#ifdef __linux__
+						THREAD_RunAndForget(thread_server, (void*) brokerServerThreadArgs);
+				#else
+						thread_server((void*) &args);
+				#endif
+			} else {
+				DBG("Not on our socket. continuing listening");
+				continue;
+			}
+		}
+	} while (1);
 }
 
 /***
@@ -161,8 +132,9 @@ if (!isvalidsock(s1)) {
 }
 server(s1, &peer, args->brokerConfig, args->brokerDetails);
 NETCLOSE(s1);
+
 #ifdef __linux__
-return (void*)0;
+return (void*) 0;
 #else
 return 0;
 #endif
@@ -206,9 +178,38 @@ if (brokerConfig->verbose) {
 if ((request_type = determine_request_type(&packet)) == SERVICE_REQUEST) {
 	char* operation = get_header_str_value(&packet, OPERATION_HDR);
 	PRINT("<<< SERVICE_REQUEST(%s)\n", operation);
-	Location *src = malloc(sizeof(Location));
-	get_sender_address(&packet, peerp, src);
-	forward_request_to_server(&packet, src, brokerConfig);
+
+	Location *sender = malloc(sizeof(Location));
+	get_sender_address(&packet, peerp, sender);
+
+	ClientReg *crreg;
+	Location *destination;
+	char* requested_operation;
+	int* message_id;
+
+	requested_operation = malloc(sizeof(char));
+	message_id = malloc(sizeof(int));
+
+	*message_id = get_header_int_value(&packet, MESSAGE_ID_HDR);
+	requested_operation = get_header_str_value(&packet, OPERATION_HDR);
+	crreg = register_client_request(requested_operation, sender, *message_id,
+			brokerConfig);
+
+	destination = find_server_for_request(&packet, brokerConfig);
+
+	if (destination->address == NULL || destination->port == NULL) {
+		PRINT(
+				"No registered server available to process request for operation '%s' from host '%s'. \n",
+				requested_operation, sender->address);
+		return;
+	}
+
+	if (brokerConfig->verbose)
+		PRINT(">>> About to forward message to %s:%s\n", destination->address,
+				destination->port);
+
+	send_request(&packet, destination->address, destination->port,
+			brokerConfig->verbose);
 
 	//free(operation);
 } else if (request_type == SERVICE_REGISTRATION) {
@@ -223,10 +224,9 @@ if ((request_type = determine_request_type(&packet)) == SERVICE_REQUEST) {
 	Packet* response = &packet;
 	forward_response_to_client(response, brokerConfig);
 } else {
-	PRINT("Unrecongnised request type:%d. Ignoring \n", request_type);
+	PRINT("Unrecognised request type:%d. Ignoring \n", request_type);
 }
 
-free(packet.buffer);
 return;
 }
 

@@ -41,23 +41,20 @@ int main(int argc, char **argv) {
 	FD_ZERO(&readfds);
 
 	List* settings = (void*) 0;
-struct timeval timeout = {.tv_sec = 60, .tv_usec = 0}
+struct timeval timeout = {.tv_sec = 60, .tv_usec = 0
+}
 ;
 
 if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 	DBG("Using config file located in '%s'", CONFIG_FILENAME);
 	settings = LIST_GetInstance();
 	if (INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
-		// Get general config options
 		setWaitIndef(INI_GetSetting(settings, "options", "wait"));
 		setBeVerbose(INI_GetSetting(settings, "options", "verbose"));
-		// Get networking configuration options
 		setPortNumber(INI_GetSetting(settings, "networking", "port"));
 		setOurAddress(INI_GetSetting(settings, "networking", "address"));
-		// Get broker's connection details
 		setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
 		setBrokerPort(INI_GetSetting(settings, "broker", "port"));
-
 		PrintConfigDiagnostics(serverConfig.verbose, settings);
 	} else {
 		ERR_Print("Failed to parse config file", 1);
@@ -80,16 +77,13 @@ if (serverConfig.verbose)
 PRINT("Server listening...\n");
 
 // Register with the broker on startup.
-PRINT("broker address is %s, broker port is %s \n", brokerDetails.address,
-		brokerDetails.port);
-if (service_register_with_broker(brokerDetails, serverDetails,
-				serverConfig)) {
-	PRINT("Sending registration request to broker at address '%s:%s'",
-			brokerDetails.address, brokerDetails.port);
-	registered_with_broker = true;
-}
+PRINT("broker address is %s, broker port is %s \n", brokerDetails.address,brokerDetails.port);
+if(serverConfig.verbose)
+PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.address, brokerDetails.port);
+service_register_with_broker(brokerDetails, serverDetails,serverConfig);
 
-// get a socket, bound to this address thats configured to listen.
+// Wait for messages from the broker...
+
 // NB: This is always ever non-blocking
 s = netTcpServer(serverDetails.address, serverDetails.port);
 FD_SET(s, &readfds);
@@ -167,6 +161,7 @@ int n_rc = netReadn(s, (char*) &pkt.len, sizeof(uint32_t));
 pkt.len = ntohl(pkt.len);
 pkt.buffer = (char*) malloc(sizeof(char) * pkt.len);
 int d_rc = netReadn(s, pkt.buffer, sizeof(char) * pkt.len);
+int request_type = -1;
 
 if (serverConfig.verbose) {
 	PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,
@@ -182,7 +177,20 @@ if (serverConfig.verbose) {
 	PRINT("read %d bytes of data\n", d_rc);
 }
 
-unpack_marshal_call_send(pkt.buffer, pkt.len, brokerDetails, serverConfig);
+static bool isRegistered = false;
+unpack_data(&pkt, true);
+if ((request_type = determine_request_type(&pkt)) == SERVICE_REGISTRATION_ACK) {
+	isRegistered = true;
+	if (serverConfig.verbose)
+		PRINT("Registered with broker.\n");
+} else if (request_type == SERVICE_REQUEST && isRegistered) {
+	unpack_marshal_call_send(pkt.buffer, pkt.len, brokerDetails, serverConfig);
+} else {
+	PRINT("%s\n",
+			!isRegistered ?
+					"Waiting for registration ACK from broker" :
+					"unknown message received from broker");
+}
 }
 // ===============================
 // Command line handling routines
