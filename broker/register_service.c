@@ -2,19 +2,23 @@
 #include "common.h"
 
 extern List service_repository;
-static void perform_diagnostics(
-		struct ServiceRegistration* service_registration, bool verbose_flag);
+static void perform_diagnostics(struct ServiceRegistration* service_registration, bool verbose_flag);
 
 void register_service_request(Packet* packet, struct Config *brokerConfig) {
 	struct ServiceRegistration *service_registration;
-	service_registration = unpack_service_registration_buffer(packet->buffer,
-			packet->len, brokerConfig);
+	int total_sent_bytes = 0;
+	int tries = 1;
+	char* reply_port = NULL;
+	char* sender_address = NULL;
+
+	service_registration = unpack_service_registration_buffer(packet->buffer, packet->len, brokerConfig);
+
+	if (brokerConfig->verbose) { PRINT("<< SERVICE_REGISTRATION\n"); }
 
 	LIST_Add(&service_repository, service_registration);
 
-	if (brokerConfig->verbose) {
-		PRINT(">> SERVICE_REGISTRATION ACK\n");
-	}
+	if (brokerConfig->verbose) { PRINT(">> SERVICE_REGISTRATION ACK\n"); }
+
 	msgpack_sbuffer sbuf;
 	msgpack_sbuffer_init(&sbuf);
 	msgpack_packer pk;
@@ -25,25 +29,25 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 	pack_map_int(REQUEST_TYPE_HDR, SERVICE_REGISTRATION_ACK, &pk);
 	pack_map_int(MESSAGE_ID_HDR, message_id, &pk);
 
-	/*
-	 {"request-type"=>2}
-	 {"sender-address"=>"127.0.0.1"}
-	 {"reply-port"=>"8181"}
-	 {"service-name"=>"theServiceName"}
-	 
-	 */
-	char* reply_port = get_header_str_value(packet, REPLY_PORT_HDR);
-	char* sender_address = get_header_str_value(packet, SENDER_ADDRESS_HDR);
+	reply_port = get_header_str_value(packet, REPLY_PORT_HDR);
+	sender_address = get_header_str_value(packet, SENDER_ADDRESS_HDR);
+
 	packet->buffer = sbuf.data;
 	packet->len = sbuf.size;
-	sleep(5);
-	send_request(packet, sender_address, reply_port, brokerConfig->verbose);
+
+	do {
+		total_sent_bytes = send_request(packet, sender_address, reply_port, brokerConfig->verbose);
+
+		if(total_sent_bytes == 0) { sleep(1); }
+
+		tries++;
+
+		if(tries == 3 && total_sent_bytes == 0) PRINT("Tried 3 times to ACK register with server and have gaven up - the server went down?\n");
+	} while (total_sent_bytes == 0 && tries <= 3);
 
 	msgpack_sbuffer_destroy(&sbuf);
 
-	if (brokerConfig->verbose) {
-		perform_diagnostics(service_registration, brokerConfig->verbose);
-	}
+	if (brokerConfig->verbose) { perform_diagnostics(service_registration, brokerConfig->verbose); 	}
 }
 
 static void perform_diagnostics(

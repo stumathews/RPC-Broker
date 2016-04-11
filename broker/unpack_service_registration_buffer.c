@@ -16,8 +16,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(
 
 	msgpack_unpacked_init(&unpacked_result);
 
-	while ((return_status = msgpack_unpack_next(&unpacked_result, payload,
-			langth, &off)) == MSGPACK_UNPACK_SUCCESS) {
+	while ((return_status = msgpack_unpack_next(&unpacked_result, payload, 	langth, &off)) == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj;
 		msgpack_object val;
 		char header_name[MAX_HEADER_NAME_SIZE];
@@ -45,8 +44,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(
 		} else if (val.type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
 			if (STR_Equals(SERVICES_COUNT_HDR, header_name) == true) {
 				unpacked->num_services = val.via.i64;
-				unpacked->services = malloc(
-						(sizeof(char*) * (val.via.i64) + val.via.i64));
+				unpacked->services = malloc((sizeof(char*) * (val.via.i64) + val.via.i64));
 			}
 		} else if (val.type == MSGPACK_OBJECT_ARRAY) {
 			PRINT("Processing services %d services...\n", val.via.array.size);
@@ -83,8 +81,6 @@ struct ServiceRegistration* unpack_service_registration_buffer(
 
 	msgpack_unpacked_destroy(&unpacked_result);
 
-	if (return_status == MSGPACK_UNPACK_PARSE_ERROR) {
-		PRINT("The data in the buf is invalid format.\n");
-	}
+	if (return_status == MSGPACK_UNPACK_PARSE_ERROR) { PRINT("The data in the buf is invalid format.\n"); }
 	return unpacked;
 }

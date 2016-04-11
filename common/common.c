@@ -31,16 +31,16 @@ unsigned __stdcall thread_send_request(void* params)
  * @param verbose true if this function should report verbose messages
  * @return int number of bytes sent
  */
-int send_request(Packet *packet, char* address, char* port, bool verbose) {
-	unpack_data(packet, verbose);
-
+int send_request(Packet *packet, char* address, char* port, bool verbose)
+{
 	struct sockaddr_in peer;
-	SOCKET s;
-	if (verbose)
-		PRINT("Sending to %s:%s...\n", address, port);
+	SOCKET connected_socket;
 
-	s = netTcpClient(address, port);
-	return client(s, &peer, packet, verbose);
+	unpack_data(packet, verbose);
+	if (verbose) { PRINT("Sending to %s:%s...\n", address, port); }
+
+	connected_socket = netTcpClient(address, port);
+	return send_data(connected_socket, &peer, packet, verbose);
 }
 
 /**
@@ -52,25 +52,23 @@ int send_request(Packet *packet, char* address, char* port, bool verbose) {
  * @param verbose true if verbose messages ar eallowed
  * @return int number of bytes sent
  */
-int client(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose) {
+int send_data(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose) {
 	struct Packet pkt;
+	int send_size_result_sent_bytes = 0;
+	int send_data_result_sent_bytes = 0;
+
 	pkt.len = htonl(packet->len);
 	pkt.buffer = packet->buffer;
 
 	// Send size of packet
-	int rc_n = 0;
-	if ((rc_n = send(s, (char*) &pkt.len, sizeof(u_int32_t), 0)) < 0)
-		netError(1, errno, "failed to send size\n");
+	if ((send_size_result_sent_bytes = send(s, (char*) &pkt.len, sizeof(u_int32_t), 0)) < 0) {	netError(1, errno, "failed to send size\n"); }
+
 	pkt.len = ntohl(pkt.len);
 
-	// send packet
-	int rc_d = 0;
-	if ((rc_d = send(s, pkt.buffer, pkt.len, 0)) < 0)
-		netError(1, errno, "failed to send packed data\n");
-
-	int total_sent_bytes = rc_n + rc_d;
-	if (verbose)
-		PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, rc_n, rc_d);
+	// send packet data
+	if ((send_data_result_sent_bytes = send(s, pkt.buffer, pkt.len, 0)) < 0) { netError(1, errno, "failed to send packed data\n"); }
+	int total_sent_bytes = send_size_result_sent_bytes + send_data_result_sent_bytes;
+	if (verbose) { PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, send_size_result_sent_bytes, send_data_result_sent_bytes); }
 
 	return total_sent_bytes;
 }
@@ -396,4 +394,21 @@ void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
 
 	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
+}
+
+void CheckValidSocket(SOCKET s1)
+{
+	if (!isvalidsock(s1)) {
+		netError(1, errno, "accept failed");
+	}
+}
+
+
+int GetGenericThreadResult()
+{
+#ifdef __linux__
+	return (void*) 0;
+#else
+	return 0;
+#endif
 }

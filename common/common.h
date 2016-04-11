@@ -7,7 +7,10 @@
 #include <stulibc.h>
 #include "protocol.h"
 
+#define ON = 1;
 #define INI_PARSE_SUCCESS 0
+#define _WAIT_TIMEOUT 0
+#define WAIT_ERROR -1
 
 /**
  * @brief A packet consisting of the length of it and then the trailing data
@@ -86,7 +89,7 @@ unsigned __stdcall thread_send_request(void* params);
 void copyString(int str_len, const msgpack_object_str* from, char* to);
 enum RequestType determine_request_type(struct Packet* pkt);
 int send_request(Packet* packet, char* address, char* port, bool verbose);
-int client(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);
+int send_data(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);
 int get_header_int_value(Packet* packet, char* look_header_name);
 void unpack_data(Packet* packet, bool verbose);
 void pack_map_str(char* key, char* value, msgpack_packer* pk);
@@ -102,4 +105,6 @@ struct Packet *send_and_receive(Packet* packet, char* address, char* port,
 void async_send(Packet* packet, char* to_address, char* port, bool verbose);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
+void CheckValidSocket(SOCKET s1);
+int GetGenericThreadResult();
 #endif
