@@ -36,161 +36,128 @@ int main(int argc, char **argv) {
 	char *sname;
 	int peerlen;
 	SOCKET s1;
-	SOCKET s;
+	SOCKET listening_socket;
 	fd_set readfds;
 	FD_ZERO(&readfds);
+	int wait_result = -1;
 
 	List* settings = (void*) 0;
-struct timeval timeout = {.tv_sec = 60, .tv_usec = 0
-}
-;
+	struct timeval timeout = { .tv_sec = 60, .tv_usec = 0 };
 
-if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
-	DBG("Using config file located in '%s'", CONFIG_FILENAME);
-	settings = LIST_GetInstance();
-	if (INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
-		setWaitIndef(INI_GetSetting(settings, "options", "wait"));
-		setBeVerbose(INI_GetSetting(settings, "options", "verbose"));
-		setPortNumber(INI_GetSetting(settings, "networking", "port"));
-		setOurAddress(INI_GetSetting(settings, "networking", "address"));
-		setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
-		setBrokerPort(INI_GetSetting(settings, "broker", "port"));
-		PrintConfigDiagnostics(serverConfig.verbose, settings);
-	} else {
-		ERR_Print("Failed to parse config file", 1);
-	}
-} else if (argc > 1) {
-	enum ParseResult result = CMD_Parse(argc, argv, true);
-	if (result != PARSE_SUCCESS) {
-		PRINT("There was a problem parsing: %d \n", result);
-		return 1;
-	}
-} else {
-	CMD_ShowUsages("server", "stumathews@gmail.com",
-			"the server component");
-	exit(0);
-}
-
-NETINIT();
-
-if (serverConfig.verbose)
-PRINT("Server listening...\n");
-
-// Register with the broker on startup.
-PRINT("broker address is %s, broker port is %s \n", brokerDetails.address,brokerDetails.port);
-if(serverConfig.verbose)
-PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.address, brokerDetails.port);
-service_register_with_broker(brokerDetails, serverDetails,serverConfig);
-
-// Wait for messages from the broker...
-
-// NB: This is always ever non-blocking
-s = netTcpServer(serverDetails.address, serverDetails.port);
-FD_SET(s, &readfds);
-do {
-	// wait/block on this listening socket...
-	int res = 0;
-	if (!serverConfig.waitIndef) {
-		res = select(s + 1, &readfds, NULL, NULL, &timeout);
-	} else {
-		res = select(s + 1, &readfds, NULL, NULL, NULL);
-	}
-
-	if (res == 0) {
-		LOG("timeout");
-		netError(1, errno, "timeout!");
-	} else if (res == -1) {
-		LOG("Select error!");
-		netError(1, errno, "select error!!");
-	} else {
-		peerlen = sizeof(peer);
-		if (FD_ISSET(s, &readfds)) {
-			// Fork of a new thread to deal with this request and go back to listening for next request
-			THREAD_RunAndForget(thread_server, (void*) &s);
+	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
+		DBG("Using config file located in '%s'", CONFIG_FILENAME);
+		settings = LIST_GetInstance();
+		if (INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
+			setWaitIndef(INI_GetSetting(settings, "options", "wait"));
+			setBeVerbose(INI_GetSetting(settings, "options", "verbose"));
+			setPortNumber(INI_GetSetting(settings, "networking", "port"));
+			setOurAddress(INI_GetSetting(settings, "networking", "address"));
+			setBrokerAddress(INI_GetSetting(settings, "broker", "address"));
+			setBrokerPort(INI_GetSetting(settings, "broker", "port"));
+			PrintConfigDiagnostics(serverConfig.verbose, settings);
 		} else {
-			DBG("not our socket. continuing");
-			continue;
+			ERR_Print("Failed to parse config file", 1);
 		}
+	} else if (argc > 1) {
+		enum ParseResult result = CMD_Parse(argc, argv, true);
+		if (result != PARSE_SUCCESS) {
+			PRINT("There was a problem parsing: %d \n", result);
+			return 1;
+		}
+	} else {
+		CMD_ShowUsages("server", "stumathews@gmail.com", "the server component");
+		exit(0);
 	}
-}while (1);
 
-LIST_FreeInstance (settings);
-LIB_Uninit();
+	NETINIT();
+
+	if(serverConfig.verbose) { PRINT("Server listening...\n"); }
+	if(serverConfig.verbose) {
+		PRINT("Register with the broker on startup.\n");
+		PRINT("broker address is %s, broker port is %s \n", brokerDetails.address,brokerDetails.port);
+		PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.address, brokerDetails.port);
+	}
+	service_register_with_broker(brokerDetails, serverDetails,serverConfig);
+
+	if(serverConfig.verbose) { PRINT("Wait for messages from the broker...\n"); }
+
+	listening_socket = netTcpServer(serverDetails.address, serverDetails.port);
+	FD_SET(listening_socket, &readfds);
+	do {
+		if ((wait_result = wait(&serverConfig, listening_socket, &readfds, &timeout)) == _WAIT_TIMEOUT) {
+			LOG("timeout");
+			netError(1, errno, "timeout!");
+		} else if (wait_result == WAIT_ERROR) {
+			LOG("Select error!");
+			netError(1, errno, "select error!!");
+		} else {
+			peerlen = sizeof(peer);
+			if (FD_ISSET(listening_socket, &readfds)) {
+				THREAD_RunAndForget(thread_server, (void*) &listening_socket);
+			} else {
+				DBG("not our socket. continuing");
+				continue;
+			}
+		}
+	}while (1);
+
+	LIST_FreeInstance (settings);
+	LIB_Uninit();
+	#ifdef __linux__
+	pthread_exit(NULL);
+	#endif
+	EXIT(0);
+}
+
+
 #ifdef __linux__
-pthread_exit(NULL);
-#endif
-EXIT(0);
-}
-
-/***
- * Wrapper function to accept connection and process it - so that it confirms to void* func(void*) prototype so can pass as a thread function
- *
- * @param params SOCKET* socket that is ready to read from
- */
-
-void CheckValidSocket(SOCKET s1) {
-if (!isvalidsock(s1)) {
-	netError(1, errno, "accept failed");
-}
-}
-
-#ifdef __linux__
-void* thread_server(void* params)
+void* thread_server(void* params);
 #else
-unsigned __stdcall thread_server(void* params)
+unsigned thread_server(void* params)
 #endif
-	{
-int peerlen;
-struct sockaddr_in peer;
-peerlen = sizeof(peer);
-SOCKET* s = (SOCKET*) params;
-SOCKET s1 = accept(*s, (struct sockaddr *) &peer, &peerlen);
-CheckValidSocket(s1);
-ReadAndProcessDataOnSocket(s1, &peer);
-NETCLOSE(s1);
-#ifdef __linux__
-return (void*)0;
-#else
-return 0;
-#endif
+{
+	int peerlen;
+	struct sockaddr_in peer;
+	peerlen = sizeof(peer);
+	SOCKET* listening_socket = (SOCKET*) params;
+	SOCKET connected_socket = accept(*listening_socket, (struct sockaddr*) &peer, &peerlen);
+	CheckValidSocket(connected_socket);
+	ReadAndProcessDataOnSocket(connected_socket, &peer);
+	NETCLOSE(connected_socket);
+
+	return GetGenericThreadResult();
 }
 
-static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp) {
-Packet pkt;
-int n_rc = netReadn(s, (char*) &pkt.len, sizeof(uint32_t));
-pkt.len = ntohl(pkt.len);
-pkt.buffer = (char*) malloc(sizeof(char) * pkt.len);
-int d_rc = netReadn(s, pkt.buffer, sizeof(char) * pkt.len);
-int request_type = -1;
+static void ReadAndProcessDataOnSocket(SOCKET connected_socket, struct sockaddr_in *peerp)
+{
+	Packet pkt;
+	int request_type = -1;
+	int recieved_length = 0;
+	int recieved_data_bytes = 0;
+	static bool isRegistered = false;
 
-if (serverConfig.verbose) {
-	PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,
-			pkt.len);
-}
-if (n_rc < 1) {
-	netError(1, errno, "failed to receiver packet size\n");
-}
-if (d_rc < 1) {
-	netError(1, errno, "failed to receive message\n");
-}
-if (serverConfig.verbose) {
-	PRINT("read %d bytes of data\n", d_rc);
-}
+	recieved_length = netReadn(connected_socket, (char*) &pkt.len, sizeof(uint32_t));
 
-static bool isRegistered = false;
-unpack_data(&pkt, true);
-if ((request_type = determine_request_type(&pkt)) == SERVICE_REGISTRATION_ACK) {
-	isRegistered = true;
-	if (serverConfig.verbose)
-		PRINT("Registered with broker.\n");
-} else if (request_type == SERVICE_REQUEST && isRegistered) {
-	unpack_marshal_call_send(pkt.buffer, pkt.len, brokerDetails, serverConfig);
-} else {
-	PRINT("%s\n",
-			!isRegistered ?
-					"Waiting for registration ACK from broker" :
-					"unknown message received from broker");
-}
+	pkt.len = ntohl(pkt.len);
+	pkt.buffer = (char*) malloc(sizeof(char) * pkt.len);
+
+	recieved_data_bytes = netReadn(connected_socket, pkt.buffer, sizeof(char) * pkt.len);
+
+
+	if (serverConfig.verbose) { PRINT("received %d bytes and interpreted it as length of %u\n", recieved_length,	pkt.len); }
+	if (recieved_length < 1) { netError(1, errno, "failed to receiver packet size\n"); }
+	if (recieved_data_bytes < 1) { netError(1, errno, "failed to receive message\n"); }
+	if (serverConfig.verbose) {	PRINT("read %d bytes of data\n", recieved_data_bytes);	}
+
+
+	unpack_data(&pkt, true);
+
+	if ((request_type = determine_request_type(&pkt)) == SERVICE_REGISTRATION_ACK) {
+		isRegistered = true;
+		if (serverConfig.verbose) { PRINT("Registered with broker.\n"); }
+	} else if (request_type == SERVICE_REQUEST && isRegistered) {
+		unpack_marshal_call_send(pkt.buffer, pkt.len, brokerDetails, serverConfig);
+	} else { PRINT("%s\n", !isRegistered ? 	"Waiting for registration ACK from broker" : "unknown message received from broker"); 	}
 }
 // ===============================
 // Command line handling routines
@@ -224,5 +191,16 @@ if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
 } else {
 	serverConfig.verbose = false;
 }
+}
+
+int wait(struct Config *serverConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
+{
+	if (serverConfig->verbose) PRINT("-- Listening...\n");
+
+	if (serverConfig->waitIndef) {
+			return select(listening_socket + 1, read_file_descriptors, NULL, NULL, NULL);
+	} else {
+			return select(listening_socket + 1, read_file_descriptors, NULL, NULL, timeout);
+	}
 }
 

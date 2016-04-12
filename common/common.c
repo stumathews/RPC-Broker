@@ -358,6 +358,7 @@ char* get_op_name(Packet* packet) {
 	if (return_status == MSGPACK_UNPACK_PARSE_ERROR) {
 		PRINT("The data in the buf is invalid format.\n");
 	}
+	return NULL;
 }
 
 void printKeyValuePair(Node* LinkedListNode) {
@@ -395,6 +396,12 @@ void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
 	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
 }
+
+/***
+ * Wrapper function to accept connection and process it - so that it confirms to void* func(void*) prototype so can pass as a thread function
+ *
+ * @param params SOCKET* socket that is ready to read from
+ */
 
 void CheckValidSocket(SOCKET s1)
 {

@@ -31,7 +31,7 @@ static void setBeVerbose(char* arg);
 #ifdef __linux__
 void* thread_server(void* params);
 #else
-unsigned __stdcall thread_server(void* params);
+unsigned thread_server(void* params);
 #endif
 
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
@@ -41,5 +41,5 @@ inline void PrintConfigDiagnostics(_Bool verbose, List* settings) {
 		LIST_ForEach(settings, printSetting);
 	}
 }
-
+int wait(struct Config *serverConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
 #endif /* SERVER_SERVER_H_ */
