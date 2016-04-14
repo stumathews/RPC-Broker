@@ -286,10 +286,9 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 	msgpack_unpack_return return_status;
 	msgpack_unpacked_init(&unpacked_result);
 	char* str;
-	return_status = msgpack_unpack_next(&unpacked_result, packet->buffer,
-			packet->len, &off);
 
-	while (return_status == MSGPACK_UNPACK_SUCCESS) {
+	while ((return_status = msgpack_unpack_next(&unpacked_result,
+			packet->buffer, packet->len, &off)) == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj = unpacked_result.data;
 
 		char header_name[MAX_HEADER_NAME_SIZE];
@@ -309,8 +308,6 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 		} else {
 			// this is not a header or array but something else
 		}
-		return_status = msgpack_unpack_next(&unpacked_result, packet->buffer,
-				packet->len, &off);
 	} // finished unpacking.
 
 	msgpack_unpacked_destroy(&unpacked_result);
