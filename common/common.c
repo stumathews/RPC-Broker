@@ -342,10 +342,10 @@ char* get_op_name(Packet* packet) {
 		if (STR_Equals("op", header_name) && val.type == MSGPACK_OBJECT_STR) {
 			msgpack_object_str string = val.via.str;
 			int str_len = string.size;
-			char* str = malloc(str_len);
+			char* str = malloc(string.size+1);
 
-			memset(str, '\0', str_len);
-			str[str_len] = '\0';
+			memset(str, '\0', str_len+1);
+			str[str_len+1] = '\0';
 			strncpy(str, string.ptr, str_len);
 			return str;
 		}
