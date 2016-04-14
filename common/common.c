@@ -331,11 +331,8 @@ char* get_op_name(Packet* packet) {
 	char header_name[MAX_HEADER_NAME_SIZE] = { 0 };
 
 	msgpack_unpacked_init(&unpacked_result);
-
-	return_status = msgpack_unpack_next(&unpacked_result, packet->buffer,
-			packet->len, &off);
-
-	while (return_status == MSGPACK_UNPACK_SUCCESS) {
+	while ((return_status = msgpack_unpack_next(&unpacked_result, packet->buffer,
+			packet->len, &off)) == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object result_data = unpacked_result.data;
 
 		memset(header_name, '\0', MAX_HEADER_NAME_SIZE);
@@ -350,11 +347,8 @@ char* get_op_name(Packet* packet) {
 			memset(str, '\0', str_len);
 			str[str_len] = '\0';
 			strncpy(str, string.ptr, str_len);
-			return str;  // dnagling pointer
+			return str;
 		}
-
-		return_status = msgpack_unpack_next(&unpacked_result, packet->buffer,
-				packet->len, &off);
 
 	} // finished unpacking.
 
