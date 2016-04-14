@@ -31,13 +31,14 @@ unsigned __stdcall thread_send_request(void* params)
  * @param verbose true if this function should report verbose messages
  * @return int number of bytes sent
  */
-int send_request(Packet *packet, char* address, char* port, bool verbose)
-{
+int send_request(Packet *packet, char* address, char* port, bool verbose) {
 	struct sockaddr_in peer;
 	SOCKET connected_socket;
 
 	unpack_data(packet, verbose);
-	if (verbose) { PRINT("Sending to %s:%s...\n", address, port); }
+	if (verbose) {
+		PRINT("Sending to %s:%s...\n", address, port);
+	}
 
 	connected_socket = netTcpClient(address, port);
 	return send_data(connected_socket, &peer, packet, verbose);
@@ -52,7 +53,8 @@ int send_request(Packet *packet, char* address, char* port, bool verbose)
  * @param verbose true if verbose messages ar eallowed
  * @return int number of bytes sent
  */
-int send_data(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose) {
+int send_data(SOCKET s, struct sockaddr_in* peerp, Packet *packet,
+		bool verbose) {
 	struct Packet pkt;
 	int send_size_result_sent_bytes = 0;
 	int send_data_result_sent_bytes = 0;
@@ -61,14 +63,23 @@ int send_data(SOCKET s, struct sockaddr_in* peerp, Packet *packet, bool verbose)
 	pkt.buffer = packet->buffer;
 
 	// Send size of packet
-	if ((send_size_result_sent_bytes = send(s, (char*) &pkt.len, sizeof(u_int32_t), 0)) < 0) {	netError(1, errno, "failed to send size\n"); }
+	if ((send_size_result_sent_bytes = send(s, (char*) &pkt.len,
+			sizeof(u_int32_t), 0)) < 0) {
+		netError(1, errno, "failed to send size\n");
+	}
 
 	pkt.len = ntohl(pkt.len);
 
 	// send packet data
-	if ((send_data_result_sent_bytes = send(s, pkt.buffer, pkt.len, 0)) < 0) { netError(1, errno, "failed to send packed data\n"); }
-	int total_sent_bytes = send_size_result_sent_bytes + send_data_result_sent_bytes;
-	if (verbose) { PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes, send_size_result_sent_bytes, send_data_result_sent_bytes); }
+	if ((send_data_result_sent_bytes = send(s, pkt.buffer, pkt.len, 0)) < 0) {
+		netError(1, errno, "failed to send packed data\n");
+	}
+	int total_sent_bytes = send_size_result_sent_bytes
+			+ send_data_result_sent_bytes;
+	if (verbose) {
+		PRINT("Sent %d bytes [%d+%d]\n", total_sent_bytes,
+				send_size_result_sent_bytes, send_data_result_sent_bytes);
+	}
 
 	return total_sent_bytes;
 }
@@ -115,30 +126,26 @@ void pack_map_str(char* key, char* value, msgpack_packer* pk) {
  * @return void
  */
 void unpack_data(Packet* packet, bool verbose) {
-	if (packet->len == 0) {
-		return;
-	}
-	/* buf is allocated by client. */
 	msgpack_unpacked result;
 	msgpack_unpack_return ret;
 	size_t off = 0;
 	int i = 0;
+
+	if (packet->len == 0) {
+		PRINT("Packet is empty!\n");
+		return;
+	}
 	msgpack_unpacked_init(&result);
 
-	// Go ahead unpack an object
-	ret = msgpack_unpack_next(&result, packet->buffer, packet->len, &off);
-
-	// Go and get the rest of all was good
-	while (ret == MSGPACK_UNPACK_SUCCESS) {
+	while ((ret = msgpack_unpack_next(&result, packet->buffer, packet->len,
+			&off)) == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj = result.data;
-		if (verbose)
+		if (verbose) {
 			msgpack_object_print(stdout, obj);
-
+		}
 		if (obj.type != MSGPACK_OBJECT_NIL) {
 			printf("\n");
 		}
-
-		ret = msgpack_unpack_next(&result, packet->buffer, packet->len, &off);
 	}
 	msgpack_unpacked_destroy(&result);
 
@@ -155,26 +162,26 @@ void unpack_data(Packet* packet, bool verbose) {
  * @return msgpack_object the result
  */
 msgpack_object extract_header(msgpack_object* obj, char* header_buffer) {
-	// msgpack_object.type (msgpack_object_type)
-	// msgpack_object.via (msgpack_object_union)
 	if (obj->type == MSGPACK_OBJECT_MAP) {
-		int count = obj->via.map.size; // How many items in this map?
+		int size = -1;
+		int count = obj->via.map.size;
+
 		if (count != 1) {
 			PRINT("Expected count of items in map to be 1. Not the case: %d\n",
 					count);
 			exit(1);
 		}
 
-		struct msgpack_object_kv* pairs = obj->via.map.ptr; // all the key/value pairs in this map
+		struct msgpack_object_kv* pairs = obj->via.map.ptr;
 
 		msgpack_object key = pairs[0].key;
 		msgpack_object val = pairs[0].val;
 
-		char key_name[key.via.str.size];
+		size = key.via.str.size + 1;
+		char key_name[size];
 		strncpy(key_name, key.via.str.ptr, key.via.str.size);
-		key_name[key.via.str.size] = '\0';
+		key_name[size] = '\0';
 		strncpy(header_buffer, key_name, key.via.str.size);
-
 		return val;
 	} else {
 		PRINT("Expected request type to be a map.\n");
@@ -194,9 +201,8 @@ enum RequestType determine_request_type(struct Packet* pkt) {
 	size_t off = 0;
 	msgpack_unpacked_init(&result);
 
-	// unpack just one object
-	ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off);
-	if (ret == MSGPACK_UNPACK_SUCCESS) {
+	if ((ret = msgpack_unpack_next(&result, pkt->buffer, pkt->len, &off))
+			== MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj = result.data;
 
 		char header_name[20]; // assume that the protocol states that the header_name can not be longer than 20 characters
@@ -216,6 +222,7 @@ enum RequestType determine_request_type(struct Packet* pkt) {
 
 	} else {
 		PRINT("pack failed\n");
+		return FAILED;
 	}
 
 	msgpack_unpacked_destroy(&result);
@@ -376,7 +383,7 @@ void printSetting(Node* LinkedListNode) {
 }
 
 /**
- * @brief Sends a packet of data 
+ * @brief Sends a packet of data
  *
  * @param packet the data to send
  * @param address the address to send the data to
@@ -403,16 +410,13 @@ void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
  * @param params SOCKET* socket that is ready to read from
  */
 
-void CheckValidSocket(SOCKET s1)
-{
+void CheckValidSocket(SOCKET s1) {
 	if (!isvalidsock(s1)) {
 		netError(1, errno, "accept failed");
 	}
 }
 
-
-int GetGenericThreadResult()
-{
+int GetGenericThreadResult() {
 #ifdef __linux__
 	return (void*) 0;
 #else

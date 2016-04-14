@@ -5,11 +5,11 @@
  The format of the dayload/data contains multiple headers packed one after the other.
  The order and headers determine the type of message.
 
- headers 
+ headers
  Can be any string with an associated value.
  header name must be at most 20 characters (char[20])
  the associated value can be either an *integer* or a *string*
- Example two headers are "name" and "age" :  
+ Example two headers are "name" and "age" :
  { "name" : "Stuart" }
  { "age" : 27 }
 
@@ -19,7 +19,7 @@
 
  ** ServiceRegistration **
 
- Sent by the service to advertise its services by name and register with the broker. 
+ Sent by the service to advertise its services by name and register with the broker.
 
  { "request-type" : SERVICE_REGISTRATION }
  { "sender-address" : "127.0.0.1" }
@@ -29,7 +29,7 @@
  { "service-name" : "ServiceId" }
 
  ** ServiceRequest **
- 
+
  Sent by the client to request a service, processed by the broker and sent to approproate server to handle
 
  { "request-type" : SERVICE_REQUEST }
@@ -40,8 +40,8 @@
  { "params" => [ buffer, length, ... ] }
 
  ** ServiceRequestResponse **
- 
- Sent by the service in response to a client's ServiceRequest. This is sent to the broker, who sends it to the requesting client.    
+
+ Sent by the service in response to a client's ServiceRequest. This is sent to the broker, who sends it to the requesting client.
 
  { type:SERVICE_REQUEST_RESPONSE }
  { message-id: 3456789 }
@@ -69,13 +69,14 @@
 
 /**
  * @brief The types of protocol messages that exist in the specification
- * 
+ *
  */
 enum RequestType {
 	SERVICE_REQUEST,
 	SERVICE_REQUEST_RESPONSE,
 	SERVICE_REGISTRATION,
-	SERVICE_REGISTRATION_ACK
+	SERVICE_REGISTRATION_ACK,
+	FAILED
 };
 
 #endif
