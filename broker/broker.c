@@ -66,10 +66,10 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 	int wait_result = 0;
 	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 	SOCKET listening_socket = GetAServerSocket(brokerDetails->address, brokerDetails->port);
-	struct BrokerServerArgs *threadParams = malloc(sizeof(struct BrokerServerArgs));
+	struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
 
-	threadParams->brokerConfig = brokerConfig;
-	threadParams->brokerDetails = brokerDetails;
+	threadParams->config = brokerConfig;
+	threadParams->details = brokerDetails;
 	threadParams->socket = &listening_socket;
 
 	FD_ZERO(&read_file_descriptors);
@@ -107,7 +107,7 @@ void* read_socket_thread_wrapper(void* params)
 unsigned long read_socket_thread_wrapper(void* params)
 #endif
 {
-		struct BrokerServerArgs *args = (struct BrokerServerArgs*) params;
+		struct ServerArgs *args = (struct ServerArgs*) params;
 		SOCKET* listening_socket = (SOCKET*) args->socket;
 		int peerlen;
 		struct sockaddr_in peer;
@@ -115,7 +115,7 @@ unsigned long read_socket_thread_wrapper(void* params)
 		SOCKET connected_socket = accept(*listening_socket, (struct sockaddr *) &peer, &peerlen);
 
 		CheckValidSocket(connected_socket);
-		read_socket(connected_socket, &peer, args->brokerConfig, args->brokerDetails);
+		read_socket(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
 
 		return GetGenericThreadResult();

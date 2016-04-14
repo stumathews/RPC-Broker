@@ -65,9 +65,9 @@ typedef struct Config {
 	bool waitIndef;
 } Config;
 
-struct BrokerServerArgs {
-	struct Config* brokerConfig;
-	struct Details* brokerDetails;
+struct ServerArgs {
+	struct Config* config;
+	struct Details* details;
 	SOCKET *socket;
 
 };

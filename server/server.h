@@ -34,7 +34,7 @@ void* thread_server(void* params);
 unsigned thread_server(void* params);
 #endif
 
-static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp);
+static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config* config);
 
 inline void PrintConfigDiagnostics(_Bool verbose, List* settings) {
 	if (verbose) {
