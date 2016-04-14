@@ -38,11 +38,10 @@ int main(int argc, char **argv)
 	CMD_AddArgument(beVerboseCMD);
 	CMD_AddArgument(ourAddressCMD);
 
-
 	List* settings = (void*) 0;
 	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 
-	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
+	if (FILE_Exists(CONFIG_FILENAME) && (argc < 2)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
 		if (INI_IniParse(CONFIG_FILENAME, settings) == 0) { // if successful parse
