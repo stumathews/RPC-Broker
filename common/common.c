@@ -267,6 +267,7 @@ int get_header_int_value(Packet* packet, char* look_header_name) {
 
 	if (return_status == MSGPACK_UNPACK_PARSE_ERROR) {
 		PRINT("The data in the buf is invalid format.\n");
+		exit(1);
 	}
 	return return_value;
 }
