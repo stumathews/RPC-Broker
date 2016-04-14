@@ -14,7 +14,7 @@
 
 /**
  * @brief A packet consisting of the length of it and then the trailing data
- * 
+ *
  */
 typedef struct Packet {
 	uint32_t len;
@@ -23,7 +23,7 @@ typedef struct Packet {
 
 /**
  * @brief Used to describe a address/port combination
- * 
+ *
  */
 typedef struct DestinationEndpoint {
 	char* address;
@@ -32,7 +32,7 @@ typedef struct DestinationEndpoint {
 
 /**
  * @brief object to represent a service registration from server to broker
- * 
+ *
  */
 typedef struct ServiceRegistration {
 	char* address;
@@ -45,7 +45,7 @@ typedef struct ServiceRegistration {
 
 /**
  * @brief Represents a client registration
- * 
+ *
  */
 typedef struct ClientRequestRegistration {
 	char* address;
@@ -102,7 +102,6 @@ char* get_op_name(Packet* packet);
 msgpack_object extract_header(msgpack_object* obj, char* header_buffer);
 struct Packet *send_and_receive(Packet* packet, char* address, char* port,
 		bool verbose, char* wait_response_port);
-void async_send(Packet* packet, char* to_address, char* port, bool verbose);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
 void CheckValidSocket(SOCKET s1);

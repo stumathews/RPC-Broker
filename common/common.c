@@ -361,40 +361,19 @@ char* get_op_name(Packet* packet) {
 	return NULL;
 }
 
-void printKeyValuePair(Node* LinkedListNode) {
+void printKeyValuePair(Node* LinkedListNode)
+{
 	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
 	PRINT("key: %s, value: %s\n", header->key, header->value);
 }
 
-void printSetting(Node* LinkedListNode) {
+void printSetting(Node* LinkedListNode)
+{
 	struct KeyValuePair* header = (struct KeyValuePair*) LinkedListNode->data;
 	PRINT("header: %s\n", header->key);
 	List* settings = header->value;
 	settings->fnPrint = printKeyValuePair;
 	LIST_Print(settings);
-
-}
-
-/**
- * @brief Sends a packet of data
- *
- * @param packet the data to send
- * @param address the address to send the data to
- * @param port the port to connect to on the address
- * @param verbose true if this function should log verbose messages
- */
-void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
-
-	struct SendArgs *args = malloc(sizeof(struct SendArgs));
-	args->packet = packet;
-	args->to_address = to_address, args->port = port, args->wait_response_port =
-			NULL;
-
-	if (verbose)
-		PRINT("About to send request in its own thread...\n");
-
-	THREAD_RunAndForget(thread_send_request, (void*) &args);
-
 }
 
 /***
@@ -402,14 +381,15 @@ void async_send(Packet* packet, char* to_address, char* port, bool verbose) {
  *
  * @param params SOCKET* socket that is ready to read from
  */
-
-void CheckValidSocket(SOCKET s1) {
-	if (!isvalidsock(s1)) {
+void CheckValidSocket(SOCKET socket)
+{
+	if (!isvalidsock(socket)) {
 		netError(1, errno, "accept failed");
 	}
 }
 
-int GetGenericThreadResult() {
+int GetGenericThreadResult()
+{
 #ifdef __linux__
 	return (void*) 0;
 #else

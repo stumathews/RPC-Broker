@@ -75,13 +75,7 @@ return result;
 Packet *send_and_receive(Packet* packet, char* to_address, char* port,
 	bool verbose, char* wait_response_port) {
 
-struct SendArgs args = {
-.packet = packet,
-.to_address = to_address,
-.port =port,
-.wait_response_port = wait_response_port
-}
-;
+struct SendArgs args = { .packet = packet, .to_address = to_address, .port =port, .wait_response_port = wait_response_port };
 
 THREAD_RunAndForget(thread_send_request, (void*) &args);
 
