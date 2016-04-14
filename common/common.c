@@ -356,6 +356,7 @@ char* get_op_name(Packet* packet) {
 
 	if (return_status == MSGPACK_UNPACK_PARSE_ERROR) {
 		PRINT("The data in the buf is invalid format.\n");
+		exit(1);
 	}
 	return NULL;
 }
