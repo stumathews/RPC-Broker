@@ -5,6 +5,13 @@
 
 int main(int argc, char **argv)
 {
+	struct sockaddr_in peer;
+	int peerlen;
+	SOCKET listening_socket;
+	fd_set readfds;
+	FD_ZERO(&readfds);
+	int wait_result = -1;
+
 	LIB_Init();
 	PRINT("Server starting...");
 
@@ -31,16 +38,6 @@ int main(int argc, char **argv)
 	CMD_AddArgument(beVerboseCMD);
 	CMD_AddArgument(ourAddressCMD);
 
-	struct sockaddr_in local;
-	struct sockaddr_in peer;
-	char *hname;
-	char *sname;
-	int peerlen;
-	SOCKET s1;
-	SOCKET listening_socket;
-	fd_set readfds;
-	FD_ZERO(&readfds);
-	int wait_result = -1;
 
 	List* settings = (void*) 0;
 	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
@@ -72,8 +69,8 @@ int main(int argc, char **argv)
 
 	NETINIT();
 
-	if(serverConfig.verbose) {PRINT("Server listening...\n");}
 	if(serverConfig.verbose) {
+		PRINT("Server listening...\n");
 		PRINT("Register with the broker on startup.\n");
 		PRINT("broker address is %s, broker port is %s \n", brokerDetails.address,brokerDetails.port);
 		PRINT("Sending registration request to broker at address '%s:%s'", brokerDetails.address, brokerDetails.port);
@@ -81,7 +78,6 @@ int main(int argc, char **argv)
 	service_register_with_broker(brokerDetails, serverDetails,serverConfig);
 
 	if(serverConfig.verbose) {PRINT("Wait for messages from the broker...\n");}
-
 	listening_socket = netTcpServer(serverDetails.address, serverDetails.port);
 	FD_SET(listening_socket, &readfds);
 	struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
@@ -103,7 +99,7 @@ int main(int argc, char **argv)
 				continue;
 			}
 		}
-	}while (1);
+	} while (1);
 
 	LIST_FreeInstance (settings);
 	LIB_Uninit();
@@ -116,7 +112,7 @@ int main(int argc, char **argv)
 #ifdef __linux__
 void* thread_server(void* params);
 #else
-unsigned thread_server(void* params)
+unsigned __stdcall thread_server(void* params)
 #endif
 {
 	int peerlen;
