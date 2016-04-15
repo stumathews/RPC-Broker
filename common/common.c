@@ -31,7 +31,8 @@ unsigned __stdcall thread_send_request(void* params)
  * @param verbose true if this function should report verbose messages
  * @return int number of bytes sent
  */
-int send_request(Packet *packet, char* address, char* port, bool verbose) {
+int send_request(Packet *packet, char* address, char* port, bool verbose)
+{
 	struct sockaddr_in peer;
 	SOCKET connected_socket;
 
@@ -39,7 +40,6 @@ int send_request(Packet *packet, char* address, char* port, bool verbose) {
 	if (verbose) {
 		PRINT("Sending to %s:%s...\n", address, port);
 	}
-
 	connected_socket = netTcpClient(address, port);
 	return send_data(connected_socket, &peer, packet, verbose);
 }
@@ -62,18 +62,21 @@ int send_data(SOCKET s, struct sockaddr_in* peerp, Packet *packet,
 	pkt.len = htonl(packet->len);
 	pkt.buffer = packet->buffer;
 
+	printf("F\n");
 	// Send size of packet
 	if ((send_size_result_sent_bytes = send(s, (char*) &pkt.len,
 			sizeof(u_int32_t), 0)) < 0) {
 		netError(1, errno, "failed to send size\n");
 	}
-
+	printf("G\n");
 	pkt.len = ntohl(pkt.len);
 
+	printf("H\n");
 	// send packet data
 	if ((send_data_result_sent_bytes = send(s, pkt.buffer, pkt.len, 0)) < 0) {
 		netError(1, errno, "failed to send packed data\n");
 	}
+	printf("I\n");
 	int total_sent_bytes = send_size_result_sent_bytes
 			+ send_data_result_sent_bytes;
 	if (verbose) {
@@ -143,7 +146,7 @@ void unpack_data(Packet* packet, bool verbose) {
 		if (verbose) {
 			msgpack_object_print(stdout, obj);
 		}
-		if (obj.type != MSGPACK_OBJECT_NIL) {
+		if (obj.type != MSGPACK_OBJECT_NIL && verbose) {
 			printf("\n");
 		}
 	}
