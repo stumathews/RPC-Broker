@@ -182,10 +182,12 @@ static void read_socket(SOCKET connected_socket, struct sockaddr_in *peerp, stru
 
 		send_request(&packet, destination->address, destination->port, brokerConfig->verbose);
 	} else if (request_type == SERVICE_REGISTRATION) {
+		PRINT("<<< SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
 		register_service_request(&packet, brokerConfig);
 	} else if (request_type == SERVICE_REQUEST_RESPONSE) {
 		PRINT("<< SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
 		Packet* response = &packet;
+		PRINT(">>> FWD SERVICE_REQUEST_RESPONSE\n", get_header_str_value(&packet, OPERATION_HDR));
 		forward_response_to_client(response, brokerConfig);
 	} else {
 		PRINT("Unrecognised request type:%d. Ignoring \n", request_type);
@@ -220,22 +222,19 @@ if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
 }
 }
 
-void GetBrokerAddressConfigSetting(struct Details* brokerDetails,
-	List* settings) {
-strncpy(brokerDetails->port, INI_GetSetting(settings, "networking", "port"),
+void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings)
+{
+		strncpy(brokerDetails->port, INI_GetSetting(settings, "networking", "port"),
 		MAX_PORT_CHARS);
-PRINT("broker port is : %s", brokerDetails->port);
 }
 
-void GetBrokerPortConfigSettings(struct Details* brokerDetails,
-	List* settings) {
-strncpy(brokerDetails->address,
-		INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
-PRINT("broker address is : %s", brokerDetails->address);
+void GetBrokerPortConfigSettings(struct Details* brokerDetails,	List* settings)
+{
+	strncpy(brokerDetails->address,		INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
 }
 
 void setPortNumber(char *arg) {
-strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
+	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
 }
 int wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
 {

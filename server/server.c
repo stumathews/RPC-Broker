@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	int wait_result = -1;
 
 	LIB_Init();
-	PRINT("Server starting...");
+	PRINT("Server started.\n");
 
 	struct Argument* portNumber = CMD_CreateNewArgument("p", "p <number>",
 			"Set the port that the server will listen on", true, true,

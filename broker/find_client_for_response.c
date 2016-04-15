@@ -20,7 +20,6 @@ Location* find_client_for_response(Packet *packet, Location* dest,
 	for (int j = 0; j < client_request_repository.size; j++) {
 		Node* node = LIST_Get(&client_request_repository, j);
 		crreg_entry = node->data;
-		printf("address:%s\n", crreg_entry->address);
 		*message_id = get_header_int_value(packet, MESSAGE_ID_HDR);
 		requested_operation = get_header_str_value(packet, OPERATION_HDR);
 		if (*message_id == crreg_entry->message_id

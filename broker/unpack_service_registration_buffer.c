@@ -3,7 +3,8 @@
 
 struct ServiceRegistration* unpack_service_registration_buffer(
 		const char* payload, int langth, struct Config* brokerConfig) {
-	PRINT("Unpacking service registration request...\n");
+
+	if(brokerConfig->verbose) { PRINT("Unpacking service registration request...\n"); }
 
 	size_t off = 0;
 	int i = 0;
@@ -47,7 +48,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(
 				unpacked->services = malloc((sizeof(char*) * (val.via.i64) + val.via.i64));
 			}
 		} else if (val.type == MSGPACK_OBJECT_ARRAY) {
-			PRINT("Processing services %d services...\n", val.via.array.size);
+			if(brokerConfig->verbose) { PRINT("Processing services %d services...\n", val.via.array.size); }
 
 			msgpack_object_array array = val.via.array;
 

@@ -35,6 +35,7 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 	packet->buffer = sbuf.data;
 	packet->len = sbuf.size;
 
+	PRINT(">>> SERVICE_REGISTRATION_ACK\n");
 	do {
 		total_sent_bytes = send_request(packet, sender_address, reply_port, brokerConfig->verbose);
 
