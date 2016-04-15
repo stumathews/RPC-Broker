@@ -31,9 +31,8 @@ int main(int argc, char* argv[]) {
 	PRINT("broker name = %s\n", getBrokerName());
 	PRINT("sum = %d\n", add(20, 199));
 	PRINT("sayHello = %s\n", sayHello(20, "Stuart"));
-	PRINT("sayDog = %s\n",
-			sayDog("labrador_", "alsatian_", "bulldog_", "spaniel"));
-	PRINT("diffirence(200,578 = %d", diffirence(200, 578));
+	PRINT("sayDog = %s\n",	sayDog("labrador_", "alsatian_", "bulldog_", "spaniel"));
+	PRINT("diffirence(200,578) = %d\n", diffirence(200, 578));
 
 	LIB_Uninit();
 #ifdef __linux__
