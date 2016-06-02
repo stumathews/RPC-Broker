@@ -378,7 +378,7 @@ void printSetting(Node* LinkedListNode)
  *
  * @param params SOCKET* socket that is ready to read from
  */
-void CheckValidSocket(SOCKET socket)
+void failIfInvalidSocket(SOCKET socket)
 {
 	if (!isvalidsock(socket)) {
 		netError(1, errno, "accept failed");

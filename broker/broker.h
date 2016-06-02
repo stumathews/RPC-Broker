@@ -21,15 +21,11 @@ static const char* CONFIG_FILENAME = "config.ini";
 #undef USE_THREADING
 #endif
 
-#ifdef __linux__
-void* read_socket_thread_wrapper(void* params);
-#else
-unsigned long read_socket_thread_wrapper(void* params);
-#endif
+
+THREADFUNC(read_socket_thread_wrapper);
 
 static void wait_for_connections();
-static void read_socket(SOCKET s, struct sockaddr_in *peerp,
-		struct Config *brokerConfig, struct Details *brokerDetails);
+void readDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails);
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);
 void setVerboseFlag(char *verbose);
 void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings);

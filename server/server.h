@@ -26,10 +26,7 @@ int wait(struct Config *serverConfig, SOCKET listening_socket, fd_set *read_file
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config* config);
 void PrintConfigDiagnostics(_Bool verbose, List* settings);
 
-#ifdef __linux__
-void* thread_server(void* params);
-#else
-unsigned __stdcall thread_server(void* params);
-#endif
+THREADFUNC(thread_server);
+
 
 #endif /* SERVER_SERVER_H_ */

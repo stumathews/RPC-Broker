@@ -7,10 +7,17 @@
 #include <stulibc.h>
 #include "protocol.h"
 
-#define ON = 1;
+#define ON 1;
 #define INI_PARSE_SUCCESS 0
 #define _WAIT_TIMEOUT 0
 #define WAIT_ERROR -1
+#define FOREVER 1
+
+#ifdef __linux__
+#define THREADFUNC(func) void* func(void* params)
+#else
+#define THREADFUNC(func) unsigned long func(void* params)
+#endif
 
 /**
  * @brief A packet consisting of the length of it and then the trailing data
@@ -104,6 +111,6 @@ struct Packet *send_and_receive(Packet* packet, char* address, char* port,
 		bool verbose, char* wait_response_port);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
-void CheckValidSocket(SOCKET s1);
+void failIfInvalidSocket(SOCKET s1);
 int GetGenericThreadResult();
 #endif

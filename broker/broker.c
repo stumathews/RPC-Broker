@@ -6,20 +6,29 @@
 static struct Config brokerConfig = { 0 };
 static struct Details brokerDetails = { 0 };
 
-int main(int argc, char **argv) {
-	LIB_Init();
-	LIST_Init (&service_repository);
-	List* settings = { 0 };
-
-	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>",	"Set the port that the broker will listen on", true, true, 	setPortNumber);
-	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "","Prints all messages verbosely", false, false, setVerboseFlag);
-	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "","Wait indefinitely for new connections, else 60 secs and then dies",false, false, setWaitIndefinitelyFlag);
-
+void SetupAndRegisterCmdArgs() {
+	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>",
+			"Set the port that the broker will listen on", true, true,
+			setPortNumber);
+	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "",
+			"Prints all messages verbosely", false, false, setVerboseFlag);
+	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "",
+			"Wait indefinitely for new connections, else 60 secs and then dies",
+			false, false, setWaitIndefinitelyFlag);
 	CMD_AddArgument(cmdWaitIndef);
 	CMD_AddArgument(cmdPort);
 	CMD_AddArgument(cmdVerbose);
+}
 
-	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
+int main(int argc, char **argv)
+{
+	LIB_Init();
+	LIST_Init (&service_repository);
+	List* settings = { 0 };
+	bool haveCmdArgs = argc > 1;
+
+	SetupAndRegisterCmdArgs();
+	if (FILE_Exists(CONFIG_FILENAME) && !(haveCmdArgs)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
 		if (INI_IniParse(CONFIG_FILENAME, settings) == INI_PARSE_SUCCESS) {
@@ -30,7 +39,7 @@ int main(int argc, char **argv) {
 		} else {
 			ERR_Print("Failed to parse config file", 1);
 		}
-	} else if (argc > 1) {
+	} else if (haveCmdArgs) {
 		if ((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
 			PRINT("CMD line parsing failed.");
 			return 1;  // Note CMD_Parse will emit error messages as appropriate
@@ -92,7 +101,7 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 				continue;
 			}
 		}
-	} while (1);
+	} while (FOREVER);
 }
 
 
@@ -101,11 +110,7 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
  *
  * @param params SOCKET* socket that is ready to read from
  */
-#ifdef __linux__
-void* read_socket_thread_wrapper(void* params)
-#else
-unsigned long read_socket_thread_wrapper(void* params)
-#endif
+THREADFUNC(read_socket_thread_wrapper)
 {
 		struct ServerArgs *args = (struct ServerArgs*) params;
 		SOCKET* listening_socket = (SOCKET*) args->socket;
@@ -114,8 +119,8 @@ unsigned long read_socket_thread_wrapper(void* params)
 		peerlen = sizeof(peer);
 		SOCKET connected_socket = accept(*listening_socket, (struct sockaddr *) &peer, &peerlen);
 
-		CheckValidSocket(connected_socket);
-		read_socket(connected_socket, &peer, args->config, args->details);
+		failIfInvalidSocket(connected_socket);
+		readDataOnSocket(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
 
 		return GetGenericThreadResult();
@@ -128,7 +133,7 @@ unsigned long read_socket_thread_wrapper(void* params)
  * @param peerp the peerlen
  * @return void
  */
-static void read_socket(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails)
+void readDataOnSocket(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails)
 {
 	struct Packet packet;
 	Location *sender = NULL;

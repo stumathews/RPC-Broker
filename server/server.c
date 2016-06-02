@@ -108,11 +108,7 @@ int main(int argc, char **argv)
 	EXIT(0);
 }
 
-#ifdef __linux__
-void* thread_server(void* params);
-#else
-unsigned __stdcall thread_server(void* params)
-#endif
+THREADFUNC(thread_server)
 {
 	int peerlen;
 	struct sockaddr_in peer;
@@ -120,7 +116,7 @@ unsigned __stdcall thread_server(void* params)
 	struct ServerArgs* threadParams = (struct ServerArgs*) params;
 	SOCKET* listening_socket = threadParams->socket;
 	SOCKET connected_socket = accept(*listening_socket, (struct sockaddr*) &peer, &peerlen);
-	CheckValidSocket(connected_socket);
+	failIfInvalidSocket(connected_socket);
 	ReadAndProcessDataOnSocket(connected_socket, &peer, threadParams->config);
 	NETCLOSE(connected_socket);
 
