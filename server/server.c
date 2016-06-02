@@ -205,3 +205,10 @@ if (serverConfig->waitIndef) {
 }
 }
 
+void PrintConfigDiagnostics(_Bool verbose, List* settings)
+{
+	if (verbose) {
+		LIST_ForEach(settings, printSetting);
+	}
+}
+

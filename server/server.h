@@ -24,7 +24,7 @@ static void setWaitIndef(char* arg);
 static void setBeVerbose(char* arg);
 int wait(struct Config *serverConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
 static void ReadAndProcessDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config* config);
-inline void PrintConfigDiagnostics(_Bool verbose, List* settings) {	if (verbose) { LIST_ForEach(settings, printSetting); } }
+void PrintConfigDiagnostics(_Bool verbose, List* settings);
 
 #ifdef __linux__
 void* thread_server(void* params);
