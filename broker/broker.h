@@ -33,6 +33,6 @@ void setWaitIndefinitelyFlag(char *arg);
 void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings);
 void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings);
 void setPortNumber(char *arg);
-int wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
+int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
 
 #endif /* BROKER_BROKER_H_ */

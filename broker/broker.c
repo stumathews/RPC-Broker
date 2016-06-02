@@ -85,7 +85,7 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 	FD_SET(listening_socket, &read_file_descriptors);
 
 	do {
-		if ((wait_result = wait(brokerConfig, listening_socket, &read_file_descriptors, &timeout)) == _WAIT_TIMEOUT) {
+		if ((wait_result = _wait(brokerConfig, listening_socket, &read_file_descriptors, &timeout)) == _WAIT_TIMEOUT) {
 			netError(1, errno, "timeout occured while waiting for incomming connections!");
 		} else if (wait_result == WAIT_ERROR) {
 			netError(1, errno, "select error!!");
@@ -244,7 +244,7 @@ void GetBrokerPortConfigSettings(struct Details* brokerDetails,	List* settings)
 void setPortNumber(char *arg) {
 	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
 }
-int wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
+int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
 {
 	if (brokerConfig->verbose) PRINT("-- Listening...\n");
 
