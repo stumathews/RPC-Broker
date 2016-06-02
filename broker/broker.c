@@ -10,15 +10,15 @@ int main(int argc, char **argv) {
 	LIB_Init();
 	LIST_Init (&service_repository);
 	List* settings = { 0 };
-	
+
 	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>",	"Set the port that the broker will listen on", true, true, 	setPortNumber);
 	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "","Prints all messages verbosely", false, false, setVerboseFlag);
 	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "","Wait indefinitely for new connections, else 60 secs and then dies",false, false, setWaitIndefinitelyFlag);
-	
+
 	CMD_AddArgument(cmdWaitIndef);
 	CMD_AddArgument(cmdPort);
 	CMD_AddArgument(cmdVerbose);
-	
+
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
  * @return void
  */
 static void wait_for_connections(struct Config *brokerConfig, struct Details *brokerDetails)
-{		
+{
 	fd_set read_file_descriptors = {0};
 	int wait_result = 0;
 	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
@@ -156,7 +156,10 @@ static void read_socket(SOCKET connected_socket, struct sockaddr_in *peerp, stru
 	recieved_data_size = netReadn(connected_socket, packet.buffer, packet.len);
 
 	if (recieved_data_size < 1) { netError(1, errno, "failed to receive message\n"); }
-	if (brokerConfig->verbose) { PRINT("Got %d bytes [%d+%d] : ", recieved_data_size + recieved_packet_size, recieved_packet_size,	recieved_data_size); }
+	if (brokerConfig->verbose) {
+		PRINT("Got %d bytes [%d+%d] : ", recieved_data_size + recieved_packet_size, recieved_packet_size,	recieved_data_size);
+		unpack_data(&packet, brokerConfig->verbose);
+	}
 
 	if ((request_type = determine_request_type(&packet)) == SERVICE_REQUEST) {
 		operation = get_header_str_value(&packet, OPERATION_HDR);
@@ -182,7 +185,7 @@ static void read_socket(SOCKET connected_socket, struct sockaddr_in *peerp, stru
 
 		send_request(&packet, destination->address, destination->port, brokerConfig->verbose);
 	} else if (request_type == SERVICE_REGISTRATION) {
-		PRINT("<<< SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
+		PRINT("<<< SERVICE_REQUEST(%s)\n", get_header_str_value(&packet, SERVICE_NAME_HDR));
 		register_service_request(&packet, brokerConfig);
 	} else if (request_type == SERVICE_REQUEST_RESPONSE) {
 		PRINT("<< SERVICE_REQUEST_RESPONSE(%s)\n", get_header_str_value(&packet, OPERATION_HDR));
