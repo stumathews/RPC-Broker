@@ -286,8 +286,7 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 	msgpack_unpacked_init(&unpacked_result);
 	char* str;
 
-	while ((return_status = msgpack_unpack_next(&unpacked_result,
-			packet->buffer, packet->len, &off)) == MSGPACK_UNPACK_SUCCESS) {
+	while ((return_status = msgpack_unpack_next(&unpacked_result, packet->buffer, packet->len, &off)) == MSGPACK_UNPACK_SUCCESS) {
 		msgpack_object obj = unpacked_result.data;
 
 		char header_name[MAX_HEADER_NAME_SIZE];
@@ -295,8 +294,7 @@ char* get_header_str_value(Packet* packet, char* look_header_name) {
 
 		msgpack_object val = extract_header(&obj, header_name);
 
-		if (val.type == MSGPACK_OBJECT_STR
-				&& STR_Equals(look_header_name, header_name) == true) {
+		if (val.type == MSGPACK_OBJECT_STR 	&& STR_Equals(look_header_name, header_name) == true) {
 			int str_len = val.via.str.size;
 			str = malloc(str_len);
 
