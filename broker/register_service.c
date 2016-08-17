@@ -1,8 +1,8 @@
 #include "broker_support.h"
 #include "common.h"
 
-extern List service_repository;
-static void perform_diagnostics(struct ServiceRegistration* service_registration, bool verbose_flag);
+
+static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig);
 
 void register_service_request(Packet* packet, struct Config *brokerConfig) {
 	struct ServiceRegistration *service_registration;
@@ -15,7 +15,7 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 
 	if (brokerConfig->verbose) { PRINT("<< SERVICE_REGISTRATION\n"); }
 
-	LIST_Add(&service_repository, service_registration);
+	LIST_Add(brokerConfig->service_repository, service_registration);
 
 	if (brokerConfig->verbose) { PRINT(">> SERVICE_REGISTRATION ACK\n"); }
 
@@ -48,16 +48,15 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 
 	msgpack_sbuffer_destroy(&sbuf);
 
-	if (brokerConfig->verbose) { perform_diagnostics(service_registration, brokerConfig->verbose); 	}
+	if (brokerConfig->verbose) { perform_diagnostics(service_registration, brokerConfig); 	}
 }
 
-static void perform_diagnostics(
-		struct ServiceRegistration* service_registration, bool verbose_flag) {
+static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig) {
 	/*
 	 PRINT("Registering service '%s' from host '%s':\n",service_registration->service_name, service_registration->address);
 	 for(int i = 0 ; i < service_registration->num_services;i++) {
 	 PRINT("Registering operation '%s'\n", service_registration->services[i]);
 	 }
 	 */
-	print_service_repository();
+	print_service_repository(brokerConfig);
 }

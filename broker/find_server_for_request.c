@@ -14,12 +14,12 @@ Location* find_server_for_request(Packet* packet, Config* clientConfig) {
 	dest->address = NULL;
 	dest->port = NULL;
 
-	if (service_repository.size == 0) {
+	if (clientConfig->service_repository->size == 0) {
 		PRINT("No services registered in broker.\n");
 		return dest;;
 	}
-	for (int j = 0; j < service_repository.size; j++) {
-		sreg_entry = (ServiceReg *) LIST_Get(&service_repository, j)->data;
+	for (int j = 0; j < clientConfig->service_repository->size; j++) {
+		sreg_entry = (ServiceReg *) LIST_Get(clientConfig->service_repository, j)->data;
 
 		for (int i = 0; i < sreg_entry->num_services; i++) {
 			if (clientConfig->verbose) {

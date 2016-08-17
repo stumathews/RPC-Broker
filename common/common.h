@@ -70,6 +70,8 @@ typedef struct Details {
 typedef struct Config {
 	bool verbose;
 	bool waitIndef;
+	List *service_repository;
+	List *client_request_repository;
 } Config;
 
 struct ServerArgs {

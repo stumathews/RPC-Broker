@@ -4,15 +4,17 @@
 #include "broker.h"
 #include "common/common.h"
 
-List service_repository;
-List client_request_repository;
-
 int main(int argc, char **argv)
 {
 	LIB_Init();
-	LIST_Init (&service_repository);
 	List* settings = { 0 };
+	List service_repository;
+	LIST_Init (&service_repository);
+	List client_request_repository;
+	LIST_Init (&client_request_repository);
 	struct Config brokerConfig = { 0 };
+		brokerConfig.service_repository = &service_repository;
+		brokerConfig.client_request_repository = &client_request_repository;
 	struct Details brokerDetails = { 0 };
 	bool haveCmdArgs = argc > 1;
 	SetupAndRegisterCmdArgs();
@@ -241,13 +243,13 @@ void GetBrokerPortConfigSettings(struct Details* brokerDetails,	List* settings)
 
 void setPortNumber(char *arg, int numExtraArgs, ...)
 {
-	PRINT("ENTRY:setPortNumber");
+	DBG("ENTRY:setPortNumber");
 	va_list ap;
 	va_start(ap, numExtraArgs);
 	struct Details* brokerDetails = va_arg(ap, struct Details*);
 	va_end(ap);
 	strncpy(brokerDetails->address, arg, MAX_ADDRESS_CHARS);
-	PRINT("EXIT:setPortNumber");
+	DBG("EXIT:setPortNumber");
 }
 
 int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
@@ -263,13 +265,13 @@ int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_fil
 
 void SetupAndRegisterCmdArgs()
 {
-	PRINT("ENTRY: SetupAndRegisterCmdArgs");
+	DBG("ENTRY: SetupAndRegisterCmdArgs");
 	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on", true, true,	setPortNumber);
 	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "", "Prints all messages verbosely", false, false, setVerboseFlag);
 	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "", "Wait indefinitely for new connections, else 60 secs and then dies", false, false, setWaitIndefinitelyFlag);
 	CMD_AddArgument(cmdWaitIndef);
 	CMD_AddArgument(cmdPort);
 	CMD_AddArgument(cmdVerbose);
-	PRINT("EXIT: SetupAndRegisterCmdArgs");
+	DBG("EXIT: SetupAndRegisterCmdArgs");
 }
 
