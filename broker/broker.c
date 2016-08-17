@@ -5,6 +5,8 @@
 #include "common/common.h"
 static struct Config brokerConfig = { 0 };
 static struct Details brokerDetails = { 0 };
+List service_repository;
+List client_request_repository;
 
 int main(int argc, char **argv)
 {
@@ -62,22 +64,22 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 	int wait_result = 0;
 	struct timeval timeout = {.tv_sec = 60, .tv_usec = 0};
 	SOCKET listening_socket = GetAServerSocket(brokerDetails->address, brokerDetails->port);
-	struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
-
-	threadParams->config = brokerConfig;
-	threadParams->details = brokerDetails;
-	threadParams->socket = &listening_socket;
-
-	FD_ZERO(&read_file_descriptors);
-	FD_SET(listening_socket, &read_file_descriptors);
 
 	do {
+		FD_ZERO(&read_file_descriptors);
+		FD_SET(listening_socket, &read_file_descriptors);
+		struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
+
+		threadParams->config = brokerConfig;
+		threadParams->details = brokerDetails;
+
 		if ((wait_result = _wait(brokerConfig, listening_socket, &read_file_descriptors, &timeout)) == _WAIT_TIMEOUT) {
 			netError(1, errno, "timeout occured while waiting for incomming connections!");
 		} else if (wait_result == WAIT_ERROR) {
 			netError(1, errno, "select error!!");
 		} else {
 			if (FD_ISSET(listening_socket, &read_file_descriptors)) {
+				threadParams->socket = &listening_socket;
 				#ifdef USE_THREADING
 						THREAD_RunAndForget(fnOnConnect, (void*) threadParams);
 				#else
@@ -103,12 +105,13 @@ THREADFUNC(fnOnConnect)
 		SOCKET* listening_socket = (SOCKET*) args->socket;
 		int peerlen;
 		struct sockaddr_in peer;
+
 		peerlen = sizeof(peer);
 		SOCKET connected_socket = accept(*listening_socket, (struct sockaddr *) &peer, &peerlen);
-
 		failIfInvalidSocket(connected_socket);
 		readDataOnSocket(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
+		free(params);
 		return GetGenericThreadResult();
 }
 
