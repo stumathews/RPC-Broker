@@ -6,20 +6,6 @@
 static struct Config brokerConfig = { 0 };
 static struct Details brokerDetails = { 0 };
 
-void SetupAndRegisterCmdArgs() {
-	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>",
-			"Set the port that the broker will listen on", true, true,
-			setPortNumber);
-	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "",
-			"Prints all messages verbosely", false, false, setVerboseFlag);
-	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "",
-			"Wait indefinitely for new connections, else 60 secs and then dies",
-			false, false, setWaitIndefinitelyFlag);
-	CMD_AddArgument(cmdWaitIndef);
-	CMD_AddArgument(cmdPort);
-	CMD_AddArgument(cmdVerbose);
-}
-
 int main(int argc, char **argv)
 {
 	LIB_Init();
@@ -28,6 +14,7 @@ int main(int argc, char **argv)
 	bool haveCmdArgs = argc > 1;
 
 	SetupAndRegisterCmdArgs();
+
 	if (FILE_Exists(CONFIG_FILENAME) && !(haveCmdArgs)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
@@ -92,9 +79,9 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 		} else {
 			if (FD_ISSET(listening_socket, &read_file_descriptors)) {
 				#ifdef USE_THREADING
-						THREAD_RunAndForget(read_socket_thread_wrapper, (void*) threadParams);
+						THREAD_RunAndForget(fnOnConnect, (void*) threadParams);
 				#else
-						read_socket_thread_wrapper((void*) threadParams);
+						fnOnConnect((void*) threadParams);
 				#endif
 			} else {
 				DBG("Not on our socket. continuing listening");
@@ -110,7 +97,7 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
  *
  * @param params SOCKET* socket that is ready to read from
  */
-THREADFUNC(read_socket_thread_wrapper)
+THREADFUNC(fnOnConnect)
 {
 		struct ServerArgs *args = (struct ServerArgs*) params;
 		SOCKET* listening_socket = (SOCKET*) args->socket;
@@ -122,7 +109,6 @@ THREADFUNC(read_socket_thread_wrapper)
 		failIfInvalidSocket(connected_socket);
 		readDataOnSocket(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
-
 		return GetGenericThreadResult();
 }
 
@@ -203,31 +189,35 @@ void readDataOnSocket(SOCKET connected_socket, struct sockaddr_in *peerp, struct
 	return;
 }
 
-void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings) {
-char* arg = INI_GetSetting(settings, "options", "verbose");
-setVerboseFlag(arg);
+void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings)
+{
+	char* arg = INI_GetSetting(settings, "options", "verbose");
+	setVerboseFlag(arg);
 }
 
-void setVerboseFlag(char *verbose) {
-char* arg = verbose;
-if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-	brokerConfig.verbose = true;
-} else {
-	brokerConfig.verbose = false;
-}
-}
-
-void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings) {
-char* result = INI_GetSetting(settings, "options", "wait");
-setWaitIndefinitelyFlag(result);
+void setVerboseFlag(char *verbose)
+{
+	char* arg = verbose;
+	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
+		brokerConfig.verbose = true;
+	} else {
+		brokerConfig.verbose = false;
+	}
 }
 
-void setWaitIndefinitelyFlag(char *arg) {
-if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
-	brokerConfig.waitIndef = true;
-} else {
-	brokerConfig.waitIndef = false;
+void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings)
+{
+	char* result = INI_GetSetting(settings, "options", "wait");
+	setWaitIndefinitelyFlag(result);
 }
+
+void setWaitIndefinitelyFlag(char *arg)
+{
+	if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
+		brokerConfig.waitIndef = true;
+	} else {
+		brokerConfig.waitIndef = false;
+	}
 }
 
 void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings)
@@ -241,9 +231,11 @@ void GetBrokerPortConfigSettings(struct Details* brokerDetails,	List* settings)
 	strncpy(brokerDetails->address,		INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
 }
 
-void setPortNumber(char *arg) {
+void setPortNumber(char *arg)
+{
 	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
 }
+
 int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
 {
 	if (brokerConfig->verbose) PRINT("-- Listening...\n");
@@ -253,5 +245,15 @@ int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_fil
 	} else {
 			return select(listening_socket + 1, read_file_descriptors, NULL, NULL, timeout);
 	}
+}
+
+void SetupAndRegisterCmdArgs()
+{
+	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on", true, true,	setPortNumber);
+	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "", "Prints all messages verbosely", false, false, setVerboseFlag);
+	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "", "Wait indefinitely for new connections, else 60 secs and then dies", false, false, setWaitIndefinitelyFlag);
+	CMD_AddArgument(cmdWaitIndef);
+	CMD_AddArgument(cmdPort);
+	CMD_AddArgument(cmdVerbose);
 }
 

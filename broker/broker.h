@@ -22,8 +22,8 @@ static const char* CONFIG_FILENAME = "config.ini";
 #endif
 
 
-THREADFUNC(read_socket_thread_wrapper);
-
+THREADFUNC(fnOnConnect);
+void SetupAndRegisterCmdArgs();
 static void wait_for_connections();
 void readDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails);
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);
