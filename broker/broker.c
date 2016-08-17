@@ -3,8 +3,7 @@
 #include "../config.h"
 #include "broker.h"
 #include "common/common.h"
-static struct Config brokerConfig = { 0 };
-static struct Details brokerDetails = { 0 };
+
 List service_repository;
 List client_request_repository;
 
@@ -13,10 +12,10 @@ int main(int argc, char **argv)
 	LIB_Init();
 	LIST_Init (&service_repository);
 	List* settings = { 0 };
+	struct Config brokerConfig = { 0 };
+	struct Details brokerDetails = { 0 };
 	bool haveCmdArgs = argc > 1;
-
 	SetupAndRegisterCmdArgs();
-
 	if (FILE_Exists(CONFIG_FILENAME) && !(haveCmdArgs)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		settings = LIST_GetInstance();
@@ -37,13 +36,10 @@ int main(int argc, char **argv)
 		CMD_ShowUsages("broker", "stumathews@gmail.com", "a broker component");
 		exit(0);
 	}
-
 	if (brokerConfig.verbose) {
 		PRINT("Broker starting.\n");
 	}
-
 	wait_for_connections(&brokerConfig, &brokerDetails);
-
 	LIST_FreeInstance(settings);
 	LIB_Uninit();
 
@@ -195,31 +191,40 @@ void readDataOnSocket(SOCKET connected_socket, struct sockaddr_in *peerp, struct
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings)
 {
 	char* arg = INI_GetSetting(settings, "options", "verbose");
-	setVerboseFlag(arg);
+	setVerboseFlag(arg, 1, brokerConfig);
 }
 
-void setVerboseFlag(char *verbose)
+void setVerboseFlag(char *verbose, int numExtraArgs, ...)
 {
+	va_list ap;
+	va_start(ap, numExtraArgs);
+	struct Config *brokerConfig = va_arg(ap, struct Config *);
+	va_end(ap);
 	char* arg = verbose;
 	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig.verbose = true;
+		brokerConfig->verbose = true;
 	} else {
-		brokerConfig.verbose = false;
+		brokerConfig->verbose = false;
 	}
 }
 
 void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings)
 {
 	char* result = INI_GetSetting(settings, "options", "wait");
-	setWaitIndefinitelyFlag(result);
+	setWaitIndefinitelyFlag(result, 1, brokerConfig);
 }
 
-void setWaitIndefinitelyFlag(char *arg)
+void setWaitIndefinitelyFlag(char *arg, int numExtraArgs, ...)
 {
+	va_list ap;
+	va_start(ap, numExtraArgs);
+	struct Config *brokerConfig = va_arg(ap, struct Config *);
+	va_end(ap);
+
 	if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig.waitIndef = true;
+		brokerConfig->waitIndef = true;
 	} else {
-		brokerConfig.waitIndef = false;
+		brokerConfig->waitIndef = false;
 	}
 }
 
@@ -234,9 +239,15 @@ void GetBrokerPortConfigSettings(struct Details* brokerDetails,	List* settings)
 	strncpy(brokerDetails->address,		INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
 }
 
-void setPortNumber(char *arg)
+void setPortNumber(char *arg, int numExtraArgs, ...)
 {
-	strncpy(brokerDetails.address, arg, MAX_ADDRESS_CHARS);
+	PRINT("ENTRY:setPortNumber");
+	va_list ap;
+	va_start(ap, numExtraArgs);
+	struct Details* brokerDetails = va_arg(ap, struct Details*);
+	va_end(ap);
+	strncpy(brokerDetails->address, arg, MAX_ADDRESS_CHARS);
+	PRINT("EXIT:setPortNumber");
 }
 
 int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout)
@@ -252,11 +263,13 @@ int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_fil
 
 void SetupAndRegisterCmdArgs()
 {
+	PRINT("ENTRY: SetupAndRegisterCmdArgs");
 	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on", true, true,	setPortNumber);
 	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "", "Prints all messages verbosely", false, false, setVerboseFlag);
 	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "", "Wait indefinitely for new connections, else 60 secs and then dies", false, false, setWaitIndefinitelyFlag);
 	CMD_AddArgument(cmdWaitIndef);
 	CMD_AddArgument(cmdPort);
 	CMD_AddArgument(cmdVerbose);
+	PRINT("EXIT: SetupAndRegisterCmdArgs");
 }
 

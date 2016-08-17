@@ -26,12 +26,12 @@ void SetupAndRegisterCmdArgs();
 static void wait_for_connections();
 void readDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails);
 void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);
-void setVerboseFlag(char *verbose);
+void setVerboseFlag(char *verbose, int numExtraArgs, ...);
 void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings);
-void setWaitIndefinitelyFlag(char *arg);
+void setWaitIndefinitelyFlag(char *arg, int numExtraArgs, ...);
 void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings);
 void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings);
-void setPortNumber(char *arg);
+void setPortNumber(char *arg, int numExtraArgs, ...);
 int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
 
 #endif /* BROKER_BROKER_H_ */

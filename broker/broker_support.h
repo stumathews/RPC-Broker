@@ -9,8 +9,7 @@
  * @param buflen The size of the raw data
  * @return ServiceRegistration*
  */
-struct ServiceRegistration* unpack_service_registration_buffer(
-		const char* buffer, int buflen, struct Config* brokerConfig);
+struct ServiceRegistration* unpack_service_registration_buffer(	const char* buffer, int buflen, struct Config* brokerConfig);
 
 /**
  * @brief Find a server that the client request is for (we're a broker aren't we!)
@@ -27,8 +26,7 @@ Location* find_server_for_request(Packet* packet, struct Config *clientConfig);
  * @param dest client to send the reponse to
  * @return Location* the client who will get the response
  */
-Location* find_client_for_response(Packet *packet, Location* dest,
-		struct Config *brokerConfig);
+Location* find_client_for_response(Packet *packet, Location* dest, struct Config *brokerConfig);
 
 /**
  * @brief Decods the protocol message and gets the sends's address from it
@@ -37,8 +35,7 @@ Location* find_client_for_response(Packet *packet, Location* dest,
  * @param peerp the peerp
  * @param Location* buffer for the address of the sender
  */
-void get_sender_address(Packet* packet, struct sockaddr_in* peerp,
-		Location* addr);
+void get_sender_address(Packet* packet, struct sockaddr_in* peerp, Location* addr);
 
 /**
  * @brief Register the client in the client repository
@@ -48,8 +45,7 @@ void get_sender_address(Packet* packet, struct sockaddr_in* peerp,
  * @param message_id the message id associated with the request
  * @return ClientReg*
  */
-struct ClientRequestRegistration *register_client_request(char* op,
-		Location* src, int message_id, struct Config *brokerConfig);
+struct ClientRequestRegistration *register_client_request(char* op,	Location* src, int message_id, struct Config *brokerConfig);
 
 /**
  * @brief Send the client's service requets (Packet) to the server that is known to be able to process it
@@ -58,8 +54,7 @@ struct ClientRequestRegistration *register_client_request(char* op,
  * @param src the client's address
  * @return void
  */
-void forward_request_to_server(Packet* packet, Location* src,
-		struct Config *brokerConfig);
+void forward_request_to_server(Packet* packet, Location* src, struct Config *brokerConfig);
 /**
  * @brief Future acknowledgement of recept of data from the broker
  *
@@ -104,7 +99,7 @@ void print_client_request_repository();
  * @param arg Sets the broker's listening port
  * @return void
  */
-void setPortNumber(char* arg);
+void setPortNumber(char* arg, int numExtraArgs, ...);
 
 /**
  * @brief Sets the broker's verbose flag
@@ -112,7 +107,7 @@ void setPortNumber(char* arg);
  * @param arg (ignored)
  * @return void
  */
-void setVerboseFlag(char* arg);
+void setVerboseFlag(char* arg, int numExtraArgs, ...);
 
 /**
  * @brief Sets the wait indefinitely flag in the broker
@@ -120,13 +115,13 @@ void setVerboseFlag(char* arg);
  * @param arg (ignored)
  * @return void
  */
-void setWaitIndefinitelyFlag(char* arg);
+void setWaitIndefinitelyFlag(char* arg,int numExtraArgs, ...);
 /**
  * @brief Sets the brokers address
  *
  * @param arg address to bind the broker to
  * @return void
  */
-void setOurAddress(char* arg);
+void setOurAddress(char* arg, int numExtraArgs, ...);
 
 #endif
