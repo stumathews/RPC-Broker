@@ -4,8 +4,11 @@
 #include "broker.h"
 #include "common/common.h"
 
+LockPtr lock;
+
 int main(int argc, char **argv)
 {
+	MakeLock(&lock);
 	LIB_Init();
 	List* settings = { 0 };
 	List service_repository;
@@ -13,10 +16,10 @@ int main(int argc, char **argv)
 	List client_request_repository;
 	LIST_Init (&client_request_repository);
 	struct Config brokerConfig = { 0 };
-		brokerConfig.service_repository = &service_repository;
-		brokerConfig.client_request_repository = &client_request_repository;
 	struct Details brokerDetails = { 0 };
 	bool haveCmdArgs = argc > 1;
+	brokerConfig.service_repository = &service_repository;
+	brokerConfig.client_request_repository = &client_request_repository;
 	SetupAndRegisterCmdArgs();
 	if (FILE_Exists(CONFIG_FILENAME) && !(haveCmdArgs)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
@@ -64,30 +67,30 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
 	SOCKET listening_socket = GetAServerSocket(brokerDetails->address, brokerDetails->port);
 
 	do {
-		FD_ZERO(&read_file_descriptors);
-		FD_SET(listening_socket, &read_file_descriptors);
-		struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
+			FD_ZERO(&read_file_descriptors);
+			FD_SET(listening_socket, &read_file_descriptors);
+			struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
 
-		threadParams->config = brokerConfig;
-		threadParams->details = brokerDetails;
+			threadParams->config = brokerConfig;
+			threadParams->details = brokerDetails;
 
-		if ((wait_result = _wait(brokerConfig, listening_socket, &read_file_descriptors, &timeout)) == _WAIT_TIMEOUT) {
-			netError(1, errno, "timeout occured while waiting for incomming connections!");
-		} else if (wait_result == WAIT_ERROR) {
-			netError(1, errno, "select error!!");
-		} else {
-			if (FD_ISSET(listening_socket, &read_file_descriptors)) {
-				threadParams->socket = &listening_socket;
-				#ifdef USE_THREADING
-						THREAD_RunAndForget(fnOnConnect, (void*) threadParams);
-				#else
-						fnOnConnect((void*) threadParams);
-				#endif
+			if ((wait_result = _wait(brokerConfig, listening_socket, &read_file_descriptors, &timeout)) == _WAIT_TIMEOUT) {
+				netError(1, errno, "timeout occured while waiting for incomming connections!");
+			} else if (wait_result == WAIT_ERROR) {
+				netError(1, errno, "select error!!");
 			} else {
-				DBG("Not on our socket. continuing listening");
-				continue;
+				if (FD_ISSET(listening_socket, &read_file_descriptors)) {
+					threadParams->socket = &listening_socket;
+					#ifdef USE_THREADING
+							THREAD_RunAndForget(fnOnConnect, (void*) threadParams);
+					#else
+							fnOnConnect((void*) threadParams);
+					#endif
+				} else {
+					DBG("Not on our socket. continuing listening");
+					continue;
+				}
 			}
-		}
 	} while (FOREVER);
 }
 
@@ -99,6 +102,8 @@ static void wait_for_connections(struct Config *brokerConfig, struct Details *br
  */
 THREADFUNC(fnOnConnect)
 {
+	if(AquireLock(&lock))
+	{
 		struct ServerArgs *args = (struct ServerArgs*) params;
 		SOCKET* listening_socket = (SOCKET*) args->socket;
 		int peerlen;
@@ -110,7 +115,12 @@ THREADFUNC(fnOnConnect)
 		readDataOnSocket(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
 		free(params);
-		return GetGenericThreadResult();
+
+		ReleaseLock(&lock);
+	} else {
+		DBG("Could not aquire lock\n");
+	}
+	return GetGenericThreadResult();
 }
 
 /**
