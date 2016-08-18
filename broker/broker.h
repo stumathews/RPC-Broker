@@ -18,10 +18,10 @@ static const char* CONFIG_FILENAME = "config.ini";
 #endif
 
 
-THREADFUNC(fnOnConnect);
+THREADFUNC(process_data_avail);
 void set_cmd_args();
 static void wait_for_connections();
-void do_work(SOCKET s, struct sockaddr_in *peerp, struct Config *config, struct Details *details);
+void read_data(SOCKET s, struct sockaddr_in *peerp, struct Config *config, struct Details *details);
 void get_verbose_setting(struct Config *config, List* settings);
 void set_verbose(char *verbose, int numExtraArgs, ...);
 void get_wait_setting(struct Config *config, List* settings);

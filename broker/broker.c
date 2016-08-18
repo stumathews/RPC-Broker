@@ -78,30 +78,30 @@ static void wait_for_connections(struct Config *config, struct Details *details)
 	SOCKET listening_socket = netTcpServer(details->address, details->port);
 
 	do {
-			FD_ZERO(&rd_fd);
-			FD_SET(listening_socket, &rd_fd);
-			struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
+		FD_ZERO(&rd_fd);
+		FD_SET(listening_socket, &rd_fd);
+		struct ServerArgs *threadParams = malloc(sizeof(struct ServerArgs));
 
-			threadParams->config = config;
-			threadParams->details = details;
-			threadParams->socket = &listening_socket;
+		threadParams->config = config;
+		threadParams->details = details;
+		threadParams->socket = &listening_socket;
 
-			if ((wait_result = wait_rd_socket(config, listening_socket, &rd_fd, &timeout)) == _WAIT_TIMEOUT) {
-				netError(1, errno, "timeout occured while waiting for incomming connections!");
-			} else if (wait_result == WAIT_ERROR) {
-				netError(1, errno, "select error!!");
+		if ((wait_result = wait_rd_socket(config, listening_socket, &rd_fd, &timeout)) == _WAIT_TIMEOUT) {
+			netError(1, errno, "timeout occured while waiting for incomming connections!");
+		} else if (wait_result == WAIT_ERROR) {
+			netError(1, errno, "select error!!");
+		} else {
+			if (FD_ISSET(listening_socket, &rd_fd)) {
+				#ifdef USE_THREADING
+						THREAD_RunAndForget(process_data_avail, (void*) threadParams);
+				#else
+						process_data_avail((void*) threadParams);
+				#endif
 			} else {
-				if (FD_ISSET(listening_socket, &rd_fd)) {
-					#ifdef USE_THREADING
-							THREAD_RunAndForget(fnOnConnect, (void*) threadParams);
-					#else
-							fnOnConnect((void*) threadParams);
-					#endif
-				} else {
-					DBG("Not on our socket. continuing listening");
-					continue;
-				}
+				DBG("Not on our socket. continuing listening");
+				continue;
 			}
+		}
 	} while (FOREVER);
 }
 
@@ -111,7 +111,7 @@ static void wait_for_connections(struct Config *config, struct Details *details)
  *
  * @param params SOCKET* socket that is ready to read from
  */
-THREADFUNC(fnOnConnect)
+THREADFUNC(process_data_avail)
 {
 	if(AquireLock(&lock))
 	{
@@ -123,7 +123,7 @@ THREADFUNC(fnOnConnect)
 		peerlen = sizeof(peer);
 		SOCKET connected_socket = accept(*listening_socket, (struct sockaddr *) &peer, &peerlen);
 		check_socket(connected_socket);
-		do_work(connected_socket, &peer, args->config, args->details);
+		read_data(connected_socket, &peer, args->config, args->details);
 		NETCLOSE(connected_socket);
 		free(params);
 
@@ -141,7 +141,7 @@ THREADFUNC(fnOnConnect)
  * @param peerp the peerlen
  * @return void
  */
-void do_work(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config *config, struct Details *details)
+void read_data(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config *config, struct Details *details)
 {
 	struct Packet packet;
 	Location *sender = NULL;
