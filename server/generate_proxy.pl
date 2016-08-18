@@ -78,7 +78,7 @@ $paramGets
 		if (verbose)
 			unpack_data(&pkt, verbose);
 
-		send_request(&pkt, broker_address, broker_port, verbose);
+		send_req(&pkt, broker_address, broker_port, verbose);
 		msgpack_sbuffer_destroy(&response);
 	}
 END

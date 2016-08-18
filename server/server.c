@@ -116,11 +116,11 @@ THREADFUNC(thread_server)
 	struct ServerArgs* threadParams = (struct ServerArgs*) params;
 	SOCKET* listening_socket = threadParams->socket;
 	SOCKET connected_socket = accept(*listening_socket, (struct sockaddr*) &peer, &peerlen);
-	failIfInvalidSocket(connected_socket);
+	check_socket(connected_socket);
 	ReadAndProcessDataOnSocket(connected_socket, &peer, threadParams->config);
 	NETCLOSE(connected_socket);
 
-	return GetGenericThreadResult();
+	return THREAD_RESULT();
 }
 
 static void ReadAndProcessDataOnSocket(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config* config)
@@ -147,7 +147,7 @@ static void ReadAndProcessDataOnSocket(SOCKET connected_socket, struct sockaddr_
 
 	unpack_data(&pkt, config->verbose);
 
-	if ((request_type = determine_request_type(&pkt)) == SERVICE_REGISTRATION_ACK) {
+	if ((request_type = get_req_type(&pkt)) == SERVICE_REGISTRATION_ACK) {
 		isRegistered = true;
 		if (serverConfig.verbose) { PRINT("Registered with broker.\n"); }
 	} else if (request_type == SERVICE_REQUEST && isRegistered) {

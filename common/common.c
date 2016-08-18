@@ -17,7 +17,7 @@ unsigned __stdcall thread_send_request(void* params)
 	struct SendArgs *args = (struct SendArgs*) params;
 	if (args->verbose)
 		PRINT("In thread, sending...\n");
-	send_request(args->packet, args->to_address, args->port, args->verbose);
+	send_req(args->packet, args->to_address, args->port, args->verbose);
 	if (args->verbose)
 		PRINT("In thread, sent.\n");
 }
@@ -31,7 +31,7 @@ unsigned __stdcall thread_send_request(void* params)
  * @param verbose true if this function should report verbose messages
  * @return int number of bytes sent
  */
-int send_request(Packet *packet, char* address, char* port, bool verbose)
+int send_req(Packet *packet, char* address, char* port, bool verbose)
 {
 	struct sockaddr_in peer;
 	SOCKET connected_socket;
@@ -194,7 +194,7 @@ msgpack_object extract_header(msgpack_object* obj, char* header_buffer) {
  * @param pkt the protocl message
  * @return RequestType the determined request type
  */
-enum RequestType determine_request_type(struct Packet* pkt) {
+enum RequestType get_req_type(struct Packet* pkt) {
 	msgpack_unpacked result;
 	msgpack_unpack_return ret;
 	size_t off = 0;
@@ -234,7 +234,7 @@ enum RequestType determine_request_type(struct Packet* pkt) {
  * @param look_header_name header name to look for
  * @return int result
  */
-int get_header_int_value(Packet* packet, char* look_header_name) {
+int get_hdr_int(Packet* packet, char* look_header_name) {
 	size_t off = 0;
 	int i = 0;
 	msgpack_unpacked unpacked_result;
@@ -278,7 +278,7 @@ int get_header_int_value(Packet* packet, char* look_header_name) {
  * @param look_header_name header name to look for
  * @return char* the result value
  */
-char* get_header_str_value(Packet* packet, char* look_header_name) {
+char* get_hdr_str(Packet* packet, char* look_header_name) {
 	size_t off = 0;
 	int i = 0;
 	msgpack_unpacked unpacked_result;
@@ -378,14 +378,14 @@ void printSetting(Node* LinkedListNode)
  *
  * @param params SOCKET* socket that is ready to read from
  */
-void failIfInvalidSocket(SOCKET socket)
+void check_socket(SOCKET socket)
 {
 	if (!isvalidsock(socket)) {
 		netError(1, errno, "accept failed");
 	}
 }
 
-int GetGenericThreadResult()
+int THREAD_RESULT()
 {
 #ifdef __linux__
 	return (void*) 0;

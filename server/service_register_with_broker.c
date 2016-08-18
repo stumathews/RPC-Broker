@@ -62,7 +62,7 @@ void service_register_with_broker(Details brokerDetails, Details serverDetails,
 	Packet pkt;
 	pkt.buffer = sbuf.data;
 	pkt.len = sbuf.size;
-	send_request(&pkt, brokerDetails.address, brokerDetails.port,
+	send_req(&pkt, brokerDetails.address, brokerDetails.port,
 			brokerConfig.verbose);
 	msgpack_sbuffer_destroy(&sbuf);
 

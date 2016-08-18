@@ -29,7 +29,7 @@ void printServiceRegistration(Node* LinkedListNode)
  */
 void print_service_repository(struct Config *brokerConfig) {
 	PRINT("Service registrations:\n");
-	LIST_ForEach(brokerConfig->service_repository, printServiceRegistration);
+	LIST_ForEach(brokerConfig->svc_repo, printServiceRegistration);
 }
 
 /**
@@ -41,8 +41,8 @@ void print_client_request_repository(struct Config *brokerConfig) {
 	PRINT("Client request registrations:\n");
 
 	struct list_head *pos;
-	for (int j = 0; j < brokerConfig->client_request_repository->size; j++) {
-		struct ClientRequestRegistration* crreg_entry = LIST_Get(brokerConfig->client_request_repository, j)->data;
+	for (int j = 0; j < brokerConfig->clnt_req_repo->size; j++) {
+		struct ClientRequestRegistration* crreg_entry = LIST_Get(brokerConfig->clnt_req_repo, j)->data;
 		if (crreg_entry == NULL) {
 			PRINT(
 					"Found a NULL(empty) client request registration entry in client request repository list. Not good. Exiting!\n");

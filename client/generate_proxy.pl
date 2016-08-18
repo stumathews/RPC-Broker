@@ -53,10 +53,10 @@ while( <interfaceHandle>) {
 		@paramNames = grep { $_ ne '' } @paramNames;
 		my $retStatement = '';
 		if( $fnRet eq "int" ){
-			$retStatement = "return  get_header_int_value(result, REPLY_HDR);";
+			$retStatement = "return  get_hdr_int(result, REPLY_HDR);";
 		}
 		if( $fnRet eq "char*" ){
-			$retStatement = "return  get_header_str_value(result, REPLY_HDR);";
+			$retStatement = "return  get_hdr_str(result, REPLY_HDR);";
 		}
 		
 		

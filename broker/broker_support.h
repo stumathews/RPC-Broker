@@ -17,7 +17,7 @@ struct ServiceRegistration* unpack_service_registration_buffer(	const char* buff
  * @param packet The location of the packet's contents
  * @return Location* the location of the server that will process this packet
  */
-Location* find_server_for_request(Packet* packet, struct Config *clientConfig);
+Location* find_server_for_req(Packet* packet, struct Config *clientConfig);
 
 /**
  * @brief Find a client who this response(brokered) from the server is for
@@ -45,7 +45,7 @@ void get_sender_address(Packet* packet, struct sockaddr_in* peerp, Location* add
  * @param message_id the message id associated with the request
  * @return ClientReg*
  */
-struct ClientRequestRegistration *register_client_request(char* op,	Location* src, int message_id, struct Config *brokerConfig);
+struct ClientRequestRegistration *reg_clnt_req(char* op,	Location* src, int message_id, struct Config *brokerConfig);
 
 /**
  * @brief Send the client's service requets (Packet) to the server that is known to be able to process it
@@ -69,7 +69,7 @@ void acknowledgement();
  * @param packet the clients revice request data
  * @return void
  */
-void register_service_request(Packet* packet, struct Config *brokerConfig);
+void reg_svc_req(Packet* packet, struct Config *brokerConfig);
 /**
  * @brief Forwards a packet on
  *
@@ -77,7 +77,7 @@ void register_service_request(Packet* packet, struct Config *brokerConfig);
  * @return void
  */
 
-void forward_response_to_client(Packet* response, struct Config *brokerConfig);
+void fwd_response_to_clnt(Packet* response, struct Config *brokerConfig);
 
 /**
  * @brief Print all servers registered with the broker's service repository
@@ -99,7 +99,7 @@ void print_client_request_repository();
  * @param arg Sets the broker's listening port
  * @return void
  */
-void setPortNumber(char* arg, int numExtraArgs, ...);
+void set_port_num(char* arg, int numExtraArgs, ...);
 
 /**
  * @brief Sets the broker's verbose flag
@@ -107,7 +107,7 @@ void setPortNumber(char* arg, int numExtraArgs, ...);
  * @param arg (ignored)
  * @return void
  */
-void setVerboseFlag(char* arg, int numExtraArgs, ...);
+void set_verbose(char* arg, int numExtraArgs, ...);
 
 /**
  * @brief Sets the wait indefinitely flag in the broker
@@ -115,7 +115,7 @@ void setVerboseFlag(char* arg, int numExtraArgs, ...);
  * @param arg (ignored)
  * @return void
  */
-void setWaitIndefinitelyFlag(char* arg,int numExtraArgs, ...);
+void set_waitindef(char* arg,int numExtraArgs, ...);
 /**
  * @brief Sets the brokers address
  *

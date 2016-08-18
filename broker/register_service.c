@@ -4,7 +4,7 @@
 
 static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig);
 
-void register_service_request(Packet* packet, struct Config *brokerConfig) {
+void reg_svc_req(Packet* packet, struct Config *brokerConfig) {
 	struct ServiceRegistration *service_registration;
 	int total_sent_bytes = 0;
 	int tries = 1;
@@ -15,7 +15,7 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 
 	if (brokerConfig->verbose) { PRINT("<< SERVICE_REGISTRATION\n"); }
 
-	LIST_Add(brokerConfig->service_repository, service_registration);
+	LIST_Add(brokerConfig->svc_repo, service_registration);
 
 	if (brokerConfig->verbose) { PRINT(">> SERVICE_REGISTRATION ACK\n"); }
 
@@ -24,20 +24,20 @@ void register_service_request(Packet* packet, struct Config *brokerConfig) {
 	msgpack_packer pk;
 	msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-	int message_id = get_header_int_value(packet, MESSAGE_ID_HDR);
+	int message_id = get_hdr_int(packet, MESSAGE_ID_HDR);
 
 	pack_map_int(REQUEST_TYPE_HDR, SERVICE_REGISTRATION_ACK, &pk);
 	pack_map_int(MESSAGE_ID_HDR, message_id, &pk);
 
-	reply_port = get_header_str_value(packet, REPLY_PORT_HDR);
-	sender_address = get_header_str_value(packet, SENDER_ADDRESS_HDR);
+	reply_port = get_hdr_str(packet, REPLY_PORT_HDR);
+	sender_address = get_hdr_str(packet, SENDER_ADDRESS_HDR);
 
 	packet->buffer = sbuf.data;
 	packet->len = sbuf.size;
 
 	PRINT(">>> SERVICE_REGISTRATION_ACK\n");
 	do {
-		total_sent_bytes = send_request(packet, sender_address, reply_port, brokerConfig->verbose);
+		total_sent_bytes = send_req(packet, sender_address, reply_port, brokerConfig->verbose);
 
 		if(total_sent_bytes == 0) { sleep(1); }
 

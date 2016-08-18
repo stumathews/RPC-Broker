@@ -8,10 +8,7 @@
 #ifndef BROKER_BROKER_H_
 #define BROKER_BROKER_H_
 
-#define GetAServerSocket(our_address, port) netTcpServer((our_address), (port))
 #define MAX_FILENAME_LENGTH 255
-
-//struct ServiceRegistration service_repository;
 
 static const char* CONFIG_FILENAME = "config.ini";
 
@@ -22,16 +19,16 @@ static const char* CONFIG_FILENAME = "config.ini";
 
 
 THREADFUNC(fnOnConnect);
-void SetupAndRegisterCmdArgs();
+void set_cmd_args();
 static void wait_for_connections();
-void readDataOnSocket(SOCKET s, struct sockaddr_in *peerp, struct Config *brokerConfig, struct Details *brokerDetails);
-void GetVerboseConfigSetting(struct Config *brokerConfig, List* settings);
-void setVerboseFlag(char *verbose, int numExtraArgs, ...);
-void GetWaitIndefConfigSetting(struct Config *brokerConfig, List* settings);
-void setWaitIndefinitelyFlag(char *arg, int numExtraArgs, ...);
-void GetBrokerAddressConfigSetting(struct Details* brokerDetails, List* settings);
-void GetBrokerPortConfigSettings(struct Details* brokerDetails, List* settings);
-void setPortNumber(char *arg, int numExtraArgs, ...);
-int _wait(struct Config *brokerConfig, SOCKET listening_socket, fd_set *read_file_descriptors, struct timeval *timeout);
+void do_work(SOCKET s, struct sockaddr_in *peerp, struct Config *config, struct Details *details);
+void get_verbose_setting(struct Config *config, List* settings);
+void set_verbose(char *verbose, int numExtraArgs, ...);
+void get_wait_setting(struct Config *config, List* settings);
+void set_waitindef(char *arg, int numExtraArgs, ...);
+void get_address_setting(struct Details* details, List* settings);
+void get_port_setting(struct Details* details, List* settings);
+void set_port_num(char *arg, int numExtraArgs, ...);
+int wait_rd_socket(struct Config *brokerConfig, SOCKET listening_socket, fd_set *rd_fds, struct timeval *timeout);
 
 #endif /* BROKER_BROKER_H_ */

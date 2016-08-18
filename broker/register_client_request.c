@@ -1,7 +1,7 @@
 #include "broker_support.h"
 #include "common.h"
 
-struct ClientRequestRegistration *register_client_request(char* op,
+struct ClientRequestRegistration *reg_clnt_req(char* op,
 		Location* src, int message_id, struct Config *brokerConfig) {
 
 	if (brokerConfig->verbose) {
@@ -18,7 +18,7 @@ struct ClientRequestRegistration *register_client_request(char* op,
 	client_request_registration->operation = op;
 	client_request_registration->message_id = message_id;
 
-	LIST_Add(brokerConfig->client_request_repository, client_request_registration);
+	LIST_Add(brokerConfig->clnt_req_repo, client_request_registration);
 
 	return client_request_registration;
 }

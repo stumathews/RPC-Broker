@@ -70,8 +70,8 @@ typedef struct Details {
 typedef struct Config {
 	bool verbose;
 	bool waitIndef;
-	List *service_repository;
-	List *client_request_repository;
+	List *svc_repo;
+	List *clnt_req_repo;
 } Config;
 
 struct ServerArgs {
@@ -96,23 +96,23 @@ unsigned __stdcall thread_send_request(void* params);
 #endif
 
 void copyString(int str_len, const msgpack_object_str* from, char* to);
-enum RequestType determine_request_type(struct Packet* pkt);
-int send_request(Packet* packet, char* address, char* port, bool verbose);
+enum RequestType get_req_type(struct Packet* pkt);
+int send_req(Packet* packet, char* address, char* port, bool verbose);
 int send_data(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);
-int get_header_int_value(Packet* packet, char* look_header_name);
+int get_hdr_int(Packet* packet, char* look_header_name);
 void unpack_data(Packet* packet, bool verbose);
 void pack_map_str(char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival, msgpack_packer* pk);
 char* pack_client_request_data(msgpack_sbuffer* sbuf, char* op, char* fmt, ...);
 Packet pack_client_response_data(msgpack_sbuffer* sbuf, char* op,
 		int message_id, char* fmt, ...);
-char* get_header_str_value(Packet* packet, char* look_header_name);
+char* get_hdr_str(Packet* packet, char* look_header_name);
 char* get_op_name(Packet* packet);
 msgpack_object extract_header(msgpack_object* obj, char* header_buffer);
 struct Packet *send_and_receive(Packet* packet, char* address, char* port,
 		bool verbose, char* wait_response_port);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
-void failIfInvalidSocket(SOCKET s1);
-int GetGenericThreadResult();
+void check_socket(SOCKET s1);
+int THREAD_RESULT();
 #endif
