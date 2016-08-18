@@ -201,8 +201,8 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 	} else if (req_type == SERVICE_REGISTRATION) {
 		reg_svc_req(&packet, config);
 	} else if (req_type == SERVICE_REQUEST_RESPONSE) {
-		Packet* responce = &packet;
-		fwd_response_to_clnt(responce, config);
+		Packet* response = &packet;
+		fwd_to_clnt(response, config);
 	} else {
 		PRINT("Unrecognised request type:%d. Ignoring \n", req_type);
 	}

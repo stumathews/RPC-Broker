@@ -77,7 +77,7 @@ void reg_svc_req(Packet* packet, struct Config *brokerConfig);
  * @return void
  */
 
-void fwd_response_to_clnt(Packet* response, struct Config *brokerConfig);
+void fwd_to_clnt(Packet* response, struct Config *brokerConfig);
 
 /**
  * @brief Print all servers registered with the broker's service repository
