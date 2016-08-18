@@ -121,9 +121,12 @@ THREADFUNC(process_data_avail)
 		struct sockaddr_in peer;
 
 		peerlen = sizeof(peer);
+
 		SOCKET connected_socket = accept(*listening_socket, (struct sockaddr *) &peer, &peerlen);
 		check_socket(connected_socket);
+
 		read_data(connected_socket, &peer, args->config, args->details);
+
 		NETCLOSE(connected_socket);
 		free(params);
 
@@ -141,39 +144,42 @@ THREADFUNC(process_data_avail)
  * @param peerp the peerlen
  * @return void
  */
-void read_data(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config *config, struct Details *details)
+void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config *config, struct Details *details)
 {
 	struct Packet packet;
 	Location *sender = NULL;
 	ClientReg *clnt_reg = NULL;
 	Location *dest = NULL;
 	char* req_op = NULL;
-	int* msg_id = NULL;
+	int msg_id;
 	char* op = NULL;
 	int pkt_size = 0;
-	int req_type = -1; // default -1 represents invalid state
+	int req_type = -1;
 	int rc_data_size = 0;
 
 	sender = malloc(sizeof(Location));
 	req_op = malloc(sizeof(char));
-	msg_id = malloc(sizeof(int));
-
 
 	pkt_size = netReadn(connected_socket, (char*)&packet.len, sizeof(uint32_t));
 
 	packet.len = ntohl(packet.len);
 	packet.buffer = (char*) malloc(sizeof(char) * packet.len);
 
-	if (pkt_size < 1) { netError(1, errno, "Failed to receiver packet size\n"); }
+	if (pkt_size < 1) {
+		netError(1, errno, "Failed to receiver packet size\n");
+	}
 
-	if (config->verbose){
+	if (config->verbose) {
 		PRINT("Got: %d bytes(packet length).", pkt_size);
 		PRINT("Packet length of %u\n", packet.len);
 	}
 
 	rc_data_size = netReadn(connected_socket, packet.buffer, packet.len);
 
-	if (rc_data_size < 1) { netError(1, errno, "failed to receive message\n"); }
+	if (rc_data_size < 1) {
+		netError(1, errno, "failed to receive message\n");
+	}
+
 	if (config->verbose) {
 		PRINT("Got %d bytes [%d+%d] : ", rc_data_size + pkt_size, pkt_size,	rc_data_size);
 		unpack_data(&packet, config->verbose);
@@ -181,10 +187,10 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peerp, struct Config
 
 	if ((req_type = get_req_type(&packet)) == SERVICE_REQUEST) {
 		op = get_hdr_str(&packet, OPERATION_HDR);
-		get_sender_address(&packet, peerp, sender);
-		*msg_id = get_hdr_int(&packet, MESSAGE_ID_HDR);
+		get_sender_address(&packet, peer, sender);
+		msg_id = get_hdr_int(&packet, MESSAGE_ID_HDR);
 		req_op = get_hdr_str(&packet, OPERATION_HDR);
-		clnt_reg = reg_clnt_req(req_op, sender, *msg_id, config);
+		clnt_reg = reg_clnt_req(req_op, sender, msg_id, config);
 		dest = find_server_for_req(&packet, config);
 
 		if (dest->address == NULL || dest->port == NULL) {
