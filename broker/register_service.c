@@ -23,7 +23,9 @@ void send_svc_req_ack(struct Config* config, Packet* packet)
 	sender_address = get_hdr_str(packet, SENDER_ADDRESS_HDR);
 	packet->buffer = sbuf.data;
 	packet->len = sbuf.size;
-	PRINT(">>> SERVICE_REGISTRATION_ACK\n");
+	if( config->verbose) {
+		PRINT(">>> SERVICE_REGISTRATION_ACK\n");
+	}
 	do {
 		total_sent_bytes = send_req(packet, sender_address, reply_port,
 				config->verbose);
