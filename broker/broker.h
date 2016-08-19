@@ -23,12 +23,12 @@ void set_cmd_args();
 static void wait_for_connections();
 void read_data(SOCKET s, struct sockaddr_in *peerp, struct Config *config, struct Details *details);
 void get_verbose_setting(struct Config *config, List* settings);
-void set_verbose(char *verbose, int numExtraArgs, ...);
+void set_verbose(char *verbose);
 void get_wait_setting(struct Config *config, List* settings);
-void set_waitindef(char *arg, int numExtraArgs, ...);
+void set_waitindef(char *arg);
 void get_address_setting(struct Details* details, List* settings);
 void get_port_setting(struct Details* details, List* settings);
-void set_port_num(char *arg, int numExtraArgs, ...);
+void set_port_num(char *arg);
 int wait_rd_socket(struct Config *brokerConfig, SOCKET listening_socket, fd_set *rd_fds, struct timeval *timeout);
 
 #endif /* BROKER_BROKER_H_ */

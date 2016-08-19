@@ -5,6 +5,8 @@
 #include "common/common.h"
 
 LockPtr lock;
+struct Config config = { 0 };
+struct Details details = { 0 };
 
 /***
  * Read settings and wait for connections
@@ -17,14 +19,13 @@ int main(int argc, char **argv)
 	MakeLock(&lock);
 	LIB_Init();
 
-	List* settings;
+	List settings;
 	List svc_repo;
 	List clnt_req_repo;
 	LIST_Init (&svc_repo);
 	LIST_Init (&clnt_req_repo);
 	LIST_Init (&settings);
-	struct Config config = { 0 };
-	struct Details details = { 0 };
+
 
 	config.svc_repo = &svc_repo;
 	config.clnt_req_repo = &clnt_req_repo;
@@ -212,40 +213,31 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 void get_verbose_setting(struct Config *config, List* settings)
 {
 	char* arg = INI_GetSetting(settings, "options", "verbose");
-	set_verbose(arg, 1, config);
+	set_verbose(arg);
 }
 
-void set_verbose(char *verbose, int num_args, ...)
+void set_verbose(char *verbose)
 {
-	va_list ap;
-	va_start(ap, num_args);
-	struct Config *brokerConfig = va_arg(ap, struct Config *);
-	va_end(ap);
 	char* arg = verbose;
 	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig->verbose = true;
+		config.verbose = true;
 	} else {
-		brokerConfig->verbose = false;
+		config.verbose = false;
 	}
 }
 
 void get_wait_setting(struct Config *config, List* settings)
 {
 	char* result = INI_GetSetting(settings, "options", "wait");
-	set_waitindef(result, 1, config);
+	set_waitindef(result);
 }
 
-void set_waitindef(char *arg, int num_args, ...)
+void set_waitindef(char *arg)
 {
-	va_list ap;
-	va_start(ap, num_args);
-	struct Config *brokerConfig = va_arg(ap, struct Config *);
-	va_end(ap);
-
 	if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
-		brokerConfig->waitIndef = true;
+		config.waitIndef = true;
 	} else {
-		brokerConfig->waitIndef = false;
+		config.waitIndef = false;
 	}
 }
 
@@ -260,14 +252,10 @@ void get_port_setting(struct Details* details,	List* settings)
 	strncpy(details->address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
 }
 
-void set_port_num(char *arg, int num_args, ...)
+void set_port_num(char *arg)
 {
-	DBG("ENTRY:setPortNumber");
-	va_list ap;
-	va_start(ap, num_args);
-	struct Details* brokerDetails = va_arg(ap, struct Details*);
-	va_end(ap);
-	strncpy(brokerDetails->address, arg, MAX_ADDRESS_CHARS);
+	PRINT("Brok3er addres is %s\n", details.address);
+	strncpy(details.address, arg, MAX_ADDRESS_CHARS);
 	DBG("EXIT:setPortNumber");
 }
 

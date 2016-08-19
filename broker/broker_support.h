@@ -102,7 +102,7 @@ void print_client_request_repository();
  * @param arg Sets the broker's listening port
  * @return void
  */
-void set_port_num(char* arg, int numExtraArgs, ...);
+void set_port_num(char* arg);
 
 /**
  * @brief Sets the broker's verbose flag
@@ -110,7 +110,7 @@ void set_port_num(char* arg, int numExtraArgs, ...);
  * @param arg (ignored)
  * @return void
  */
-void set_verbose(char* arg, int numExtraArgs, ...);
+void set_verbose(char* arg);
 
 /**
  * @brief Sets the wait indefinitely flag in the broker
@@ -118,13 +118,13 @@ void set_verbose(char* arg, int numExtraArgs, ...);
  * @param arg (ignored)
  * @return void
  */
-void set_waitindef(char* arg,int numExtraArgs, ...);
+void set_waitindef(char* arg);
 /**
  * @brief Sets the brokers address
  *
  * @param arg address to bind the broker to
  * @return void
  */
-void setOurAddress(char* arg, int numExtraArgs, ...);
+void setOurAddress(char* arg);
 
 #endif
