@@ -41,21 +41,25 @@ void send_svc_req_ack(struct Config* config, Packet* packet)
 	msgpack_sbuffer_destroy(&sbuf);
 }
 
-void reg_svc_req(Packet* packet, struct Config *config) {
-	struct ServiceRegistration *reg;
+void reg_svc_req(Packet* packet, struct Config *config)
+{
+	struct ServiceRegistration *reg = unpack_service_registration_buffer(packet->buffer, packet->len, config);
 
-
-	reg = unpack_service_registration_buffer(packet->buffer, packet->len, config);
-
-	if (config->verbose) { PRINT("<< SERVICE_REGISTRATION\n"); }
+	if (config->verbose) {
+		PRINT("<< SERVICE_REGISTRATION\n");
+	}
 
 	LIST_Add(config->svc_repo, reg);
 
 	send_svc_req_ack(config, packet);
-	if (config->verbose) { perform_diagnostics(reg, config); 	}
+
+	if (config->verbose) {
+		perform_diagnostics(reg, config);
+	}
 }
 
-static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig) {
+static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig)
+{
 	/*
 	 PRINT("Registering service '%s' from host '%s':\n",service_registration->service_name, service_registration->address);
 	 for(int i = 0 ; i < service_registration->num_services;i++) {
