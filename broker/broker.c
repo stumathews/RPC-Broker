@@ -27,13 +27,12 @@ int main(int argc, char **argv)
 	struct Config config = { 0 };
 	struct Details details = { 0 };
 
-
 	config.svc_repo = &svc_repo;
 	config.clnt_req_repo = &clnt_req_repo;
 
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
-		DBG("Using config file located in '%s'", CONFIG_FILENAME);
 		if (INI_IniParse(CONFIG_FILENAME, &settings) == INI_PARSE_SUCCESS) {
+			DBG("Using config file located in '%s'", CONFIG_FILENAME);
 			get_verbose_setting(&config, &settings);
 			get_wait_setting(&config, &settings);
 			get_address_setting(&details, &settings);
@@ -50,7 +49,9 @@ int main(int argc, char **argv)
 	if (config.verbose) {
 		PRINT("Broker starting.\n");
 	}
+
 	wait_for_connections(&config, &details);
+
 	LIST_FreeInstance(&settings);
 	LIST_FreeInstance(&svc_repo);
 	LIST_FreeInstance(&clnt_req_repo);
@@ -101,7 +102,6 @@ static void wait_for_connections(struct Config *config, struct Details *details)
 		}
 	} while (FOREVER);
 }
-
 
 /***
  * Wrapper function to accept connection and process it - so that it confirms to void* func(void*) prototype so can pass as a thread function
