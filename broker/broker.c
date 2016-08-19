@@ -5,8 +5,6 @@
 #include "common/common.h"
 
 LockPtr lock;
-struct Config config = { 0 };
-struct Details details = { 0 };
 
 /***
  * Read settings and wait for connections
@@ -26,11 +24,12 @@ int main(int argc, char **argv)
 	LIST_Init (&clnt_req_repo);
 	LIST_Init (&settings);
 
+	struct Config config = { 0 };
+	struct Details details = { 0 };
+
 
 	config.svc_repo = &svc_repo;
 	config.clnt_req_repo = &clnt_req_repo;
-
-	set_cmd_args();
 
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		DBG("Using config file located in '%s'", CONFIG_FILENAME);
@@ -43,10 +42,7 @@ int main(int argc, char **argv)
 			ERR_Print("Failed to parse config file", 1);
 		}
 	} else if (argc > 1) {
-		if ((CMD_Parse(argc, argv, true) != PARSE_SUCCESS)) {
-			PRINT("CMD line parsing failed.");
-			return 1;
-		}
+		PRINT("CMD line parsing no longer supported.");
 	} else {
 		CMD_ShowUsages("broker", "stumathews@gmail.com", "a broker component");
 		exit(0);
@@ -210,53 +206,30 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 	return;
 }
 
+int IsTrueString(char* arg) {
+	return STR_EqualsIgnoreCase(arg, "1") || STR_EqualsIgnoreCase(arg, "true");
+}
+
 void get_verbose_setting(struct Config *config, List* settings)
 {
 	char* arg = INI_GetSetting(settings, "options", "verbose");
-	set_verbose(arg);
-}
-
-void set_verbose(char *verbose)
-{
-	char* arg = verbose;
-	if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
-		config.verbose = true;
-	} else {
-		config.verbose = false;
-	}
+	config->verbose = IsTrueString(arg);
 }
 
 void get_wait_setting(struct Config *config, List* settings)
 {
 	char* result = INI_GetSetting(settings, "options", "wait");
-	set_waitindef(result);
-}
-
-void set_waitindef(char *arg)
-{
-	if (STR_EqualsIgnoreCase(arg, "true") || STR_Equals(arg, "1")) {
-		config.waitIndef = true;
-	} else {
-		config.waitIndef = false;
-	}
+	config->waitIndef = IsTrueString(result);
 }
 
 void get_address_setting(struct Details* detail, List* settings)
 {
-	strncpy(detail->port, INI_GetSetting(settings, "networking", "port"),
-	MAX_PORT_CHARS);
+	strncpy(detail->port, INI_GetSetting(settings, "networking", "port"), MAX_PORT_CHARS);
 }
 
 void get_port_setting(struct Details* details,	List* settings)
 {
 	strncpy(details->address, INI_GetSetting(settings, "networking", "address"), MAX_ADDRESS_CHARS);
-}
-
-void set_port_num(char *arg)
-{
-	PRINT("Brok3er addres is %s\n", details.address);
-	strncpy(details.address, arg, MAX_ADDRESS_CHARS);
-	DBG("EXIT:setPortNumber");
 }
 
 int wait_rd_socket(struct Config *config, SOCKET listening_socket, fd_set *rd_fds, struct timeval *timeout)
@@ -265,16 +238,4 @@ int wait_rd_socket(struct Config *config, SOCKET listening_socket, fd_set *rd_fd
 		return select(listening_socket + 1, rd_fds, NULL, NULL, NULL);
 	else
 		return select(listening_socket + 1, rd_fds, NULL, NULL, timeout);
-}
-
-void set_cmd_args()
-{
-	DBG("ENTRY: set_cmd_args");
-	struct Argument* cmdPort = CMD_CreateNewArgument("p", "p <number>", "Set the port that the broker will listen on", true, true,	set_port_num);
-	struct Argument* cmdVerbose = CMD_CreateNewArgument("v", "", "Prints all messages verbosely", false, false, set_verbose);
-	struct Argument* cmdWaitIndef = CMD_CreateNewArgument("w", "", "Wait indefinitely for new connections, else 60 secs and then dies", false, false, set_waitindef);
-	CMD_AddArgument(cmdWaitIndef);
-	CMD_AddArgument(cmdPort);
-	CMD_AddArgument(cmdVerbose);
-	DBG("EXIT: set_cmd_args");
 }
