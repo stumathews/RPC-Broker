@@ -2,6 +2,9 @@
 #define BROKER_SUPPORT_H
 #include "common.h"
 
+
+static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig);
+
 /**
  * @brief Helper method to decode the protocol registration message
  *

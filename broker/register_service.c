@@ -1,9 +1,6 @@
 #include "broker_support.h"
 #include "common.h"
 
-
-static void perform_diagnostics(struct ServiceRegistration* service_registration, struct Config *brokerConfig);
-
 void send_svc_req_ack(struct Config* config, Packet* packet)
 {
 	int total_sent_bytes = 0;
