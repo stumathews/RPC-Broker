@@ -4,8 +4,8 @@ AM_CONFIG_HEADER(config.h:config.hin)
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_C_CONST
-AC_SUBST([LIBINC], ["-I ../../stulibc/src/includes -I ../common -I ../server -I ../../msgpack-c/include"])
-AC_SUBST([LIBLINK],["-L/usr/local/lib -lmsgpackc -lstu"])
+AC_SUBST([LIBINC], ["-I ../../stulibc/src/includes -I ../common -I ../server -I ../../msgpack-c/include -I ../../sqlite/sqlite-autoconf-3140100"])
+AC_SUBST([LIBLINK],["-L/usr/local/lib -lmsgpackc -lstu -lsqlite3"])
 #AC_LIBTOOL_WIN32_DLL
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([winsock2.h])

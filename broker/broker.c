@@ -3,8 +3,19 @@
 #include "../config.h"
 #include "broker.h"
 #include "common/common.h"
+#include "sqlite3.h"
 
 LockPtr lock;
+
+static int callback(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	int i;
+    for(i=0; i<argc; i++){
+      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
 
 /***
  * Read settings and wait for connections
@@ -29,6 +40,25 @@ int main(int argc, char **argv)
 
 	config.svc_repo = &svc_repo;
 	config.clnt_req_repo = &clnt_req_repo;
+
+	sqlite3 *db;
+	char *zErrMsg = 0;
+	int rc = sqlite3_open("broker.db", &db);
+	if( rc ){
+	     fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+	     sqlite3_close(db);
+	     return(1);
+	 }
+	 char* query = "CREATE TABLE IF NOT EXISTS names (id INTEGER PRIMARY KEY, name TEXT);\
+			 INSERT INTO names (name) VALUES('Stuart');\
+			 SELECT * FROM names;";
+	 rc = sqlite3_exec(db, query, callback, 0, &zErrMsg);
+	 if( rc!=SQLITE_OK ){
+		 fprintf(stderr, "SQL error: %s\n", zErrMsg);
+		 sqlite3_free(zErrMsg);
+	 }
+
+	 sqlite3_close(db);
 
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		if (INI_IniParse(CONFIG_FILENAME, &settings) == INI_PARSE_SUCCESS) {
