@@ -147,6 +147,7 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 	Location *sender = NULL;
 	ClientReg *clnt_reg = NULL;
 	Location *dest = NULL;
+	Location* client = NULL;
 	char* req_op = NULL;
 	int msg_id;
 	char* op = NULL;
@@ -188,6 +189,8 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 		msg_id = get_hdr_int(&packet, MESSAGE_ID_HDR);
 		req_op = get_hdr_str(&packet, OPERATION_HDR);
 		clnt_reg = reg_clnt_req(req_op, sender, msg_id, config);
+
+		dest = malloc(sizeof(Location));
 		dest = find_server_for_req(&packet, config);
 
 		if (dest->address == NULL || dest->port == NULL) {
@@ -198,8 +201,9 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 	} else if (req_type == SERVICE_REGISTRATION) {
 		reg_svc_req(&packet, config);
 	} else if (req_type == SERVICE_REQUEST_RESPONSE) {
-		Packet* response = &packet;
-		fwd_to_clnt(response, config);
+		client = malloc(sizeof(Location));
+		client = find_client_for_response(&packet, client, config);
+		send_req(&packet, client->address, client->port, false);
 	} else {
 		PRINT("Unrecognised request type:%d. Ignoring \n", req_type);
 	}

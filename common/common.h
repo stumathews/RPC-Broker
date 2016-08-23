@@ -99,6 +99,7 @@ void copyString(int str_len, const msgpack_object_str* from, char* to);
 enum RequestType get_req_type(struct Packet* pkt);
 int send_req(Packet* packet, char* address, char* port, bool verbose);
 int send_data(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);
+Packet *get_response(SOCKET s, bool verbose);
 int get_hdr_int(Packet* packet, char* look_header_name);
 void unpack_data(Packet* packet, bool verbose);
 void pack_map_str(char* key, char* value, msgpack_packer* pk);

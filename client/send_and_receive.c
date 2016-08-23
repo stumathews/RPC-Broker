@@ -4,7 +4,6 @@
 
 extern bool wait_response_indef;
 extern char client_address[MAX_ADDRESS_CHARS];
-static Packet *get_response(SOCKET s, bool verbose);
 
 Packet* waitForResponse(_Bool verbose, char client_address[MAX_ADDRESS_CHARS], _Bool wait_response_indef, char* wait_response_port)
 {
@@ -83,39 +82,6 @@ Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verb
 
 	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
-
 	return waitForResponse(verbose, client_address, wait_response_indef, wait_response_port); // dangling pointer - stack frame finishes and could invalidate this address
 }
 
-/**
- * @brief Read data from socket, and return it
- *
- * @param s the socket we're reading from
- * @param peerp the peer on the other side
- * @return Packet* te response data we read from the socket
- */
-Packet *get_response(SOCKET s, bool verbose) {
-Packet *packet = malloc(sizeof(Packet));
-
-int n_rc = netReadn(s, (char*) &packet->len, sizeof(uint32_t));
-packet->len = ntohl(packet->len);
-
-if (verbose)
-PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,
-		packet->len);
-
-if (n_rc < 1)
-netError(1, errno, "failed to receiver packet size\n");
-
-packet->buffer = (char*) malloc(sizeof(char) * packet->len);
-int d_rc = netReadn(s, packet->buffer, sizeof(char) * packet->len);
-
-if (d_rc < 1)
-netError(1, errno, "failed to receive message\n");
-
-if (verbose) {
-PRINT("read %d bytes of data\n", d_rc);
-}
-
-return packet;
-}
