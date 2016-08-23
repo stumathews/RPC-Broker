@@ -35,13 +35,16 @@ int send_req(Packet *packet, char* address, char* port, bool verbose)
 {
 	struct sockaddr_in peer;
 	SOCKET connected_socket;
+	int ret = 0;
 
 	unpack_data(packet, verbose);
 	if (verbose) {
 		PRINT("Sending to %s:%s...\n", address, port);
 	}
 	connected_socket = netTcpClient(address, port);
-	return send_data(connected_socket, &peer, packet, verbose);
+	ret = send_data(connected_socket, &peer, packet, verbose);
+	CLOSE(connected_socket);
+	return ret;
 }
 
 /**
