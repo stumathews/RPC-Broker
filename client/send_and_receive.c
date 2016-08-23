@@ -4,7 +4,7 @@
 
 extern bool wait_response_indef;
 extern char client_address[MAX_ADDRESS_CHARS];
-static Packet *get_response(SOCKET s, struct sockaddr_in *peerp, bool verbose);
+static Packet *get_response(SOCKET s, bool verbose);
 
 Packet* waitForResponse(_Bool verbose, char client_address[MAX_ADDRESS_CHARS], _Bool wait_response_indef, char* wait_response_port)
 {
@@ -50,7 +50,7 @@ Packet* waitForResponse(_Bool verbose, char client_address[MAX_ADDRESS_CHARS], _
 				netError(1, errno, "accept failed");
 			}
 			// do network functionality on this socket that now represents a connection with the peer (client)
-			result = get_response(s1, &peer, verbose);
+			result = get_response(s1, verbose);
 			NETCLOSE(s1);
 		} else {
 			DBG("not our socket. continuing");
@@ -71,15 +71,20 @@ Packet* waitForResponse(_Bool verbose, char client_address[MAX_ADDRESS_CHARS], _
  * @param wait_response_port the port that we'll listen locally on for responses(we send this port to recipient)
  * @return Packet* the response from the receipient
  */
-Packet *send_and_receive(Packet* packet, char* to_address, char* port,
-	bool verbose, char* wait_response_port) {
+Packet *send_and_receive(Packet* packet, char* to_address, char* port, bool verbose, char* wait_response_port)
+{
+	struct SendArgs args =
+	{
+			.packet = packet,
+			.to_address = to_address,
+			.port = port,
+			.wait_response_port = wait_response_port
+	};
 
-struct SendArgs args = { .packet = packet, .to_address = to_address, .port =port, .wait_response_port = wait_response_port };
+	THREAD_RunAndForget(thread_send_request, (void*) &args);
 
-THREAD_RunAndForget(thread_send_request, (void*) &args);
 
-return waitForResponse(verbose, client_address, wait_response_indef,
-	wait_response_port); // dangling pointer - stack frame finishes and could invalidate this address
+	return waitForResponse(verbose, client_address, wait_response_indef, wait_response_port); // dangling pointer - stack frame finishes and could invalidate this address
 }
 
 /**
@@ -89,7 +94,7 @@ return waitForResponse(verbose, client_address, wait_response_indef,
  * @param peerp the peer on the other side
  * @return Packet* te response data we read from the socket
  */
-Packet *get_response(SOCKET s, struct sockaddr_in *peerp, bool verbose) {
+Packet *get_response(SOCKET s, bool verbose) {
 Packet *packet = malloc(sizeof(Packet));
 
 int n_rc = netReadn(s, (char*) &packet->len, sizeof(uint32_t));
