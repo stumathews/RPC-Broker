@@ -220,7 +220,7 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 		req_op = get_hdr_str(&packet, OPERATION_HDR);
 		clnt_reg = reg_clnt_req(req_op, sender, msg_id, config);
 
-		dest = malloc(sizeof(Location));
+
 		dest = find_server_for_req(&packet, config);
 
 		if (dest->address == NULL || dest->port == NULL) {
