@@ -10,7 +10,6 @@ Location* find_server_for_req(Packet* packet, Config* clientConfig) {
 	Location *dest;
 
 	op_name = get_op_name(packet);
-	dest = malloc(sizeof(Location));
 	dest->address = NULL;
 	dest->port = NULL;
 

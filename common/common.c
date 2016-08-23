@@ -35,13 +35,71 @@ int send_req(Packet *packet, char* address, char* port, bool verbose)
 {
 	struct sockaddr_in peer;
 	SOCKET connected_socket;
+	int ret = 0;
 
 	unpack_data(packet, verbose);
 	if (verbose) {
 		PRINT("Sending to %s:%s...\n", address, port);
 	}
 	connected_socket = netTcpClient(address, port);
-	return send_data(connected_socket, &peer, packet, verbose);
+	ret = send_data(connected_socket, &peer, packet, verbose);
+	CLOSE(connected_socket);
+	return ret;
+}
+
+Packet* send_req_wait_response(Packet *packet, char* address, char* port, bool verbose)
+{
+	struct sockaddr_in peer;
+	SOCKET connected_socket;
+	int ret = 0;
+
+	unpack_data(packet, verbose);
+	if (verbose) {
+		PRINT("Sending to %s:%s...\n", address, port);
+	}
+	connected_socket = netTcpClient(address, port);
+	ret = send_data(connected_socket, &peer, packet, verbose);
+	if(ret <= 0 ) {
+		PRINT("Sent no data - expected to send data before asking for response");
+		return null;
+	}
+	struct Packet* response = get_response(connected_socket, verbose);
+	CLOSE(connected_socket);
+	return response;
+}
+
+/**
+ * @brief Read data from socket, and return it
+ *
+ * @param s the socket we're reading from
+ * @param peerp the peer on the other side
+ * @return Packet* te response data we read from the socket
+ */
+Packet *get_response(SOCKET s, bool verbose)
+{
+	Packet *packet = malloc(sizeof(Packet));
+
+	int n_rc = netReadn(s, (char*) &packet->len, sizeof(uint32_t));
+	packet->len = ntohl(packet->len);
+
+	if (verbose)
+	PRINT("received %d bytes and interpreted it as length of %u\n", n_rc,
+			packet->len);
+
+	if (n_rc < 1)
+	netError(1, errno, "failed to receiver packet size\n");
+
+	packet->buffer = (char*) malloc(sizeof(char) * packet->len);
+	int d_rc = netReadn(s, packet->buffer, sizeof(char) * packet->len);
+
+	if (d_rc < 1)
+	netError(1, errno, "failed to receive message\n");
+
+	if (verbose) {
+	PRINT("read %d bytes of data\n", d_rc);
+	}
+
+	return packet;
 }
 
 /**

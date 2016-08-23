@@ -99,18 +99,17 @@ void copyString(int str_len, const msgpack_object_str* from, char* to);
 enum RequestType get_req_type(struct Packet* pkt);
 int send_req(Packet* packet, char* address, char* port, bool verbose);
 int send_data(SOCKET s, struct sockaddr_in* peerp, Packet* packet, bool verbose);
+Packet *get_response(SOCKET s, bool verbose);
 int get_hdr_int(Packet* packet, char* look_header_name);
 void unpack_data(Packet* packet, bool verbose);
 void pack_map_str(char* key, char* value, msgpack_packer* pk);
 void pack_map_int(char* key, int ival, msgpack_packer* pk);
 char* pack_client_request_data(msgpack_sbuffer* sbuf, char* op, char* fmt, ...);
-Packet pack_client_response_data(msgpack_sbuffer* sbuf, char* op,
-		int message_id, char* fmt, ...);
+Packet pack_client_response_data(msgpack_sbuffer* sbuf, char* op, int message_id, char* fmt, ...);
 char* get_hdr_str(Packet* packet, char* look_header_name);
 char* get_op_name(Packet* packet);
 msgpack_object extract_header(msgpack_object* obj, char* header_buffer);
-struct Packet *send_and_receive(Packet* packet, char* address, char* port,
-		bool verbose, char* wait_response_port);
+struct Packet *send_and_receive(Packet* packet, char* address, char* port,	bool verbose, char* wait_response_port);
 void printSetting(Node* LinkedListNode);
 void printKeyValuePair(Node* LinkedListNode);
 void check_socket(SOCKET s1);
