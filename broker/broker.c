@@ -10,11 +10,11 @@ LockPtr lock;
 static int callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
 	int i;
-    for(i=0; i<argc; i++){
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
+	for(i=0; i<argc; i++){ printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+     		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+	}
+	printf("\n");
+        return 0;
 }
 
 /***
@@ -120,11 +120,7 @@ static void wait_for_connections(struct Config *config, struct Details *details)
 			netError(1, errno, "select error!!");
 		} else {
 			if (FD_ISSET(listening_socket, &rd_fd)) {
-				#ifdef USE_THREADING
-						THREAD_RunAndForget(process_data_avail, (void*) threadParams);
-				#else
-						process_data_avail((void*) threadParams);
-				#endif
+				PROCESS_DATA_FN();
 			} else {
 				DBG("Not on our socket. continuing listening");
 				continue;

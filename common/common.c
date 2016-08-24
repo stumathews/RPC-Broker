@@ -43,7 +43,7 @@ int send_req(Packet *packet, char* address, char* port, bool verbose)
 	}
 	connected_socket = netTcpClient(address, port);
 	ret = send_data(connected_socket, &peer, packet, verbose);
-	CLOSE(connected_socket);
+	NETCLOSE(connected_socket);
 	return ret;
 }
 
@@ -64,7 +64,7 @@ Packet* send_req_wait_response(Packet *packet, char* address, char* port, bool v
 		return null;
 	}
 	struct Packet* response = get_response(connected_socket, verbose);
-	CLOSE(connected_socket);
+	NETCLOSE(connected_socket);
 	return response;
 }
 
