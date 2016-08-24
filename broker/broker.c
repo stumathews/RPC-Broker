@@ -219,10 +219,7 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 		msg_id = get_hdr_int(&packet, MESSAGE_ID_HDR);
 		req_op = get_hdr_str(&packet, OPERATION_HDR);
 		clnt_reg = reg_clnt_req(req_op, sender, msg_id, config);
-
-
 		dest = find_server_for_req(&packet, config);
-
 		if (dest->address == NULL || dest->port == NULL) {
 			PRINT("No registered server available to process request for op '%s' from host '%s'. \n", req_op, sender->address);
 			return;
@@ -240,7 +237,8 @@ void read_data(SOCKET connected_socket, struct sockaddr_in *peer, struct Config 
 	return;
 }
 
-int IsTrueString(char* arg) {
+int IsTrueString(char* arg)
+{
 	return STR_EqualsIgnoreCase(arg, "1") || STR_EqualsIgnoreCase(arg, "true");
 }
 
@@ -268,8 +266,9 @@ void get_port_setting(struct Details* details,	List* settings)
 
 int wait_rd_socket(struct Config *config, SOCKET listening_socket, fd_set *rd_fds, struct timeval *timeout)
 {
-	if (config->waitIndef)
+	if (config->waitIndef) {
 		return select(listening_socket + 1, rd_fds, NULL, NULL, NULL);
-	else
+	} else {
 		return select(listening_socket + 1, rd_fds, NULL, NULL, timeout);
+	}
 }
