@@ -17,6 +17,12 @@ static const char* CONFIG_FILENAME = "config.ini";
 #undef USE_THREADING
 #endif
 
+#ifdef USE_THREADING
+	#define PROCESS_DATA_FN() THREAD_RunAndForget(process_data_avail, (void*) threadParams)
+#else
+	#define PROCESS_DATA_FN() process_data_avail((void*) threadParams)
+#endif
+
 
 THREADFUNC(process_data_avail);
 static void wait_for_connections();
@@ -25,7 +31,6 @@ void get_verbose_setting(struct Config *config, List* settings);
 void get_wait_setting(struct Config *config, List* settings);
 void get_address_setting(struct Details* details, List* settings);
 void get_port_setting(struct Details* details, List* settings);
-
 int wait_rd_socket(struct Config *brokerConfig, SOCKET listening_socket, fd_set *rd_fds, struct timeval *timeout);
 
 #endif /* BROKER_BROKER_H_ */
