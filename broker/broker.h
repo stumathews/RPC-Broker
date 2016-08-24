@@ -12,10 +12,7 @@
 
 static const char* CONFIG_FILENAME = "config.ini";
 
-
-#ifdef USE_THREADING
-#undef USE_THREADING
-#endif
+#define USE_THREADING
 
 #ifdef USE_THREADING
 	#define PROCESS_DATA_FN() THREAD_RunAndForget(process_data_avail, (void*) threadParams)
