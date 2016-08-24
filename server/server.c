@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	*threadParams = (struct ServerArgs) {.config = &serverConfig, .details = &serverDetails, .socket = &listening_socket};
 
 	do {
-		if ((wait_result = wait(&serverConfig, listening_socket, &readfds, &timeout)) == _WAIT_TIMEOUT) {
+		if ((wait_result = wait_on_socket(&serverConfig, listening_socket, &readfds, &timeout)) == _WAIT_TIMEOUT) {
 			LOG("timeout");
 			netError(1, errno, "timeout!");
 		} else if (wait_result == WAIT_ERROR) {
@@ -188,7 +188,7 @@ if (STR_Equals(arg, "true") || STR_Equals(arg, "1")) {
 }
 }
 
-int wait(struct Config *serverConfig, SOCKET listening_socket,
+int wait_on_socket(struct Config *serverConfig, SOCKET listening_socket,
 	fd_set *read_file_descriptors, struct timeval *timeout) {
 if (serverConfig->verbose)
 	PRINT("-- Listening...\n");
