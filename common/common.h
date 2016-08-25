@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <msgpack.h>
 #include <stulibc.h>
+#include "sqlite3.h"
 #include "protocol.h"
+
 
 #define ON 1;
 #define INI_PARSE_SUCCESS 0
@@ -72,6 +74,7 @@ typedef struct Config {
 	bool waitIndef;
 	List *svc_repo;
 	List *clnt_req_repo;
+	sqlite3 *db;
 } Config;
 
 struct ServerArgs {

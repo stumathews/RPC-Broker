@@ -1,6 +1,20 @@
 #include "broker_support.h"
 #include "common.h"
 
+static int sql_exec_callback(void *NotUsed, int argc, char **argv, char **azColName)
+{
+	int i;
+	for(i=0; i<argc; i++) {
+		printf("%-20s", azColName[i]);
+	}
+	printf("\n");
+	for(i=0; i<argc; i++) {
+			printf("%-20s",  argv[i] ? argv[i] : "NULL");
+		}
+	printf("\n");
+        return 0;
+}
+
 void send_svc_req_ack(struct Config* config, Packet* packet)
 {
 	int total_sent_bytes = 0;
@@ -40,6 +54,13 @@ void send_svc_req_ack(struct Config* config, Packet* packet)
 	msgpack_sbuffer_destroy(&sbuf);
 }
 
+void report_sqlexec_errors(int rc, char* zErrMsg) {
+	if (rc != SQLITE_OK) {
+		fprintf(stderr, "SQL error: %s\n", zErrMsg);
+		sqlite3_free(zErrMsg);
+	}
+}
+
 void reg_svc_req(Packet* packet, struct Config *config)
 {
 	struct ServiceRegistration *reg = unpack_service_registration_buffer(packet->buffer, packet->len, config);
@@ -50,6 +71,35 @@ void reg_svc_req(Packet* packet, struct Config *config)
 
 	LIST_Add(config->svc_repo, reg);
 
+	char *zErrMsg = 0;
+	char qry[80];
+	char tmp[500] = "CREATE TABLE IF NOT EXISTS ServiceRegistration (id INTEGER PRIMARY KEY, name TEXT, address TEXT, port TEXT, num_services INT);\n"
+				    "CREATE TABLE IF NOT EXISTS Services (ServiceRegistrationId INTEGER, name TEXT);\n"
+				    "INSERT INTO ServiceRegistration (name, address, port, num_services) VALUES('%s','%s','%s',%d);\n";
+
+
+	 sprintf(qry, tmp, reg->service_name, reg->address, reg->port, reg->num_services);
+	 printf(qry);
+
+
+	 int rc = sqlite3_exec(config->db, qry, sql_exec_callback, 0, &zErrMsg);
+	 report_sqlexec_errors(rc, zErrMsg);
+
+
+	 for(int i = 0; i < reg->num_services;i++){
+		 strcpy(tmp,"CREATE TEMP TABLE IF NOT EXISTS Variables (Name TEXT PRIMARY KEY, Value INTEGER);\n"
+			        "INSERT OR REPLACE INTO Variables VALUES('ServiceSergistrationId',(SELECT MAX(id) FROM ServiceRegistration));\n"
+			        "INSERT INTO Services (ServiceRegistrationId, name) VALUES((SELECT coalesce(Value, Name) FROM Variables WHERE Name = 'ServiceSergistrationId' LIMIT 1),'%s');\n"
+			        "DROP TABLE Variables;\n");
+		 sprintf(qry, tmp, reg->services[i]);
+		 printf(strcat(qry, "\n"));
+		 rc = sqlite3_exec(config->db, qry, sql_exec_callback, 0, &zErrMsg);
+		 report_sqlexec_errors(rc, zErrMsg);
+	 }
+
+	 rc = sqlite3_exec(config->db, "select * from ServiceRegistration;", sql_exec_callback, 0, &zErrMsg);
+		 report_sqlexec_errors(rc, zErrMsg);
+	PRINT("Done!\n");
 	send_svc_req_ack(config, packet);
 
 	if (config->verbose) {

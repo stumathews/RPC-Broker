@@ -7,15 +7,6 @@
 
 LockPtr lock;
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName)
-{
-	int i;
-	for(i=0; i<argc; i++){ printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-     		printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-	}
-	printf("\n");
-        return 0;
-}
 
 /***
  * Read settings and wait for connections
@@ -37,28 +28,18 @@ int main(int argc, char **argv)
 
 	struct Config config = { 0 };
 	struct Details details = { 0 };
+	char *zErrMsg = 0;
 
 	config.svc_repo = &svc_repo;
 	config.clnt_req_repo = &clnt_req_repo;
 
-	sqlite3 *db;
-	char *zErrMsg = 0;
-	int rc = sqlite3_open("broker.db", &db);
+
+	int rc = sqlite3_open("broker.db", &config.db);
 	if( rc ){
-	     fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-	     sqlite3_close(db);
+	     fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(config.db));
+	     sqlite3_close(config.db);
 	     return(1);
 	 }
-	 char* query = "CREATE TABLE IF NOT EXISTS names (id INTEGER PRIMARY KEY, name TEXT);\
-			 INSERT INTO names (name) VALUES('Stuart');\
-			 SELECT * FROM names;";
-	 rc = sqlite3_exec(db, query, callback, 0, &zErrMsg);
-	 if( rc!=SQLITE_OK ){
-		 fprintf(stderr, "SQL error: %s\n", zErrMsg);
-		 sqlite3_free(zErrMsg);
-	 }
-
-	 sqlite3_close(db);
 
 	if (FILE_Exists(CONFIG_FILENAME) && !(argc > 1)) {
 		if (INI_IniParse(CONFIG_FILENAME, &settings) == INI_PARSE_SUCCESS) {
@@ -90,6 +71,7 @@ int main(int argc, char **argv)
 #ifdef __linux__
 	pthread_exit(NULL);
 #endif
+	sqlite3_close(config.db);
 	EXIT(0);
 }
 
